@@ -1,0 +1,115 @@
+{
+  "common": {
+    "appName": "סורק מניות",
+    "loading": "טוען…",
+    "error": "משהו השתבש",
+    "save": "שמור",
+    "cancel": "ביטול",
+    "delete": "מחק",
+    "confirm": "אישור",
+    "search": "חיפוש",
+    "noResults": "לא נמצאו תוצאות",
+    "signIn": "התחבר",
+    "signUp": "הרשמה",
+    "signOut": "התנתק",
+    "email": "אימייל",
+    "password": "סיסמה",
+    "or": "או"
+  },
+  "nav": {
+    "dashboard": "לוח בקרה",
+    "screener": "סורק",
+    "savedScreens": "סריקות שמורות",
+    "settings": "הגדרות",
+    "terms": "תנאי שימוש"
+  },
+  "auth": {
+    "loginTitle": "התחבר לסורק מניות",
+    "registerTitle": "צור חשבון",
+    "googleSignIn": "המשך עם גוגל",
+    "emailPlaceholder": "you@example.com",
+    "passwordPlaceholder": "הסיסמה שלך",
+    "noAccount": "אין לך חשבון?",
+    "hasAccount": "כבר יש לך חשבון?",
+    "forgotPassword": "שכחת סיסמה?"
+  },
+  "screener": {
+    "title": "סורק מניות",
+    "filters": "מסננים",
+    "results": "תוצאות",
+    "clearFilters": "נקה הכל",
+    "applyFilters": "החל",
+    "tabs": {
+      "movingAverages": "ממוצעים נעים",
+      "bands": "רצועות בולינגר",
+      "sequences": "רצפים",
+      "volatility": "תנודתיות",
+      "priceFundamentals": "מחיר ויסודות"
+    },
+    "ma": {
+      "aboveSMA": "מעל SMA {period}",
+      "belowSMA": "מתחת SMA {period}"
+    },
+    "bb": {
+      "nearUpper": "בטווח 2% מהרצועה העליונה",
+      "nearLower": "בטווח 2% מהרצועה התחתונה"
+    },
+    "seq": {
+      "downBreakRecent": "רצף ירידה נשבר (2 נרות אחרונים)",
+      "upBreakRecent": "רצף עלייה נשבר (2 נרות אחרונים)",
+      "downBreakStrongUp": "רצף ירידה נשבר בהקשר עלייה חזקה"
+    },
+    "atr": {
+      "label": "ATR 14 ימים %",
+      "lessThan": "פחות מ",
+      "greaterThan": "יותר מ"
+    },
+    "table": {
+      "ticker": "סימול",
+      "close": "סגירה",
+      "sma20": "SMA 20",
+      "sma50": "SMA 50",
+      "sma150": "SMA 150",
+      "sma200": "SMA 200",
+      "atrPct": "ATR %",
+      "bbUpper": "% לרצועה עליונה",
+      "bbLower": "% לרצועה תחתונה",
+      "seqState": "רצף",
+      "signals": "איתותים"
+    },
+    "symbols": "{count} מניות נמצאו"
+  },
+  "ticker": {
+    "overview": "סקירה",
+    "indicators": "אינדיקטורים",
+    "recentBars": "נרות אחרונים",
+    "date": "תאריך",
+    "open": "פתיחה",
+    "high": "גבוה",
+    "low": "נמוך",
+    "close": "סגירה",
+    "volume": "מחזור"
+  },
+  "savedScreens": {
+    "title": "סריקות שמורות",
+    "empty": "אין סריקות שמורות",
+    "saveCurrent": "שמור סריקה נוכחית",
+    "nameLabel": "שם הסריקה",
+    "namePlaceholder": "הסריקה שלי"
+  },
+  "settings": {
+    "title": "הגדרות",
+    "language": "שפה",
+    "theme": "ערכת נושא",
+    "themeLight": "בהיר",
+    "themeDark": "כהה",
+    "themeSystem": "מערכת"
+  },
+  "terms": {
+    "title": "תנאי שימוש",
+    "accept": "אני מקבל את תנאי השימוש",
+    "mustAccept": "יש לאשר את תנאי השימוש כדי להמשיך",
+    "version": "גרסה {version}",
+    "body": "בשימוש בסורק מניות, אתה מסכים לתנאים וההתניות הבאים. פלטפורמה זו מספקת נתוני שוק למטרות מידע בלבד. היא אינה מהווה ייעוץ פיננסי. ביצועי עבר אינם מבטיחים תוצאות עתידיות. השימוש במידע הוא על אחריותך בלבד. איננו מתחייבים לדיוק, שלמות או עדכניות של הנתונים המוצגים. הפלטפורמה עשויה להיות לא זמינה במהלך תחזוקה או עקב בעיות טכניות. אנו שומרים לעצמנו את הזכות לשנות תנאים אלה בכל עת."
+  }
+}

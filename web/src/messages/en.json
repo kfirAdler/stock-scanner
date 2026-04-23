@@ -1,0 +1,115 @@
+{
+  "common": {
+    "appName": "Stock Scanner",
+    "loading": "Loading…",
+    "error": "Something went wrong",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "search": "Search",
+    "noResults": "No results found",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "signOut": "Sign Out",
+    "email": "Email",
+    "password": "Password",
+    "or": "or"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "screener": "Screener",
+    "savedScreens": "Saved Screens",
+    "settings": "Settings",
+    "terms": "Terms of Use"
+  },
+  "auth": {
+    "loginTitle": "Sign in to Stock Scanner",
+    "registerTitle": "Create your account",
+    "googleSignIn": "Continue with Google",
+    "emailPlaceholder": "you@example.com",
+    "passwordPlaceholder": "Your password",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "forgotPassword": "Forgot password?"
+  },
+  "screener": {
+    "title": "Stock Screener",
+    "filters": "Filters",
+    "results": "Results",
+    "clearFilters": "Clear All",
+    "applyFilters": "Apply",
+    "tabs": {
+      "movingAverages": "Moving Averages",
+      "bands": "Bollinger Bands",
+      "sequences": "Sequences",
+      "volatility": "Volatility",
+      "priceFundamentals": "Price & Fundamentals"
+    },
+    "ma": {
+      "aboveSMA": "Above SMA {period}",
+      "belowSMA": "Below SMA {period}"
+    },
+    "bb": {
+      "nearUpper": "Within 2% of upper band",
+      "nearLower": "Within 2% of lower band"
+    },
+    "seq": {
+      "downBreakRecent": "Down sequence broke (last 2 candles)",
+      "upBreakRecent": "Up sequence broke (last 2 candles)",
+      "downBreakStrongUp": "Down seq broke in strong up context"
+    },
+    "atr": {
+      "label": "ATR 14d %",
+      "lessThan": "Less than",
+      "greaterThan": "Greater than"
+    },
+    "table": {
+      "ticker": "Ticker",
+      "close": "Close",
+      "sma20": "SMA 20",
+      "sma50": "SMA 50",
+      "sma150": "SMA 150",
+      "sma200": "SMA 200",
+      "atrPct": "ATR %",
+      "bbUpper": "% to BB Upper",
+      "bbLower": "% to BB Lower",
+      "seqState": "Sequence",
+      "signals": "Signals"
+    },
+    "symbols": "{count} symbols found"
+  },
+  "ticker": {
+    "overview": "Overview",
+    "indicators": "Indicators",
+    "recentBars": "Recent Bars",
+    "date": "Date",
+    "open": "Open",
+    "high": "High",
+    "low": "Low",
+    "close": "Close",
+    "volume": "Volume"
+  },
+  "savedScreens": {
+    "title": "Saved Screens",
+    "empty": "No saved screens yet",
+    "saveCurrent": "Save Current Screen",
+    "nameLabel": "Screen name",
+    "namePlaceholder": "My screen"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System"
+  },
+  "terms": {
+    "title": "Terms of Use",
+    "accept": "I accept the Terms of Use",
+    "mustAccept": "You must accept the Terms of Use to continue",
+    "version": "Version {version}",
+    "body": "By using Stock Scanner, you agree to the following terms and conditions. This platform provides market data for informational purposes only. It does not constitute financial advice. Past performance does not guarantee future results. Use the information at your own risk. We do not guarantee the accuracy, completeness, or timeliness of any data presented. The platform may be unavailable during maintenance or due to technical issues. We reserve the right to modify these terms at any time."
+  }
+}
