@@ -7,8 +7,8 @@ _env_path = Path(__file__).resolve().parents[4] / ".env.local"
 if _env_path.exists():
     load_dotenv(_env_path)
 
-SUPABASE_URL: str = os.environ["NEXT_PUBLIC_SUPABASE_URL"]
-SUPABASE_SERVICE_KEY: str = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
+SUPABASE_URL: str = os.environ.get("NEXT_PUBLIC_SUPABASE_URL", "")
+SUPABASE_SERVICE_KEY: str = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
 
 TIMEFRAME = "1D"
 RETENTION_BARS = 750
