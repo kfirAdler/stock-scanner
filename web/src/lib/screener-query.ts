@@ -126,9 +126,13 @@ export function smaPeriodsFromFilters(filters: ScreenerFilters): number[] {
   return out.length > 0 ? out : [20, 50];
 }
 
-export function tradingViewSymbol(ticker: string): string {
+export function tradingViewSymbol(
+  ticker: string,
+  listingExchange?: string | null
+): string {
   const t = formatTickerForTradingView(ticker);
   const ex =
+    (listingExchange && listingExchange.trim()) ||
     (typeof process !== "undefined" &&
       process.env.NEXT_PUBLIC_TRADINGVIEW_EXCHANGE) ||
     "NASDAQ";

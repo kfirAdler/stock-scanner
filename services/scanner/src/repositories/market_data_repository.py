@@ -140,6 +140,37 @@ def upsert_snapshot(snapshot: IndicatorSnapshot) -> None:
     ).execute()
 
 
+def get_listing_exchange(ticker: str) -> str | None:
+    client = _get_client()
+    result = (
+        client.table("symbol_metadata")
+        .select("listing_exchange")
+        .eq("ticker", ticker)
+        .limit(1)
+        .execute()
+    )
+    if not result.data:
+        return None
+    ex = result.data[0].get("listing_exchange")
+    return ex if isinstance(ex, str) and ex.strip() else None
+
+
+def persist_listing_exchange(ticker: str, exchange: str) -> None:
+    client = _get_client()
+    existing = (
+        client.table("symbol_metadata")
+        .select("ticker")
+        .eq("ticker", ticker)
+        .limit(1)
+        .execute()
+    )
+    row = {"ticker": ticker, "listing_exchange": exchange}
+    if existing.data:
+        client.table("symbol_metadata").update(row).eq("ticker", ticker).execute()
+    else:
+        client.table("symbol_metadata").insert(row).execute()
+
+
 def log_scan_run(
     job_name: str,
     timeframe: str,

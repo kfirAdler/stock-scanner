@@ -4,11 +4,14 @@ import { useEffect, useRef } from "react";
 import { useTheme } from "next-themes";
 import {
   createChart,
+  createSeriesMarkers,
   type IChartApi,
+  type ISeriesMarkersPluginApi,
   ColorType,
   CrosshairMode,
   type CandlestickData,
   type LineData,
+  type SeriesMarker,
   type Time,
   CandlestickSeries,
   HistogramSeries,
@@ -29,6 +32,13 @@ interface ChartProps {
   height?: number;
   /** SMA lengths to plot (default 20 and 50). */
   smaPeriods?: number[];
+  /** YYYY-MM-DD of the bar to annotate (usually snapshot last_trade_date). */
+  signalBarDate?: string | null;
+  strongBuy?: boolean;
+  strongSell?: boolean;
+  buySignal?: boolean;
+  sellSignal?: boolean;
+  atr14?: number | null;
 }
 
 const LIGHT_THEME = {
@@ -61,6 +71,12 @@ export function CandlestickChart({
   bars,
   height = 420,
   smaPeriods = [20, 50],
+  signalBarDate,
+  strongBuy,
+  strongSell,
+  buySignal,
+  sellSignal,
+  atr14,
 }: ChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
@@ -122,6 +138,20 @@ export function CandlestickChart({
 
     candleSeries.setData(candleData);
 
+    const signalMarkers = buildSignalMarkers(bars, {
+      signalBarDate: signalBarDate ?? null,
+      strongBuy: !!strongBuy,
+      strongSell: !!strongSell,
+      buySignal: !!buySignal,
+      sellSignal: !!sellSignal,
+      atr14: atr14 ?? null,
+      isDark,
+    });
+    let markersApi: ISeriesMarkersPluginApi<Time> | null = null;
+    if (signalMarkers.length > 0) {
+      markersApi = createSeriesMarkers(candleSeries, signalMarkers);
+    }
+
     const volumeSeries = chart.addSeries(HistogramSeries, {
       priceFormat: { type: "volume" },
       priceScaleId: "volume",
@@ -168,11 +198,23 @@ export function CandlestickChart({
     resizeObserver.observe(containerRef.current);
 
     return () => {
+      markersApi?.detach();
       resizeObserver.disconnect();
       chart.remove();
       chartRef.current = null;
     };
-  }, [bars, resolvedTheme, height, smaPeriods]);
+  }, [
+    bars,
+    resolvedTheme,
+    height,
+    smaPeriods,
+    signalBarDate,
+    strongBuy,
+    strongSell,
+    buySignal,
+    sellSignal,
+    atr14,
+  ]);
 
   if (bars.length === 0) {
     return (
@@ -189,6 +231,98 @@ export function CandlestickChart({
       style={{ height }}
     />
   );
+}
+
+function buildSignalMarkers(
+  bars: BarData[],
+  opts: {
+    signalBarDate: string | null;
+    strongBuy: boolean;
+    strongSell: boolean;
+    buySignal: boolean;
+    sellSignal: boolean;
+    atr14: number | null;
+    isDark: boolean;
+  }
+): SeriesMarker<Time>[] {
+  if (!opts.signalBarDate) return [];
+  const bar =
+    bars.find((b) => b.trade_date === opts.signalBarDate) ??
+    bars[bars.length - 1];
+  if (!bar) return [];
+
+  const t = bar.trade_date as Time;
+  const hi = Number(bar.high);
+  const lo = Number(bar.low);
+  const range = Math.max(hi - lo, Math.abs(hi) * 0.001);
+  const pad =
+    opts.atr14 !== null && opts.atr14 > 0
+      ? opts.atr14 * 0.12
+      : range * 0.15;
+
+  const green = opts.isDark ? "#4ade80" : "#16a34a";
+  const red = opts.isDark ? "#f87171" : "#dc2626";
+  const markers: SeriesMarker<Time>[] = [];
+
+  if (opts.strongBuy) {
+    markers.push(
+      {
+        time: t,
+        position: "atPriceTop",
+        shape: "arrowUp",
+        color: green,
+        price: hi + pad,
+        size: 2,
+      },
+      {
+        time: t,
+        position: "atPriceBottom",
+        shape: "arrowUp",
+        color: green,
+        price: lo - pad,
+        size: 2,
+      }
+    );
+  } else if (opts.buySignal) {
+    markers.push({
+      time: t,
+      position: "belowBar",
+      shape: "arrowUp",
+      color: green,
+      size: 1,
+    });
+  }
+
+  if (opts.strongSell) {
+    markers.push(
+      {
+        time: t,
+        position: "atPriceTop",
+        shape: "arrowDown",
+        color: red,
+        price: hi + pad,
+        size: 2,
+      },
+      {
+        time: t,
+        position: "atPriceTop",
+        shape: "arrowDown",
+        color: red,
+        price: hi + pad * 2.7,
+        size: 2,
+      }
+    );
+  } else if (opts.sellSignal) {
+    markers.push({
+      time: t,
+      position: "aboveBar",
+      shape: "arrowDown",
+      color: red,
+      size: 1,
+    });
+  }
+
+  return markers;
 }
 
 function computeSMA(bars: BarData[], period: number): LineData<Time>[] {

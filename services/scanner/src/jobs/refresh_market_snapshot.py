@@ -9,12 +9,15 @@ from ..indicators.compute import compute_snapshot
 from ..repositories.market_data_repository import (
     enforce_retention,
     get_all_tickers,
+    get_latest_trade_date,
+    get_listing_exchange,
     get_ticker_history,
     log_scan_run,
+    persist_listing_exchange,
     upsert_bars,
     upsert_snapshot,
-    get_latest_trade_date,
 )
+from ..utils.listing_exchange import fetch_listing_exchange_yfinance
 from ..utils.market_data_fetcher import fetch_bars
 
 logger = logging.getLogger(__name__)
@@ -62,6 +65,10 @@ def run(tickers: list[str] | None = None) -> dict:
             if snapshot:
                 upsert_snapshot(snapshot)
                 logger.info("Snapshot updated for %s", ticker)
+                if not get_listing_exchange(ticker):
+                    tv_ex = fetch_listing_exchange_yfinance(ticker)
+                    if tv_ex:
+                        persist_listing_exchange(ticker, tv_ex)
 
             processed += 1
             time.sleep(BATCH_DELAY_SECONDS)

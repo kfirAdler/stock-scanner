@@ -22,6 +22,7 @@ export default function TickerDetailPage() {
   const t = useTranslations();
   const [snapshot, setSnapshot] = useState<SnapshotRow | null>(null);
   const [bars, setBars] = useState<BarRow[]>([]);
+  const [listingExchange, setListingExchange] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -33,6 +34,11 @@ export default function TickerDetailPage() {
         const data = await res.json();
         setSnapshot(data.snapshot);
         setBars((data.recentBars ?? []).reverse());
+        setListingExchange(
+          typeof data.listing_exchange === "string"
+            ? data.listing_exchange
+            : null
+        );
       } catch {
         setError(t("common.error"));
       } finally {
@@ -104,7 +110,12 @@ export default function TickerDetailPage() {
           </div>
         }
       >
-        <TickerChartPanel ticker={String(ticker).toUpperCase()} bars={bars} />
+        <TickerChartPanel
+          ticker={String(ticker).toUpperCase()}
+          bars={bars}
+          listingExchange={listingExchange}
+          snapshot={snapshot}
+        />
       </Suspense>
 
       {/* Indicators Grid */}

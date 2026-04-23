@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { clsx } from "clsx";
 import { CandlestickChart } from "@/components/chart/CandlestickChart";
 import { TradingViewAdvancedChart } from "@/components/chart/TradingViewAdvancedChart";
+import type { SnapshotRow } from "@/lib/screener-types";
 import {
   countActiveFilters,
   filtersToTvStudies,
@@ -29,9 +30,13 @@ type TabId = "tradingview" | "app";
 export function TickerChartPanel({
   ticker,
   bars,
+  listingExchange,
+  snapshot,
 }: {
   ticker: string;
   bars: BarRow[];
+  listingExchange?: string | null;
+  snapshot: SnapshotRow;
 }) {
   const t = useTranslations("ticker");
   const locale = useLocale();
@@ -51,7 +56,7 @@ export function TickerChartPanel({
   const showScreenerHint = activeFilterCount > 0;
   const showSequenceNote = hasSequenceFilters(filters);
 
-  const tvSymbol = tradingViewSymbol(ticker);
+  const tvSymbol = tradingViewSymbol(ticker, listingExchange);
 
   return (
     <section className="space-y-3" aria-label={t("chart.sectionLabel")}>
@@ -136,6 +141,12 @@ export function TickerChartPanel({
             bars={bars}
             height={420}
             smaPeriods={appSmaPeriods}
+            signalBarDate={snapshot.last_trade_date}
+            strongBuy={!!snapshot.strong_buy_signal}
+            strongSell={!!snapshot.strong_sell_signal}
+            buySignal={!!snapshot.buy_signal && !snapshot.strong_buy_signal}
+            sellSignal={!!snapshot.sell_signal && !snapshot.strong_sell_signal}
+            atr14={snapshot.atr_14}
           />
           <p className="mt-1 text-[10px] text-text-muted">{t("chart.appDataCaption")}</p>
         </div>
