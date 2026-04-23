@@ -29,6 +29,10 @@ export function FilterPanel({ filters, onChange, onApply, loading }: FilterPanel
     { id: "price", label: t("tabs.priceFundamentals") },
   ];
 
+  const activeFilterCount = Object.values(filters).filter(
+    (v) => v !== undefined && v !== null && v !== ""
+  ).length;
+
   function toggleBool(key: keyof ScreenerFilters) {
     const current = filters[key];
     onChange({ ...filters, [key]: current ? undefined : true });
@@ -44,11 +48,18 @@ export function FilterPanel({ filters, onChange, onApply, loading }: FilterPanel
   }
 
   return (
-    <div className="rounded-xl border border-border bg-surface">
-      <div className="flex items-center justify-between border-b border-border px-4 py-3">
-        <h2 className="text-sm font-bold">{t("filters")}</h2>
+    <div className="rounded-2xl border border-border bg-surface-raised shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between px-5 py-3.5 bg-surface-alt border-b border-border">
+        <div className="flex items-center gap-3">
+          <h2 className="text-sm font-bold text-text">{t("filters")}</h2>
+          {activeFilterCount > 0 && (
+            <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 rounded-full bg-primary text-white text-[10px] font-bold">
+              {activeFilterCount}
+            </span>
+          )}
+        </div>
         <div className="flex gap-2">
-          <Button variant="ghost" size="sm" onClick={clearAll}>
+          <Button variant="ghost" size="sm" onClick={clearAll} disabled={activeFilterCount === 0}>
             {t("clearFilters")}
           </Button>
           <Button size="sm" onClick={onApply} loading={loading}>
@@ -57,7 +68,7 @@ export function FilterPanel({ filters, onChange, onApply, loading }: FilterPanel
         </div>
       </div>
 
-      <div role="tablist" className="flex overflow-x-auto border-b border-border">
+      <div role="tablist" className="flex overflow-x-auto bg-surface">
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -67,27 +78,31 @@ export function FilterPanel({ filters, onChange, onApply, loading }: FilterPanel
             id={`tab-${tab.id}`}
             onClick={() => setActiveTab(tab.id)}
             className={clsx(
-              "shrink-0 px-4 py-2.5 text-sm font-bold transition-colors border-b-2",
+              "relative shrink-0 px-5 py-3 text-xs font-bold transition-colors",
               activeTab === tab.id
-                ? "border-primary text-primary"
-                : "border-transparent text-text-secondary hover:text-text"
+                ? "text-primary"
+                : "text-text-muted hover:text-text-secondary"
             )}
           >
             {tab.label}
+            {activeTab === tab.id && (
+              <span className="absolute bottom-0 inset-x-2 h-0.5 rounded-full bg-primary" />
+            )}
           </button>
         ))}
       </div>
 
-      <div className="p-4">
+      <div className="p-5 border-t border-border">
         {activeTab === "ma" && (
           <div
             role="tabpanel"
             id="panel-ma"
             aria-labelledby="tab-ma"
-            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"
+            className="grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-3"
           >
             {([20, 50, 150, 200] as const).map((period) => (
-              <div key={period} className="space-y-2">
+              <div key={period} className="space-y-2.5">
+                <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider">SMA {period}</p>
                 <Checkbox
                   label={t("ma.aboveSMA", { period })}
                   checked={!!filters[`is_above_sma${period}` as keyof ScreenerFilters]}
@@ -108,7 +123,7 @@ export function FilterPanel({ filters, onChange, onApply, loading }: FilterPanel
             role="tabpanel"
             id="panel-bb"
             aria-labelledby="tab-bb"
-            className="flex flex-wrap gap-4"
+            className="flex flex-wrap gap-6"
           >
             <Checkbox
               label={t("bb.nearUpper")}
@@ -138,7 +153,7 @@ export function FilterPanel({ filters, onChange, onApply, loading }: FilterPanel
             role="tabpanel"
             id="panel-seq"
             aria-labelledby="tab-seq"
-            className="flex flex-wrap gap-4"
+            className="space-y-3"
           >
             <Checkbox
               label={t("seq.downBreakRecent")}
@@ -163,9 +178,9 @@ export function FilterPanel({ filters, onChange, onApply, loading }: FilterPanel
             role="tabpanel"
             id="panel-vol"
             aria-labelledby="tab-vol"
-            className="flex flex-wrap gap-4 items-end"
+            className="flex flex-wrap gap-5 items-end"
           >
-            <div className="w-40">
+            <div className="w-44">
               <Input
                 label={`${t("atr.label")} ${t("atr.lessThan")}`}
                 type="number"
@@ -176,7 +191,7 @@ export function FilterPanel({ filters, onChange, onApply, loading }: FilterPanel
                 placeholder="e.g. 3"
               />
             </div>
-            <div className="w-40">
+            <div className="w-44">
               <Input
                 label={`${t("atr.label")} ${t("atr.greaterThan")}`}
                 type="number"
@@ -195,9 +210,14 @@ export function FilterPanel({ filters, onChange, onApply, loading }: FilterPanel
             role="tabpanel"
             id="panel-price"
             aria-labelledby="tab-price"
-            className="text-sm text-text-secondary"
+            className="flex items-center gap-3 text-sm text-text-muted py-4"
           >
-            <p>Price & Fundamentals filters coming soon. Market cap data will be available in a future update.</p>
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-surface-alt text-text-muted">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clipRule="evenodd" />
+              </svg>
+            </span>
+            Price & Fundamentals filters coming soon.
           </div>
         )}
       </div>

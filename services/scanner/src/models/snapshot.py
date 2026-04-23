@@ -2,6 +2,8 @@ from dataclasses import dataclass, field
 from datetime import date, datetime
 from typing import Optional
 
+import numpy as np
+
 
 @dataclass
 class IndicatorSnapshot:
@@ -61,7 +63,16 @@ class IndicatorSnapshot:
         for k, v in self.__dict__.items():
             if v is None and k == "updated_at":
                 continue
-            if isinstance(v, date) and not isinstance(v, datetime):
+            if v is None or (hasattr(v, "__class__") and v.__class__.__name__ == "NaTType"):
+                d[k] = None
+            elif isinstance(v, (np.bool_,)):
+                d[k] = bool(v)
+            elif isinstance(v, (np.integer,)):
+                d[k] = int(v)
+            elif isinstance(v, (np.floating,)):
+                val = float(v)
+                d[k] = None if np.isnan(val) else val
+            elif isinstance(v, date) and not isinstance(v, datetime):
                 d[k] = v.isoformat()
             elif isinstance(v, datetime):
                 d[k] = v.isoformat()

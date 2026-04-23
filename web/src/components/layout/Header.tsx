@@ -42,80 +42,88 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-surface/80 backdrop-blur-sm">
-      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
-        <div className="flex items-center gap-6">
-          <Link href="/" className="text-lg font-bold text-text hover:text-primary transition-colors">
-            {t("common.appName")}
+    <header className="sticky top-0 z-40 border-b border-border bg-surface/90 backdrop-blur-md">
+      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6">
+        <div className="flex items-center gap-8">
+          <Link href="/" className="flex items-center gap-2 group">
+            <div className="h-7 w-7 rounded-lg bg-primary flex items-center justify-center shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="white" className="w-4 h-4">
+                <path fillRule="evenodd" d="M12.577 4.878a.75.75 0 01.919-.53l4.78 1.281a.75.75 0 01.531.919l-1.281 4.78a.75.75 0 01-1.449-.387l.81-3.022a19.407 19.407 0 00-5.594 5.203.75.75 0 01-1.139.093L7 10.06l-4.72 4.72a.75.75 0 01-1.06-1.061l5.25-5.25a.75.75 0 011.06 0l3.074 3.073a20.923 20.923 0 015.545-4.931l-3.042.815a.75.75 0 01-.53-.919z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <span className="text-base font-bold text-text group-hover:text-primary transition-colors hidden sm:inline">
+              {t("common.appName")}
+            </span>
           </Link>
-          <nav className="hidden md:flex items-center gap-4" aria-label="Main navigation">
-            <Link href="/screener" className="text-sm text-text-secondary hover:text-text transition-colors">
+          <nav className="hidden md:flex items-center gap-1" aria-label="Main navigation">
+            <Link
+              href="/screener"
+              className="px-3 py-1.5 rounded-md text-sm font-bold text-text-secondary hover:text-text hover:bg-surface-alt transition-colors"
+            >
               {t("nav.screener")}
             </Link>
             {user && (
-              <Link href="/saved-screens" className="text-sm text-text-secondary hover:text-text transition-colors">
+              <Link
+                href="/saved-screens"
+                className="px-3 py-1.5 rounded-md text-sm font-bold text-text-secondary hover:text-text hover:bg-surface-alt transition-colors"
+              >
                 {t("nav.savedScreens")}
               </Link>
             )}
           </nav>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <LanguageToggle />
           <ThemeToggle />
+
           {user ? (
-            <div className="relative">
+            <div className="relative ms-1">
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
-                className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-text-secondary hover:bg-surface-alt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-colors"
+                className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm text-text-secondary hover:bg-surface-alt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-colors"
                 aria-expanded={menuOpen}
                 aria-haspopup="true"
               >
-                <span className="hidden sm:inline truncate max-w-[150px]">
+                <div className="h-6 w-6 rounded-full bg-primary-soft flex items-center justify-center text-xs font-bold text-primary">
+                  {user.email?.[0]?.toUpperCase() ?? "U"}
+                </div>
+                <span className="hidden sm:inline truncate max-w-[120px] text-xs">
                   {user.email}
                 </span>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4" aria-hidden="true">
-                  <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
-                </svg>
               </button>
               {menuOpen && (
-                <div
-                  className="absolute end-0 mt-1 w-48 rounded-lg border border-border bg-surface shadow-lg py-1 z-50"
-                  role="menu"
-                >
-                  <Link
-                    href="/settings"
-                    className="block px-4 py-2 text-sm text-text-secondary hover:bg-surface-alt"
-                    role="menuitem"
-                    onClick={() => setMenuOpen(false)}
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+                  <div
+                    className="absolute end-0 mt-1.5 w-48 rounded-xl border border-border bg-surface-raised shadow-xl py-1.5 z-50"
+                    role="menu"
                   >
-                    {t("nav.settings")}
-                  </Link>
-                  <button
-                    onClick={handleSignOut}
-                    className="block w-full text-start px-4 py-2 text-sm text-danger hover:bg-surface-alt"
-                    role="menuitem"
-                  >
-                    {t("common.signOut")}
-                  </button>
-                </div>
+                    <Link
+                      href="/settings"
+                      className="block px-4 py-2 text-sm text-text-secondary hover:text-text hover:bg-surface-alt transition-colors"
+                      role="menuitem"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      {t("nav.settings")}
+                    </Link>
+                    <div className="my-1 border-t border-border" />
+                    <button
+                      onClick={handleSignOut}
+                      className="block w-full text-start px-4 py-2 text-sm text-danger hover:bg-danger-soft transition-colors"
+                      role="menuitem"
+                    >
+                      {t("common.signOut")}
+                    </button>
+                  </div>
+                </>
               )}
             </div>
           ) : (
-            <Link href="/auth/login">
+            <Link href="/auth/login" className="ms-1">
               <Button size="sm">{t("common.signIn")}</Button>
             </Link>
           )}
-
-          <button
-            className="md:hidden inline-flex items-center justify-center w-8 h-8 rounded-lg text-text-secondary hover:bg-surface-alt"
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Toggle menu"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5" aria-hidden="true">
-              <path fillRule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10zm0 5.25a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75a.75.75 0 01-.75-.75z" clipRule="evenodd" />
-            </svg>
-          </button>
         </div>
       </div>
     </header>

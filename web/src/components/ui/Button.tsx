@@ -14,19 +14,19 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles: Record<Variant, string> = {
   primary:
-    "bg-primary text-white hover:bg-primary-hover focus-visible:ring-primary",
+    "bg-primary text-white shadow-sm hover:bg-primary-hover active:scale-[0.98] focus-visible:ring-primary/50",
   secondary:
-    "bg-surface-alt text-text border border-border hover:bg-border focus-visible:ring-primary",
+    "bg-surface-raised text-text border border-border hover:border-border-strong hover:bg-surface-alt active:scale-[0.98] focus-visible:ring-primary/50",
   ghost:
-    "text-text-secondary hover:bg-surface-alt focus-visible:ring-primary",
+    "text-text-secondary hover:text-text hover:bg-surface-alt focus-visible:ring-primary/50",
   danger:
-    "bg-danger text-white hover:bg-red-700 focus-visible:ring-danger",
+    "bg-danger text-white shadow-sm hover:bg-red-700 active:scale-[0.98] focus-visible:ring-danger/50",
 };
 
 const sizeStyles: Record<Size, string> = {
-  sm: "px-3 py-1.5 text-sm",
+  sm: "px-3 py-1.5 text-xs",
   md: "px-4 py-2 text-sm",
-  lg: "px-6 py-3 text-base",
+  lg: "px-6 py-2.5 text-base",
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -36,8 +36,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         className={clsx(
           "inline-flex items-center justify-center gap-2 rounded-lg font-bold",
-          "transition-colors duration-150",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+          "transition-all duration-150 ease-out",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
           "disabled:opacity-50 disabled:pointer-events-none",
           variantStyles[variant],
           sizeStyles[size],

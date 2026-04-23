@@ -18,27 +18,50 @@ def _get_client() -> Client:
 
 def get_all_tickers() -> list[str]:
     client = _get_client()
-    result = (
-        client.table("market_raw_data")
-        .select("ticker")
-        .execute()
-    )
-    tickers = sorted(set(row["ticker"] for row in result.data))
-    return tickers
+    tickers: set[str] = set()
+    page_size = 1000
+    offset = 0
+    while True:
+        result = (
+            client.table("market_raw_data")
+            .select("ticker")
+            .order("ticker")
+            .range(offset, offset + page_size - 1)
+            .execute()
+        )
+        if not result.data:
+            break
+        for row in result.data:
+            tickers.add(row["ticker"])
+        if len(result.data) < page_size:
+            break
+        offset += page_size
+    return sorted(tickers)
 
 
 def get_ticker_history(ticker: str) -> pd.DataFrame:
     client = _get_client()
-    result = (
-        client.table("market_raw_data")
-        .select("*")
-        .eq("ticker", ticker)
-        .order("trade_date", desc=False)
-        .execute()
-    )
-    if not result.data:
+    all_rows: list[dict] = []
+    page_size = 1000
+    offset = 0
+    while True:
+        result = (
+            client.table("market_raw_data")
+            .select("*")
+            .eq("ticker", ticker)
+            .order("trade_date", desc=False)
+            .range(offset, offset + page_size - 1)
+            .execute()
+        )
+        if not result.data:
+            break
+        all_rows.extend(result.data)
+        if len(result.data) < page_size:
+            break
+        offset += page_size
+    if not all_rows:
         return pd.DataFrame()
-    df = pd.DataFrame(result.data)
+    df = pd.DataFrame(all_rows)
     df["trade_date"] = pd.to_datetime(df["trade_date"]).dt.date
     for col in ["open", "high", "low", "close", "volume"]:
         df[col] = pd.to_numeric(df[col], errors="coerce")

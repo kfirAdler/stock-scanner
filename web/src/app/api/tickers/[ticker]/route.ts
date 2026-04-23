@@ -20,7 +20,7 @@ export async function GET(
       .select("*")
       .eq("ticker", ticker.toUpperCase())
       .order("trade_date", { ascending: false })
-      .limit(30),
+      .limit(250),
   ]);
 
   if (snapshotResult.error) {
