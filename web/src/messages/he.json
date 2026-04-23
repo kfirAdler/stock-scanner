@@ -88,7 +88,18 @@
     "high": "גבוה",
     "low": "נמוך",
     "close": "סגירה",
-    "volume": "מחזור"
+    "volume": "מחזור",
+    "chart": {
+      "sectionLabel": "גרף מחיר",
+      "tabTradingView": "TradingView",
+      "tabAppData": "נתוני האפליקציה",
+      "screenerContextTitle": "הקשר מהסורק",
+      "screenerStudiesHint": "נוספו {count} אינדיקטור(ים) תואמים מהמסננים הפעילים לגרף TradingView.",
+      "sequenceFiltersHint": "המסננים כוללים לוגיקת רצפים מותאמת שלנו. TradingView לא יכול לשחזר זאת בדיוק—אשר רצפים ואיתותים בכרטיסי האינדיקטורים למטה.",
+      "screenerGenericHint": "פתח את תפריט האינדיקטורים ב־TradingView כדי לחקור כלים התואמים למסננים.",
+      "tradingViewAttribution": "גרפים באמצעות TradingView",
+      "appDataCaption": "נרות יומיים ממסד הנתונים של החשבון (אותו מקור כמו הסורק)."
+    }
   },
   "savedScreens": {
     "title": "סריקות שמורות",

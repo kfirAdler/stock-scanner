@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { CandlestickChart } from "@/components/chart/CandlestickChart";
 import { clsx } from "clsx";
+import { TickerChartPanel } from "./TickerChartPanel";
 import type { SnapshotRow } from "@/lib/screener-types";
 
 interface BarRow {
@@ -94,8 +94,18 @@ export default function TickerDetailPage() {
         </p>
       </div>
 
-      {/* Chart */}
-      <CandlestickChart bars={bars} />
+      <Suspense
+        fallback={
+          <div
+            className="flex items-center justify-center rounded-2xl border border-border bg-surface-alt"
+            style={{ height: 560 }}
+          >
+            <span className="text-sm text-text-muted">{t("common.loading")}</span>
+          </div>
+        }
+      >
+        <TickerChartPanel ticker={String(ticker).toUpperCase()} bars={bars} />
+      </Suspense>
 
       {/* Indicators Grid */}
       <section>

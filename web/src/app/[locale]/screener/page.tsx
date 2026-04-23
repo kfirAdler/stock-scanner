@@ -43,7 +43,13 @@ export default function ScreenerPage() {
         onApply={fetchResults}
         loading={loading}
       />
-      {hasSearched && <ResultsTable rows={results} loading={loading} />}
+      {hasSearched && (
+        <ResultsTable
+          rows={results}
+          loading={loading}
+          screenerFilters={filters}
+        />
+      )}
     </div>
   );
 }

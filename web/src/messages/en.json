@@ -88,7 +88,18 @@
     "high": "High",
     "low": "Low",
     "close": "Close",
-    "volume": "Volume"
+    "volume": "Volume",
+    "chart": {
+      "sectionLabel": "Price chart",
+      "tabTradingView": "TradingView",
+      "tabAppData": "App data",
+      "screenerContextTitle": "Screener context",
+      "screenerStudiesHint": "Added {count} matching indicator(s) from your active filters to the TradingView chart.",
+      "sequenceFiltersHint": "Your filters include our custom sequence logic. TradingView cannot reproduce that exactly—use the indicator cards below to confirm sequence and signals.",
+      "screenerGenericHint": "Open the indicators menu in TradingView to explore tools that align with your filters.",
+      "tradingViewAttribution": "Charting by TradingView",
+      "appDataCaption": "Daily bars from your account database (same source as the screener)."
+    }
   },
   "savedScreens": {
     "title": "Saved Screens",

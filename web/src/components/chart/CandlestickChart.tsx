@@ -27,6 +27,8 @@ interface BarData {
 interface ChartProps {
   bars: BarData[];
   height?: number;
+  /** SMA lengths to plot (default 20 and 50). */
+  smaPeriods?: number[];
 }
 
 const LIGHT_THEME = {
@@ -41,6 +43,8 @@ const LIGHT_THEME = {
   downWick: "#dc2626",
 };
 
+const SMA_LINE_COLORS = ["#3b82f6", "#22c55e", "#ef4444", "#eab308"];
+
 const DARK_THEME = {
   background: "#0b1120",
   text: "#64748b",
@@ -53,7 +57,11 @@ const DARK_THEME = {
   downWick: "#ef4444",
 };
 
-export function CandlestickChart({ bars, height = 420 }: ChartProps) {
+export function CandlestickChart({
+  bars,
+  height = 420,
+  smaPeriods = [20, 50],
+}: ChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const { resolvedTheme } = useTheme();
@@ -133,33 +141,22 @@ export function CandlestickChart({ bars, height = 420 }: ChartProps) {
       }))
     );
 
-    if (bars.length >= 20) {
-      const sma20Data = computeSMA(bars, 20);
-      if (sma20Data.length > 0) {
-        const sma20Series = chart.addSeries(LineSeries, {
-          color: "#3b82f6",
-          lineWidth: 1,
-          priceLineVisible: false,
-          lastValueVisible: false,
-          crosshairMarkerVisible: false,
-        });
-        sma20Series.setData(sma20Data);
-      }
-    }
-
-    if (bars.length >= 50) {
-      const sma50Data = computeSMA(bars, 50);
-      if (sma50Data.length > 0) {
-        const sma50Series = chart.addSeries(LineSeries, {
-          color: "#22c55e",
-          lineWidth: 1,
-          priceLineVisible: false,
-          lastValueVisible: false,
-          crosshairMarkerVisible: false,
-        });
-        sma50Series.setData(sma50Data);
-      }
-    }
+    const uniquePeriods = [...new Set(smaPeriods)].filter((p) => p > 0).sort((a, b) => a - b);
+    uniquePeriods.forEach((period, idx) => {
+      if (bars.length < period) return;
+      const smaData = computeSMA(bars, period);
+      if (smaData.length === 0) return;
+      const color = SMA_LINE_COLORS[idx % SMA_LINE_COLORS.length];
+      const series = chart.addSeries(LineSeries, {
+        color,
+        lineWidth: 1,
+        priceLineVisible: false,
+        lastValueVisible: true,
+        title: `SMA ${period}`,
+        crosshairMarkerVisible: false,
+      });
+      series.setData(smaData);
+    });
 
     chart.timeScale().fitContent();
 
@@ -175,7 +172,7 @@ export function CandlestickChart({ bars, height = 420 }: ChartProps) {
       chart.remove();
       chartRef.current = null;
     };
-  }, [bars, resolvedTheme, height]);
+  }, [bars, resolvedTheme, height, smaPeriods]);
 
   if (bars.length === 0) {
     return (

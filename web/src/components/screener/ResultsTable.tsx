@@ -4,7 +4,11 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { clsx } from "clsx";
 import { Link } from "@/i18n/navigation";
-import type { SnapshotRow } from "@/lib/screener-types";
+import type { ScreenerFilters, SnapshotRow } from "@/lib/screener-types";
+import {
+  countActiveFilters,
+  filtersToQueryString,
+} from "@/lib/screener-query";
 
 type SortKey = "ticker" | "close" | "atr_percent" | "pct_to_bb_upper" | "pct_to_bb_lower";
 type SortDir = "asc" | "desc";
@@ -12,6 +16,7 @@ type SortDir = "asc" | "desc";
 interface ResultsTableProps {
   rows: SnapshotRow[];
   loading?: boolean;
+  screenerFilters?: ScreenerFilters;
 }
 
 function fmt(val: number | null, decimals = 2): string {
@@ -35,7 +40,7 @@ function SignalBadge({ row }: { row: SnapshotRow }) {
   return <span className="text-text-muted text-[10px]">—</span>;
 }
 
-export function ResultsTable({ rows, loading }: ResultsTableProps) {
+export function ResultsTable({ rows, loading, screenerFilters }: ResultsTableProps) {
   const t = useTranslations("screener");
   const [sortKey, setSortKey] = useState<SortKey>("ticker");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
@@ -48,6 +53,11 @@ export function ResultsTable({ rows, loading }: ResultsTableProps) {
       setSortDir("asc");
     }
   }
+
+  const tickerQuery =
+    screenerFilters && countActiveFilters(screenerFilters) > 0
+      ? filtersToQueryString(screenerFilters)
+      : "";
 
   const sorted = [...rows].sort((a, b) => {
     const av = a[sortKey] ?? 0;
@@ -136,7 +146,7 @@ export function ResultsTable({ rows, loading }: ResultsTableProps) {
               >
                 <td className="px-4 py-2.5">
                   <Link
-                    href={`/ticker/${row.ticker}`}
+                    href={`/ticker/${row.ticker}${tickerQuery}`}
                     className="font-bold text-primary hover:underline decoration-primary/30 underline-offset-2"
                   >
                     {row.ticker}

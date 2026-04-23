@@ -1,8 +1,35 @@
 from dataclasses import dataclass, field
 from datetime import date, datetime
-from typing import Optional
+import math
+from typing import Any, Optional
 
 import numpy as np
+
+
+def _json_scalar(value: Any) -> Any:
+    """Convert snapshot field values to JSON-safe types (no NaN / inf)."""
+    if value is None:
+        return None
+    if hasattr(value, "__class__") and value.__class__.__name__ == "NaTType":
+        return None
+    if isinstance(value, (np.bool_,)):
+        return bool(value)
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (np.integer,)):
+        return int(value)
+    if isinstance(value, int) and not isinstance(value, bool):
+        return int(value)
+    if isinstance(value, (float, np.floating)):
+        x = float(value)
+        if math.isnan(x) or math.isinf(x):
+            return None
+        return x
+    if isinstance(value, date) and not isinstance(value, datetime):
+        return value.isoformat()
+    if isinstance(value, datetime):
+        return value.isoformat()
+    return value
 
 
 @dataclass
@@ -61,21 +88,7 @@ class IndicatorSnapshot:
     def to_dict(self) -> dict:
         d = {}
         for k, v in self.__dict__.items():
-            if v is None and k == "updated_at":
+            if k == "updated_at" and v is None:
                 continue
-            if v is None or (hasattr(v, "__class__") and v.__class__.__name__ == "NaTType"):
-                d[k] = None
-            elif isinstance(v, (np.bool_,)):
-                d[k] = bool(v)
-            elif isinstance(v, (np.integer,)):
-                d[k] = int(v)
-            elif isinstance(v, (np.floating,)):
-                val = float(v)
-                d[k] = None if np.isnan(val) else val
-            elif isinstance(v, date) and not isinstance(v, datetime):
-                d[k] = v.isoformat()
-            elif isinstance(v, datetime):
-                d[k] = v.isoformat()
-            else:
-                d[k] = v
+            d[k] = _json_scalar(v)
         return d

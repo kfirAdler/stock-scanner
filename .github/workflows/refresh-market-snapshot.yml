@@ -1,9 +1,17 @@
+# Full-universe runs still pull full history from Supabase per ticker each time.
+# Stooq/yfinance are only called when start<=today; after today’s bar exists, HTTP
+# load drops, but DB work stays high. If a run exceeds 15 minutes, the next run
+# queues (concurrency) instead of overlapping—reduces 429 risk vs parallel runs.
 name: Refresh market snapshot
 
 on:
   schedule:
-    # Weekdays 22:00 UTC (~after US cash close, varies with DST)
-    - cron: "0 22 * * 1-5"
+    # US equity regular session (~09:30–16:00 America/New_York) in UTC:
+    # EDT ≈ 13:30–20:00 UTC, EST ≈ 14:30–21:00 UTC. These three lines run every
+    # 15 minutes across that band (some slots sit just outside RTH at DST edges).
+    - cron: "30,45 13 * * 1-5"
+    - cron: "*/15 14-20 * * 1-5"
+    - cron: "0,15,30,45 21 * * 1-5"
   workflow_dispatch:
     inputs:
       tickers:
