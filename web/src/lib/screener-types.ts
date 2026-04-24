@@ -10,13 +10,35 @@ export interface ScreenerFilters {
 
   pct_to_bb_upper_lte?: number;
   pct_to_bb_lower_lte?: number;
+  pct_to_bb_upper_gte?: number;
+  pct_to_bb_lower_gte?: number;
 
   down_sequence_broke_recently?: boolean;
   up_sequence_broke_recently?: boolean;
   down_sequence_broke_in_strong_up_context?: boolean;
+  up_sequence_broke_in_strong_down_context?: boolean;
+
+  buy_signal?: boolean;
+  sell_signal?: boolean;
+  strong_buy_signal?: boolean;
+  strong_sell_signal?: boolean;
+  bullish_sequence_active?: boolean;
+  bearish_sequence_active?: boolean;
+  strong_up_sequence_context?: boolean;
+  strong_down_sequence_context?: boolean;
 
   atr_percent_lt?: number;
   atr_percent_gt?: number;
+  atr_14_lt?: number;
+  atr_14_gt?: number;
+
+  close_gte?: number;
+  close_lte?: number;
+
+  up_sequence_count_gte?: number;
+  down_sequence_count_gte?: number;
+  up_sequence_break_bars_ago_lte?: number;
+  down_sequence_break_bars_ago_lte?: number;
 }
 
 export interface SnapshotRow {

@@ -41,28 +41,57 @@
     "applyFilters": "Apply",
     "tabs": {
       "movingAverages": "Moving Averages",
+      "signals": "Signals & state",
       "bands": "Bollinger Bands",
       "sequences": "Sequences",
       "volatility": "Volatility",
-      "priceFundamentals": "Price & Fundamentals"
+      "priceFundamentals": "Price"
     },
     "ma": {
       "aboveSMA": "Above SMA {period}",
       "belowSMA": "Below SMA {period}"
     },
+    "signals": {
+      "buy": "Buy signal (last bar)",
+      "sell": "Sell signal (last bar)",
+      "strongBuy": "Strong buy (last bar)",
+      "strongSell": "Strong sell (last bar)",
+      "bullishSeq": "Bullish sequence active",
+      "bearishSeq": "Bearish sequence active",
+      "strongUpCtx": "Strong up fractal context",
+      "strongDownCtx": "Strong down fractal context"
+    },
     "bb": {
       "nearUpper": "Within 2% of upper band",
-      "nearLower": "Within 2% of lower band"
+      "nearLower": "Within 2% of lower band",
+      "upperLte": "% distance to BB upper ≤",
+      "upperGte": "% distance to BB upper ≥",
+      "lowerLte": "% distance to BB lower ≤",
+      "lowerGte": "% distance to BB lower ≥",
+      "preset2": "2%"
     },
     "seq": {
       "downBreakRecent": "Down sequence broke (last 2 candles)",
       "upBreakRecent": "Up sequence broke (last 2 candles)",
-      "downBreakStrongUp": "Down seq broke in strong up context"
+      "downBreakStrongUp": "Down seq broke in strong up context",
+      "upBreakStrongDown": "Up seq broke in strong down context",
+      "upBreakWithin": "Sell break within N bars (≤)",
+      "downBreakWithin": "Buy break within N bars (≤)",
+      "upCountGte": "Up sequence length ≥",
+      "downCountGte": "Down sequence length ≥"
     },
     "atr": {
       "label": "ATR 14d %",
       "lessThan": "Less than",
-      "greaterThan": "Greater than"
+      "greaterThan": "Greater than",
+      "dollar": "ATR 14 ($)",
+      "dollarLt": "ATR $ less than",
+      "dollarGt": "ATR $ greater than"
+    },
+    "price": {
+      "closeGte": "Close ≥",
+      "closeLte": "Close ≤",
+      "hint": "Filters last daily close (USD)."
     },
     "table": {
       "ticker": "Ticker",

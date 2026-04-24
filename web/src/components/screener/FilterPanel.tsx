@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import type { ScreenerFilters } from "@/lib/screener-types";
 
-type TabId = "ma" | "bb" | "seq" | "vol" | "price";
+type TabId = "ma" | "signals" | "seq" | "bb" | "vol" | "price";
 
 interface FilterPanelProps {
   filters: ScreenerFilters;
@@ -23,8 +23,9 @@ export function FilterPanel({ filters, onChange, onApply, loading }: FilterPanel
 
   const tabs: { id: TabId; label: string }[] = [
     { id: "ma", label: t("tabs.movingAverages") },
-    { id: "bb", label: t("tabs.bands") },
+    { id: "signals", label: t("tabs.signals") },
     { id: "seq", label: t("tabs.sequences") },
+    { id: "bb", label: t("tabs.bands") },
     { id: "vol", label: t("tabs.volatility") },
     { id: "price", label: t("tabs.priceFundamentals") },
   ];
@@ -78,7 +79,7 @@ export function FilterPanel({ filters, onChange, onApply, loading }: FilterPanel
             id={`tab-${tab.id}`}
             onClick={() => setActiveTab(tab.id)}
             className={clsx(
-              "relative shrink-0 px-5 py-3 text-xs font-bold transition-colors",
+              "relative shrink-0 px-4 py-3 text-xs font-bold transition-colors",
               activeTab === tab.id
                 ? "text-primary"
                 : "text-text-muted hover:text-text-secondary"
@@ -102,7 +103,9 @@ export function FilterPanel({ filters, onChange, onApply, loading }: FilterPanel
           >
             {([20, 50, 150, 200] as const).map((period) => (
               <div key={period} className="space-y-2.5">
-                <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider">SMA {period}</p>
+                <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
+                  SMA {period}
+                </p>
                 <Checkbox
                   label={t("ma.aboveSMA", { period })}
                   checked={!!filters[`is_above_sma${period}` as keyof ScreenerFilters]}
@@ -118,33 +121,21 @@ export function FilterPanel({ filters, onChange, onApply, loading }: FilterPanel
           </div>
         )}
 
-        {activeTab === "bb" && (
+        {activeTab === "signals" && (
           <div
             role="tabpanel"
-            id="panel-bb"
-            aria-labelledby="tab-bb"
-            className="flex flex-wrap gap-6"
+            id="panel-signals"
+            aria-labelledby="tab-signals"
+            className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2.5"
           >
-            <Checkbox
-              label={t("bb.nearUpper")}
-              checked={filters.pct_to_bb_upper_lte !== undefined}
-              onChange={() =>
-                onChange({
-                  ...filters,
-                  pct_to_bb_upper_lte: filters.pct_to_bb_upper_lte !== undefined ? undefined : 2,
-                })
-              }
-            />
-            <Checkbox
-              label={t("bb.nearLower")}
-              checked={filters.pct_to_bb_lower_lte !== undefined}
-              onChange={() =>
-                onChange({
-                  ...filters,
-                  pct_to_bb_lower_lte: filters.pct_to_bb_lower_lte !== undefined ? undefined : 2,
-                })
-              }
-            />
+            <Checkbox label={t("signals.buy")} checked={!!filters.buy_signal} onChange={() => toggleBool("buy_signal")} />
+            <Checkbox label={t("signals.sell")} checked={!!filters.sell_signal} onChange={() => toggleBool("sell_signal")} />
+            <Checkbox label={t("signals.strongBuy")} checked={!!filters.strong_buy_signal} onChange={() => toggleBool("strong_buy_signal")} />
+            <Checkbox label={t("signals.strongSell")} checked={!!filters.strong_sell_signal} onChange={() => toggleBool("strong_sell_signal")} />
+            <Checkbox label={t("signals.bullishSeq")} checked={!!filters.bullish_sequence_active} onChange={() => toggleBool("bullish_sequence_active")} />
+            <Checkbox label={t("signals.bearishSeq")} checked={!!filters.bearish_sequence_active} onChange={() => toggleBool("bearish_sequence_active")} />
+            <Checkbox label={t("signals.strongUpCtx")} checked={!!filters.strong_up_sequence_context} onChange={() => toggleBool("strong_up_sequence_context")} />
+            <Checkbox label={t("signals.strongDownCtx")} checked={!!filters.strong_down_sequence_context} onChange={() => toggleBool("strong_down_sequence_context")} />
           </div>
         )}
 
@@ -153,23 +144,157 @@ export function FilterPanel({ filters, onChange, onApply, loading }: FilterPanel
             role="tabpanel"
             id="panel-seq"
             aria-labelledby="tab-seq"
-            className="space-y-3"
+            className="space-y-5"
           >
-            <Checkbox
-              label={t("seq.downBreakRecent")}
-              checked={!!filters.down_sequence_broke_recently}
-              onChange={() => toggleBool("down_sequence_broke_recently")}
-            />
-            <Checkbox
-              label={t("seq.upBreakRecent")}
-              checked={!!filters.up_sequence_broke_recently}
-              onChange={() => toggleBool("up_sequence_broke_recently")}
-            />
-            <Checkbox
-              label={t("seq.downBreakStrongUp")}
-              checked={!!filters.down_sequence_broke_in_strong_up_context}
-              onChange={() => toggleBool("down_sequence_broke_in_strong_up_context")}
-            />
+            <div className="space-y-2.5">
+              <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Breaks</p>
+              <div className="flex flex-col gap-2">
+                <Checkbox
+                  label={t("seq.downBreakRecent")}
+                  checked={!!filters.down_sequence_broke_recently}
+                  onChange={() => toggleBool("down_sequence_broke_recently")}
+                />
+                <Checkbox
+                  label={t("seq.upBreakRecent")}
+                  checked={!!filters.up_sequence_broke_recently}
+                  onChange={() => toggleBool("up_sequence_broke_recently")}
+                />
+                <Checkbox
+                  label={t("seq.downBreakStrongUp")}
+                  checked={!!filters.down_sequence_broke_in_strong_up_context}
+                  onChange={() => toggleBool("down_sequence_broke_in_strong_up_context")}
+                />
+                <Checkbox
+                  label={t("seq.upBreakStrongDown")}
+                  checked={!!filters.up_sequence_broke_in_strong_down_context}
+                  onChange={() => toggleBool("up_sequence_broke_in_strong_down_context")}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Input
+                label={t("seq.upBreakWithin")}
+                type="number"
+                min="0"
+                step="1"
+                value={filters.up_sequence_break_bars_ago_lte ?? ""}
+                onChange={(e) => setNum("up_sequence_break_bars_ago_lte", e.target.value)}
+                placeholder="e.g. 3"
+              />
+              <Input
+                label={t("seq.downBreakWithin")}
+                type="number"
+                min="0"
+                step="1"
+                value={filters.down_sequence_break_bars_ago_lte ?? ""}
+                onChange={(e) => setNum("down_sequence_break_bars_ago_lte", e.target.value)}
+                placeholder="e.g. 3"
+              />
+              <Input
+                label={t("seq.upCountGte")}
+                type="number"
+                min="0"
+                step="1"
+                value={filters.up_sequence_count_gte ?? ""}
+                onChange={(e) => setNum("up_sequence_count_gte", e.target.value)}
+                placeholder="e.g. 3"
+              />
+              <Input
+                label={t("seq.downCountGte")}
+                type="number"
+                min="0"
+                step="1"
+                value={filters.down_sequence_count_gte ?? ""}
+                onChange={(e) => setNum("down_sequence_count_gte", e.target.value)}
+                placeholder="e.g. 3"
+              />
+            </div>
+          </div>
+        )}
+
+        {activeTab === "bb" && (
+          <div
+            role="tabpanel"
+            id="panel-bb"
+            aria-labelledby="tab-bb"
+            className="space-y-4"
+          >
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() =>
+                  onChange({
+                    ...filters,
+                    pct_to_bb_upper_lte: filters.pct_to_bb_upper_lte !== undefined ? undefined : 2,
+                  })
+                }
+              >
+                {t("bb.nearUpper")}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() =>
+                  onChange({
+                    ...filters,
+                    pct_to_bb_lower_lte: filters.pct_to_bb_lower_lte !== undefined ? undefined : 2,
+                  })
+                }
+              >
+                {t("bb.nearLower")}
+              </Button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <Input
+                    label={t("bb.upperLte")}
+                    type="number"
+                    step="0.1"
+                    value={filters.pct_to_bb_upper_lte ?? ""}
+                    onChange={(e) => setNum("pct_to_bb_upper_lte", e.target.value)}
+                    placeholder="2"
+                  />
+                </div>
+                <Button type="button" variant="ghost" size="sm" className="shrink-0 mb-0.5" onClick={() => setNum("pct_to_bb_upper_lte", "2")}>
+                  {t("bb.preset2")}
+                </Button>
+              </div>
+              <Input
+                label={t("bb.upperGte")}
+                type="number"
+                step="0.1"
+                value={filters.pct_to_bb_upper_gte ?? ""}
+                onChange={(e) => setNum("pct_to_bb_upper_gte", e.target.value)}
+                placeholder="e.g. 5"
+              />
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <Input
+                    label={t("bb.lowerLte")}
+                    type="number"
+                    step="0.1"
+                    value={filters.pct_to_bb_lower_lte ?? ""}
+                    onChange={(e) => setNum("pct_to_bb_lower_lte", e.target.value)}
+                    placeholder="2"
+                  />
+                </div>
+                <Button type="button" variant="ghost" size="sm" className="shrink-0 mb-0.5" onClick={() => setNum("pct_to_bb_lower_lte", "2")}>
+                  {t("bb.preset2")}
+                </Button>
+              </div>
+              <Input
+                label={t("bb.lowerGte")}
+                type="number"
+                step="0.1"
+                value={filters.pct_to_bb_lower_gte ?? ""}
+                onChange={(e) => setNum("pct_to_bb_lower_gte", e.target.value)}
+                placeholder="e.g. 5"
+              />
+            </div>
           </div>
         )}
 
@@ -178,29 +303,57 @@ export function FilterPanel({ filters, onChange, onApply, loading }: FilterPanel
             role="tabpanel"
             id="panel-vol"
             aria-labelledby="tab-vol"
-            className="flex flex-wrap gap-5 items-end"
+            className="space-y-4"
           >
-            <div className="w-44">
-              <Input
-                label={`${t("atr.label")} ${t("atr.lessThan")}`}
-                type="number"
-                step="0.1"
-                min="0"
-                value={filters.atr_percent_lt ?? ""}
-                onChange={(e) => setNum("atr_percent_lt", e.target.value)}
-                placeholder="e.g. 3"
-              />
+            <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider">{t("atr.label")}</p>
+            <div className="flex flex-wrap gap-5">
+              <div className="w-44">
+                <Input
+                  label={`${t("atr.label")} ${t("atr.lessThan")}`}
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  value={filters.atr_percent_lt ?? ""}
+                  onChange={(e) => setNum("atr_percent_lt", e.target.value)}
+                  placeholder="e.g. 3"
+                />
+              </div>
+              <div className="w-44">
+                <Input
+                  label={`${t("atr.label")} ${t("atr.greaterThan")}`}
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  value={filters.atr_percent_gt ?? ""}
+                  onChange={(e) => setNum("atr_percent_gt", e.target.value)}
+                  placeholder="e.g. 5"
+                />
+              </div>
             </div>
-            <div className="w-44">
-              <Input
-                label={`${t("atr.label")} ${t("atr.greaterThan")}`}
-                type="number"
-                step="0.1"
-                min="0"
-                value={filters.atr_percent_gt ?? ""}
-                onChange={(e) => setNum("atr_percent_gt", e.target.value)}
-                placeholder="e.g. 5"
-              />
+            <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider">{t("atr.dollar")}</p>
+            <div className="flex flex-wrap gap-5">
+              <div className="w-44">
+                <Input
+                  label={t("atr.dollarLt")}
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={filters.atr_14_lt ?? ""}
+                  onChange={(e) => setNum("atr_14_lt", e.target.value)}
+                  placeholder="e.g. 2"
+                />
+              </div>
+              <div className="w-44">
+                <Input
+                  label={t("atr.dollarGt")}
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={filters.atr_14_gt ?? ""}
+                  onChange={(e) => setNum("atr_14_gt", e.target.value)}
+                  placeholder="e.g. 8"
+                />
+              </div>
             </div>
           </div>
         )}
@@ -210,14 +363,33 @@ export function FilterPanel({ filters, onChange, onApply, loading }: FilterPanel
             role="tabpanel"
             id="panel-price"
             aria-labelledby="tab-price"
-            className="flex items-center gap-3 text-sm text-text-muted py-4"
+            className="space-y-4"
           >
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-surface-alt text-text-muted">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clipRule="evenodd" />
-              </svg>
-            </span>
-            Price & Fundamentals filters coming soon.
+            <p className="text-sm text-text-secondary">{t("price.hint")}</p>
+            <div className="flex flex-wrap gap-5">
+              <div className="w-44">
+                <Input
+                  label={t("price.closeGte")}
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={filters.close_gte ?? ""}
+                  onChange={(e) => setNum("close_gte", e.target.value)}
+                  placeholder="e.g. 50"
+                />
+              </div>
+              <div className="w-44">
+                <Input
+                  label={t("price.closeLte")}
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={filters.close_lte ?? ""}
+                  onChange={(e) => setNum("close_lte", e.target.value)}
+                  placeholder="e.g. 200"
+                />
+              </div>
+            </div>
           </div>
         )}
       </div>

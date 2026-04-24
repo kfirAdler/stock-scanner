@@ -8,8 +8,18 @@ export type TvStudySpec = {
 const NUMERIC_KEYS: (keyof ScreenerFilters)[] = [
   "pct_to_bb_upper_lte",
   "pct_to_bb_lower_lte",
+  "pct_to_bb_upper_gte",
+  "pct_to_bb_lower_gte",
   "atr_percent_lt",
   "atr_percent_gt",
+  "atr_14_lt",
+  "atr_14_gt",
+  "close_gte",
+  "close_lte",
+  "up_sequence_count_gte",
+  "down_sequence_count_gte",
+  "up_sequence_break_bars_ago_lte",
+  "down_sequence_break_bars_ago_lte",
 ];
 
 const BOOLEAN_KEYS: (keyof ScreenerFilters)[] = [
@@ -24,6 +34,15 @@ const BOOLEAN_KEYS: (keyof ScreenerFilters)[] = [
   "down_sequence_broke_recently",
   "up_sequence_broke_recently",
   "down_sequence_broke_in_strong_up_context",
+  "up_sequence_broke_in_strong_down_context",
+  "buy_signal",
+  "sell_signal",
+  "strong_buy_signal",
+  "strong_sell_signal",
+  "bullish_sequence_active",
+  "bearish_sequence_active",
+  "strong_up_sequence_context",
+  "strong_down_sequence_context",
 ];
 
 export function filtersToQueryString(filters: ScreenerFilters): string {
@@ -84,7 +103,9 @@ export function filtersToTvStudies(filters: ScreenerFilters): TvStudySpec[] {
   }
   if (
     filters.pct_to_bb_upper_lte !== undefined ||
-    filters.pct_to_bb_lower_lte !== undefined
+    filters.pct_to_bb_lower_lte !== undefined ||
+    filters.pct_to_bb_upper_gte !== undefined ||
+    filters.pct_to_bb_lower_gte !== undefined
   ) {
     studies.push({
       id: "BB@tv-basicstudies",
@@ -93,7 +114,9 @@ export function filtersToTvStudies(filters: ScreenerFilters): TvStudySpec[] {
   }
   if (
     filters.atr_percent_lt !== undefined ||
-    filters.atr_percent_gt !== undefined
+    filters.atr_percent_gt !== undefined ||
+    filters.atr_14_lt !== undefined ||
+    filters.atr_14_gt !== undefined
   ) {
     studies.push({
       id: "ATR@tv-basicstudies",
@@ -107,7 +130,20 @@ export function hasSequenceFilters(filters: ScreenerFilters): boolean {
   return (
     filters.down_sequence_broke_recently === true ||
     filters.up_sequence_broke_recently === true ||
-    filters.down_sequence_broke_in_strong_up_context === true
+    filters.down_sequence_broke_in_strong_up_context === true ||
+    filters.up_sequence_broke_in_strong_down_context === true ||
+    filters.buy_signal === true ||
+    filters.sell_signal === true ||
+    filters.strong_buy_signal === true ||
+    filters.strong_sell_signal === true ||
+    filters.bullish_sequence_active === true ||
+    filters.bearish_sequence_active === true ||
+    filters.strong_up_sequence_context === true ||
+    filters.strong_down_sequence_context === true ||
+    filters.up_sequence_count_gte !== undefined ||
+    filters.down_sequence_count_gte !== undefined ||
+    filters.up_sequence_break_bars_ago_lte !== undefined ||
+    filters.down_sequence_break_bars_ago_lte !== undefined
   );
 }
 

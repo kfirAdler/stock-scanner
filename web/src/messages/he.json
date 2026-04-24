@@ -41,28 +41,57 @@
     "applyFilters": "החל",
     "tabs": {
       "movingAverages": "ממוצעים נעים",
+      "signals": "איתותים ומצב",
       "bands": "רצועות בולינגר",
       "sequences": "רצפים",
       "volatility": "תנודתיות",
-      "priceFundamentals": "מחיר ויסודות"
+      "priceFundamentals": "מחיר"
     },
     "ma": {
       "aboveSMA": "מעל SMA {period}",
       "belowSMA": "מתחת SMA {period}"
     },
+    "signals": {
+      "buy": "איתות קנייה (נר אחרון)",
+      "sell": "איתות מכירה (נר אחרון)",
+      "strongBuy": "קנייה חזקה (נר אחרון)",
+      "strongSell": "מכירה חזקה (נר אחרון)",
+      "bullishSeq": "רצף שורי פעיל",
+      "bearishSeq": "רצף דובי פעיל",
+      "strongUpCtx": "הקשר פרקטלי עלייה חזקה",
+      "strongDownCtx": "הקשר פרקטלי ירידה חזקה"
+    },
     "bb": {
       "nearUpper": "בטווח 2% מהרצועה העליונה",
-      "nearLower": "בטווח 2% מהרצועה התחתונה"
+      "nearLower": "בטווח 2% מהרצועה התחתונה",
+      "upperLte": "מרחק % לרצועה עליונה ≤",
+      "upperGte": "מרחק % לרצועה עליונה ≥",
+      "lowerLte": "מרחק % לרצועה תחתונה ≤",
+      "lowerGte": "מרחק % לרצועה תחתונה ≥",
+      "preset2": "2%"
     },
     "seq": {
       "downBreakRecent": "רצף ירידה נשבר (2 נרות אחרונים)",
       "upBreakRecent": "רצף עלייה נשבר (2 נרות אחרונים)",
-      "downBreakStrongUp": "רצף ירידה נשבר בהקשר עלייה חזקה"
+      "downBreakStrongUp": "רצף ירידה נשבר בהקשר עלייה חזקה",
+      "upBreakStrongDown": "רצף עלייה נשבר בהקשר ירידה חזקה",
+      "upBreakWithin": "שבירת מכירה בתוך N נרות (≤)",
+      "downBreakWithin": "שבירת קנייה בתוך N נרות (≤)",
+      "upCountGte": "אורך רצף עלייה ≥",
+      "downCountGte": "אורך רצף ירידה ≥"
     },
     "atr": {
       "label": "ATR 14 ימים %",
       "lessThan": "פחות מ",
-      "greaterThan": "יותר מ"
+      "greaterThan": "יותר מ",
+      "dollar": "ATR 14 ($)",
+      "dollarLt": "ATR $ פחות מ",
+      "dollarGt": "ATR $ יותר מ"
+    },
+    "price": {
+      "closeGte": "סגירה ≥",
+      "closeLte": "סגירה ≤",
+      "hint": "מסנן לפי סגירה יומית אחרונה (דולר)."
     },
     "table": {
       "ticker": "סימול",
