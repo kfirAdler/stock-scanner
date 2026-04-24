@@ -5,7 +5,8 @@ export type TvStudySpec = {
   inputs?: Record<string, number | string>;
 };
 
-const NUMERIC_KEYS: (keyof ScreenerFilters)[] = [
+/** Exported for stock lookup / coverage (screener parity). */
+export const SCREENER_NUMERIC_FILTER_KEYS: (keyof ScreenerFilters)[] = [
   "pct_to_bb_upper_lte",
   "pct_to_bb_lower_lte",
   "pct_to_bb_upper_gte",
@@ -22,7 +23,8 @@ const NUMERIC_KEYS: (keyof ScreenerFilters)[] = [
   "down_sequence_break_bars_ago_lte",
 ];
 
-const BOOLEAN_KEYS: (keyof ScreenerFilters)[] = [
+/** Exported for stock lookup / coverage (screener parity). */
+export const SCREENER_BOOLEAN_FILTER_KEYS: (keyof ScreenerFilters)[] = [
   "is_above_sma20",
   "is_below_sma20",
   "is_above_sma50",
@@ -50,11 +52,11 @@ export function filtersToQueryString(filters: ScreenerFilters): string {
   if (filters.listing_market === "US" || filters.listing_market === "TA") {
     p.set("listing_market", filters.listing_market);
   }
-  for (const key of BOOLEAN_KEYS) {
+  for (const key of SCREENER_BOOLEAN_FILTER_KEYS) {
     const v = filters[key];
     if (v === true) p.set(key as string, "true");
   }
-  for (const key of NUMERIC_KEYS) {
+  for (const key of SCREENER_NUMERIC_FILTER_KEYS) {
     const v = filters[key];
     if (v !== undefined && v !== null && !Number.isNaN(v)) {
       p.set(key as string, String(v));
@@ -72,12 +74,12 @@ export function parseFiltersFromSearchParams(
   if (lm === "US" || lm === "TA") {
     f.listing_market = lm;
   }
-  for (const key of BOOLEAN_KEYS) {
+  for (const key of SCREENER_BOOLEAN_FILTER_KEYS) {
     if (params.get(key as string) === "true") {
       (f as Record<string, boolean>)[key as string] = true;
     }
   }
-  for (const key of NUMERIC_KEYS) {
+  for (const key of SCREENER_NUMERIC_FILTER_KEYS) {
     const raw = params.get(key as string);
     if (raw === null || raw === "") continue;
     const n = parseFloat(raw);

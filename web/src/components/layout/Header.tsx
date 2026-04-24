@@ -62,6 +62,12 @@ export function Header() {
             >
               {t("nav.screener")}
             </Link>
+            <Link
+              href="/stock-lookup"
+              className="px-3 py-1.5 rounded-md text-sm font-bold text-text-secondary hover:text-text hover:bg-surface-alt transition-colors"
+            >
+              {t("nav.stockLookup")}
+            </Link>
             {user && (
               <Link
                 href="/saved-screens"
