@@ -5,7 +5,10 @@ import { useMessages, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { clsx } from "clsx";
 import { Input } from "@/components/ui/Input";
+import { PremiumGate } from "@/components/billing/PremiumGate";
 import type { ScreenerFilters } from "@/lib/screener-types";
+
+type AccessGate = null | "login" | "subscribe";
 
 type Suggestion = {
   ticker: string;
@@ -73,6 +76,7 @@ export function StockLookupClient() {
   const [coverage, setCoverage] = useState<CoveragePayload | null>(null);
   const [loadingCoverage, setLoadingCoverage] = useState(false);
   const [error, setError] = useState("");
+  const [accessGate, setAccessGate] = useState<AccessGate>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
 
   const runSearch = useCallback(async (prefix: string) => {
@@ -83,10 +87,21 @@ export function StockLookupClient() {
     }
     setLoadingSuggest(true);
     setError("");
+    setAccessGate(null);
     try {
       const res = await fetch(
         `/api/tickers/search?q=${encodeURIComponent(trimmed)}`
       );
+      if (res.status === 401) {
+        setAccessGate("login");
+        setSuggestions([]);
+        return;
+      }
+      if (res.status === 403) {
+        setAccessGate("subscribe");
+        setSuggestions([]);
+        return;
+      }
       if (res.status === 400) {
         setSuggestions([]);
         setError(t("invalidPrefix"));
@@ -128,11 +143,22 @@ export function StockLookupClient() {
   async function loadCoverage(ticker: string) {
     setLoadingCoverage(true);
     setError("");
+    setAccessGate(null);
     setSuggestOpen(false);
     try {
       const res = await fetch(
         `/api/tickers/${encodeURIComponent(ticker)}/coverage`
       );
+      if (res.status === 401) {
+        setAccessGate("login");
+        setCoverage(null);
+        return;
+      }
+      if (res.status === 403) {
+        setAccessGate("subscribe");
+        setCoverage(null);
+        return;
+      }
       if (!res.ok) {
         if (res.status === 404) {
           setCoverage(null);
@@ -210,6 +236,10 @@ export function StockLookupClient() {
         <p className="mt-1 text-sm text-text-muted max-w-2xl">{t("subtitle")}</p>
       </div>
 
+      {accessGate ? (
+        <PremiumGate kind={accessGate === "login" ? "login" : "subscribe"} />
+      ) : (
+      <>
       <div ref={wrapRef} className="relative space-y-2">
         <label htmlFor={`${listId}-input`} className="text-sm font-bold text-text">
           {t("searchLabel")}
@@ -378,6 +408,8 @@ export function StockLookupClient() {
             </div>
           </section>
         </div>
+      )}
+      </>
       )}
     </div>
   );

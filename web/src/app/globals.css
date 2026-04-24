@@ -1,17 +1,19 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-primary: #2563eb;
-  --color-primary-hover: #1d4ed8;
+  --color-primary: #1e40af;
+  --color-primary-hover: #1d3c9c;
   --color-primary-soft: #dbeafe;
-  --color-surface: #ffffff;
-  --color-surface-alt: #f8fafc;
+  --color-premium: #c9a227;
+  --color-premium-glow: rgba(201, 162, 39, 0.45);
+  --color-surface: #fafbfc;
+  --color-surface-alt: #f1f5f9;
   --color-surface-raised: #ffffff;
   --color-border: #e2e8f0;
   --color-border-strong: #cbd5e1;
-  --color-text: #0f172a;
-  --color-text-secondary: #64748b;
-  --color-text-muted: #94a3b8;
+  --color-text: #0c1222;
+  --color-text-secondary: #5c6b7e;
+  --color-text-muted: #8b9aad;
   --color-success: #16a34a;
   --color-success-soft: #dcfce7;
   --color-danger: #dc2626;
@@ -24,15 +26,20 @@
   --color-chart-down: #ef4444;
 
   --font-sans: var(--font-assistant);
+
+  --shadow-premium: 0 22px 45px -12px rgba(15, 23, 42, 0.18);
+  --shadow-inner-premium: inset 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
 .dark {
   --color-primary: #60a5fa;
   --color-primary-hover: #93bbfd;
   --color-primary-soft: #1e3a5f;
-  --color-surface: #0b1120;
-  --color-surface-alt: #111827;
-  --color-surface-raised: #1e293b;
+  --color-premium: #e3c76a;
+  --color-premium-glow: rgba(227, 199, 106, 0.28);
+  --color-surface: #070b14;
+  --color-surface-alt: #0f172a;
+  --color-surface-raised: #111c2e;
   --color-border: #1e293b;
   --color-border-strong: #334155;
   --color-text: #f1f5f9;
@@ -48,6 +55,9 @@
   --color-accent-soft: #2e1065;
   --color-chart-up: #4ade80;
   --color-chart-down: #f87171;
+
+  --shadow-premium: 0 24px 55px -14px rgba(0, 0, 0, 0.55);
+  --shadow-inner-premium: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 html {
@@ -57,6 +67,15 @@ html {
 body {
   background-color: var(--color-surface);
   color: var(--color-text);
+  background-image:
+    radial-gradient(1200px 500px at 80% -10%, rgba(37, 99, 235, 0.06), transparent 55%),
+    radial-gradient(900px 400px at 0% 0%, var(--color-premium-glow), transparent 45%);
+}
+
+html.dark body {
+  background-image:
+    radial-gradient(1000px 480px at 85% -15%, rgba(96, 165, 250, 0.08), transparent 55%),
+    radial-gradient(800px 360px at 0% 0%, var(--color-premium-glow), transparent 50%);
 }
 
 ::selection {

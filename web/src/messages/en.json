@@ -24,6 +24,55 @@
     "settings": "Settings",
     "terms": "Terms of Use"
   },
+  "marketing": {
+    "badge": "Institutional-grade scans",
+    "headline": "Precision equity screening",
+    "lead": "Daily precomputed indicators, sequence logic, and volatility filters across US and Tel Aviv universes — built for members who expect speed, clarity, and a polished workspace.",
+    "features": {
+      "ma": {
+        "title": "Moving averages",
+        "desc": "SMA 20–200 positioning versus price for trend and pullback context."
+      },
+      "bb": {
+        "title": "Bollinger proximity",
+        "desc": "Distance to upper and lower bands to spot extension and mean-reversion setups."
+      },
+      "seq": {
+        "title": "Sequence engine",
+        "desc": "Custom sequence breaks, strong-context flags, and last-bar signal states."
+      },
+      "atr": {
+        "title": "Volatility (ATR)",
+        "desc": "ATR and ATR% filters to rank names by realized daily volatility."
+      },
+      "speed": {
+        "title": "Sub-second queries",
+        "desc": "Snapshots materialized in your database — filters return instantly at scale."
+      },
+      "save": {
+        "title": "Saved screens",
+        "desc": "Store proven filter combinations and reopen them in one click."
+      }
+    }
+  },
+  "premium": {
+    "gateTitleLogin": "Member access",
+    "gateBodyLogin": "Sign in with the account linked to your membership to run scans and load ticker data.",
+    "gateTitleSubscribe": "Upgrade required",
+    "gateBodySubscribe": "Market scans, the full filter set, and ticker detail data are reserved for active members. Upgrade your plan to unlock everything.",
+    "signIn": "Sign in",
+    "viewAccount": "Account & billing",
+    "contactSales": "Contact us",
+    "emailLine": "Questions: {email}",
+    "headerBadge": "Member",
+    "headerBadgeLocked": "Preview",
+    "settingsTitle": "Membership",
+    "planFree": "Standard",
+    "planPro": "Full access",
+    "planHintOpen": "All market features are open on this deployment.",
+    "planHintPaid": "Upgrade to Full access to use the screener, lookups, and charts without limits.",
+    "planRow": "Current plan: {plan}"
+  },
   "auth": {
     "loginTitle": "Sign in to Stock Scanner",
     "registerTitle": "Create your account",
@@ -36,6 +85,7 @@
   },
   "screener": {
     "title": "Stock Screener",
+    "premiumSubtitle": "Member workspace — filters query our precomputed daily snapshot store.",
     "filters": "Filters",
     "results": "Results",
     "clearFilters": "Clear All",
@@ -227,7 +277,10 @@
     "theme": "Theme",
     "themeLight": "Light",
     "themeDark": "Dark",
-    "themeSystem": "System"
+    "themeSystem": "System",
+    "membershipTitle": "Membership",
+    "membershipLoading": "Checking plan…",
+    "membershipPlanLabel": "Current plan"
   },
   "terms": {
     "title": "Terms of Use",

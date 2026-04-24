@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { assertMarketDataAccess } from "@/lib/market-access";
 import { createServiceClient } from "@/lib/supabase/server";
 import { sanitizeTickerSearchPrefix } from "@/lib/stock-search-coverage";
 
@@ -7,6 +8,9 @@ import { sanitizeTickerSearchPrefix } from "@/lib/stock-search-coverage";
  * Input is validated to letters, digits, dot, hyphen only — no SQL/LIKE wildcards.
  */
 export async function GET(request: NextRequest) {
+  const gate = await assertMarketDataAccess();
+  if (!gate.allowed) return gate.response;
+
   const raw = request.nextUrl.searchParams.get("q");
   const parsed = sanitizeTickerSearchPrefix(raw);
   if (!parsed.ok) {

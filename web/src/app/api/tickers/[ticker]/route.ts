@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { assertMarketDataAccess } from "@/lib/market-access";
 import { createServiceClient } from "@/lib/supabase/server";
 import { fetchListingExchangeFromYahoo } from "@/lib/yahoo-exchange";
 
@@ -28,6 +29,9 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ ticker: string }> }
 ) {
+  const gate = await assertMarketDataAccess();
+  if (!gate.allowed) return gate.response;
+
   const { ticker } = await params;
   const upper = ticker.toUpperCase();
   const supabase = await createServiceClient();

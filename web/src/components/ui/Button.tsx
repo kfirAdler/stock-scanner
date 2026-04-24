@@ -3,7 +3,7 @@
 import { clsx } from "clsx";
 import { type ButtonHTMLAttributes, forwardRef } from "react";
 
-type Variant = "primary" | "secondary" | "ghost" | "danger";
+type Variant = "primary" | "secondary" | "ghost" | "danger" | "lux";
 type Size = "sm" | "md" | "lg";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -21,6 +21,7 @@ const variantStyles: Record<Variant, string> = {
     "text-text-secondary hover:text-text hover:bg-surface-alt focus-visible:ring-primary/50",
   danger:
     "bg-danger text-white shadow-sm hover:bg-red-700 active:scale-[0.98] focus-visible:ring-danger/50",
+  lux: "bg-gradient-to-br from-premium via-premium to-amber-700 text-slate-950 shadow-premium ring-1 ring-white/25 hover:brightness-105 active:scale-[0.98] focus-visible:ring-premium/60",
 };
 
 const sizeStyles: Record<Size, string> = {

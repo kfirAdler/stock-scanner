@@ -6,7 +6,10 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { clsx } from "clsx";
 import { TickerChartPanel } from "./TickerChartPanel";
+import { PremiumGate } from "@/components/billing/PremiumGate";
 import type { SnapshotRow } from "@/lib/screener-types";
+
+type AccessGate = null | "login" | "subscribe";
 
 interface BarRow {
   trade_date: string;
@@ -25,11 +28,22 @@ export default function TickerDetailPage() {
   const [listingExchange, setListingExchange] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [accessGate, setAccessGate] = useState<AccessGate>(null);
 
   useEffect(() => {
     async function load() {
+      setAccessGate(null);
+      setError("");
       try {
         const res = await fetch(`/api/tickers/${ticker}`);
+        if (res.status === 401) {
+          setAccessGate("login");
+          return;
+        }
+        if (res.status === 403) {
+          setAccessGate("subscribe");
+          return;
+        }
         if (!res.ok) throw new Error("Not found");
         const data = await res.json();
         setSnapshot(data.snapshot);
@@ -55,6 +69,14 @@ export default function TickerDetailPage() {
           <div className="animate-spin h-8 w-8 border-[3px] border-primary/30 border-t-primary rounded-full" role="status" />
           <span className="text-sm text-text-muted">{t("common.loading")}</span>
         </div>
+      </div>
+    );
+  }
+
+  if (accessGate) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-16">
+        <PremiumGate kind={accessGate === "login" ? "login" : "subscribe"} />
       </div>
     );
   }

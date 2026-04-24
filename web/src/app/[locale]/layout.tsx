@@ -9,7 +9,7 @@ import { Header } from "@/components/layout/Header";
 const assistant = Assistant({
   subsets: ["latin", "hebrew"],
   variable: "--font-assistant",
-  weight: ["300", "700"],
+  weight: ["300", "400", "500", "600", "700"],
   display: "swap",
 });
 
