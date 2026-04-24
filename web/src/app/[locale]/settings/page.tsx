@@ -76,7 +76,7 @@ export default function SettingsPage() {
           <>
             <p className="text-sm font-bold text-text">
               {t("membershipPlanLabel")}:{" "}
-              <span className={entitlement.tier === "pro" ? "text-premium" : ""}>
+              <span className={entitlement.tier === "pro" ? "text-primary" : ""}>
                 {planLabel}
               </span>
             </p>

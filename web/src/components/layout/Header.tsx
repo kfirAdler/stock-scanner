@@ -79,7 +79,7 @@ export function Header() {
               {t("common.appName")}
             </span>
             {showMemberBadge && (
-              <span className="hidden sm:inline-flex items-center rounded-full border border-premium/40 bg-gradient-to-r from-premium/15 to-amber-500/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-premium">
+              <span className="hidden sm:inline-flex items-center rounded-full border border-primary/25 bg-primary-soft px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
                 {t("premium.headerBadge")}
               </span>
             )}

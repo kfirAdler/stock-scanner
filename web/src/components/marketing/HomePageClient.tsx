@@ -22,15 +22,15 @@ export function HomePageClient() {
     <div className="mx-auto max-w-7xl px-4 sm:px-6">
       <div className="relative py-16 sm:py-24 text-center space-y-8">
         <div
-          className="pointer-events-none absolute inset-x-0 -top-24 h-72 opacity-40 dark:opacity-30"
+          className="pointer-events-none absolute inset-x-0 -top-24 h-72 opacity-50 dark:opacity-35"
           style={{
             background:
-              "radial-gradient(520px 220px at 50% 0%, var(--color-premium-glow), transparent 70%)",
+              "radial-gradient(520px 220px at 50% 0%, var(--color-primary-soft), transparent 72%)",
           }}
         />
 
-        <div className="relative inline-flex items-center gap-2 rounded-full border border-border-strong bg-surface-raised/90 backdrop-blur-sm px-5 py-2 text-[11px] font-bold uppercase tracking-[0.2em] text-premium shadow-inner-premium">
-          <span className="h-1.5 w-1.5 rounded-full bg-premium shadow-[0_0_12px_var(--color-premium)]" />
+        <div className="relative inline-flex items-center gap-2 rounded-full border border-border-strong bg-surface-raised/90 backdrop-blur-sm px-5 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-secondary">
+          <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
           {t("badge")}
         </div>
 
@@ -46,7 +46,7 @@ export function HomePageClient() {
 
         <div className="relative flex flex-col sm:flex-row justify-center gap-3 pt-4">
           <Link href="/screener">
-            <Button variant="lux" size="lg" className="w-full sm:w-auto min-w-[220px] shadow-premium">
+            <Button variant="primary" size="lg" className="w-full sm:w-auto min-w-[220px]">
               {tNav("screener")}
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 ms-1 rtl:rotate-180" aria-hidden>
                 <path fillRule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clipRule="evenodd" />
@@ -85,7 +85,7 @@ function FeatureCard({
   color: CardColor;
 }) {
   return (
-    <div className="group relative rounded-2xl border border-border bg-surface-raised/80 backdrop-blur-sm p-6 space-y-4 transition-all duration-300 hover:border-border-strong hover:shadow-premium hover:-translate-y-0.5">
+    <div className="group relative rounded-2xl border border-border bg-surface-raised/80 backdrop-blur-sm p-6 space-y-4 transition-all duration-300 hover:border-border-strong hover:shadow-md hover:-translate-y-0.5">
       <div className={`inline-flex h-11 w-11 items-center justify-center rounded-xl ring-1 ring-black/5 dark:ring-white/10 ${colorMap[color]}`}>
         {icon}
       </div>
