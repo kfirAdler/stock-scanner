@@ -21,3 +21,4 @@ SEQUENCE_RECENT_THRESHOLD = 2
 STOOQ_BASE_URL = "https://stooq.com/q/d/l/"
 
 SP500_TICKER_SOURCE = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
+TA125_TICKER_SOURCE = "https://en.wikipedia.org/wiki/TA-125_Index"

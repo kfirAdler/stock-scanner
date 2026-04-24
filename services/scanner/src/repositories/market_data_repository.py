@@ -155,6 +155,29 @@ def get_listing_exchange(ticker: str) -> str | None:
     return ex if isinstance(ex, str) and ex.strip() else None
 
 
+def upsert_symbol_market(ticker: str, market: str) -> None:
+    client = _get_client()
+    now = datetime.utcnow().isoformat()
+    existing = (
+        client.table("symbol_metadata")
+        .select("ticker")
+        .eq("ticker", ticker)
+        .limit(1)
+        .execute()
+    )
+    if existing.data:
+        client.table("symbol_metadata").update({
+            "market": market,
+            "updated_at": now,
+        }).eq("ticker", ticker).execute()
+    else:
+        client.table("symbol_metadata").insert({
+            "ticker": ticker,
+            "market": market,
+            "updated_at": now,
+        }).execute()
+
+
 def persist_listing_exchange(ticker: str, exchange: str) -> None:
     client = _get_client()
     existing = (

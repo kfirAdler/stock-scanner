@@ -39,6 +39,12 @@
     "results": "תוצאות",
     "clearFilters": "נקה הכל",
     "applyFilters": "החל",
+    "listingMarket": {
+      "label": "יקום מניות",
+      "all": "הכל (ארה״ב + ת״א-125)",
+      "us": "ארה״ב בלבד (S&P 500)",
+      "ta": "ת״א בלבד (ת״א-125)"
+    },
     "tabs": {
       "movingAverages": "ממוצעים נעים",
       "signals": "איתותים ומצב",

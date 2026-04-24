@@ -18,6 +18,14 @@ on:
         description: "Optional space-separated tickers (leave empty for full universe)"
         required: false
         default: ""
+      universe:
+        description: "When tickers empty — all (S&P 500 + TA-125), us, or ta"
+        type: choice
+        options:
+          - all
+          - us
+          - ta
+        default: all
 
 concurrency:
   group: refresh-market-snapshot
@@ -52,11 +60,14 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           GHA_REFRESH_TICKERS: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tickers || '' }}
+          GHA_REFRESH_UNIVERSE: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.universe || 'all' }}
         run: |
           set -euo pipefail
           if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ] && [ -n "${GHA_REFRESH_TICKERS:-}" ]; then
             # Word-split on whitespace: "AAPL MSFT" -> multiple argv after --tickers
             python run_refresh.py --tickers ${GHA_REFRESH_TICKERS}
+          elif [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            python run_refresh.py --universe "${GHA_REFRESH_UNIVERSE:-all}"
           else
             python run_refresh.py
           fi

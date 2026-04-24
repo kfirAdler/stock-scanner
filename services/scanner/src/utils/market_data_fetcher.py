@@ -12,12 +12,23 @@ from ..config.settings import STOOQ_BASE_URL
 logger = logging.getLogger(__name__)
 
 
+def _stooq_daily_symbol(ticker: str) -> str:
+    """Stooq daily CSV symbol: US uses <base>.us, Tel Aviv uses <base>.ta."""
+    t = ticker.strip().upper().replace("-", ".")
+    if t.endswith(".TA"):
+        return t.lower()
+    if t.endswith(".US"):
+        t = t[:-3]
+    # US: preserve dots in symbol (e.g. BRK.B -> brk.b.us)
+    return f"{t.lower()}.us"
+
+
 def fetch_bars_stooq(
     ticker: str, start_date: date, end_date: date
 ) -> pd.DataFrame | None:
-    stooq_ticker = ticker.replace("-", ".") + ".US"
+    stooq_ticker = _stooq_daily_symbol(ticker)
     params = {
-        "s": stooq_ticker.lower(),
+        "s": stooq_ticker,
         "d1": start_date.strftime("%Y%m%d"),
         "d2": end_date.strftime("%Y%m%d"),
         "i": "d",

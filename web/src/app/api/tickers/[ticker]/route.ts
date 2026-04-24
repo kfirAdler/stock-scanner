@@ -65,6 +65,15 @@ export async function GET(
     if (typeof ex === "string" && ex.trim()) listing_exchange = ex.trim();
   }
 
+  if (!listing_exchange && /\.TA$/i.test(upper)) {
+    listing_exchange = "TASE";
+    try {
+      await persistListingExchange(supabase, upper, "TASE");
+    } catch {
+      /* ignore */
+    }
+  }
+
   if (!listing_exchange) {
     const y = await fetchListingExchangeFromYahoo(upper);
     if (y) {

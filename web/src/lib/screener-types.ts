@@ -1,4 +1,9 @@
+export type ListingMarketFilter = "US" | "TA";
+
 export interface ScreenerFilters {
+  /** Restrict results to US (S&P 500) or TA (TA-125) listings. Omit for all. */
+  listing_market?: ListingMarketFilter;
+
   is_above_sma20?: boolean;
   is_below_sma20?: boolean;
   is_above_sma50?: boolean;
@@ -85,4 +90,6 @@ export interface SnapshotRow {
   is_above_sma200: boolean | null;
   is_below_sma200: boolean | null;
   updated_at: string;
+  /** US or TA — matches symbol_indicator_snapshot.market after migration 010. */
+  market?: string;
 }

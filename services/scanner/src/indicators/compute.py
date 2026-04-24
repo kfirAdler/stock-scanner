@@ -17,7 +17,9 @@ from .bollinger import bollinger_bands, pct_distance_to_band
 from .moving_averages import ema, sma
 
 
-def compute_snapshot(ticker: str, df: pd.DataFrame) -> IndicatorSnapshot | None:
+def compute_snapshot(
+    ticker: str, df: pd.DataFrame, *, market: str = "US"
+) -> IndicatorSnapshot | None:
     """Compute all indicators from OHLCV bars and return a snapshot for the latest bar.
 
     `df` must be sorted by trade_date ascending and contain columns:
@@ -70,6 +72,7 @@ def compute_snapshot(ticker: str, df: pd.DataFrame) -> IndicatorSnapshot | None:
         last_trade_date=last_row["trade_date"],
         last_bar_time=last_row.get("bar_time"),
         close=round(last_close, 4),
+        market=market,
         sma_20=sma20,
         sma_50=sma50,
         sma_150=sma150,

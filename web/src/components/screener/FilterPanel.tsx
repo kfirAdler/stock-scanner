@@ -93,6 +93,28 @@ export function FilterPanel({ filters, onChange, onApply, loading }: FilterPanel
         ))}
       </div>
 
+      <div className="px-5 py-3.5 bg-surface-alt/60 border-b border-border">
+        <label htmlFor="screener-listing-market" className="block text-[10px] font-bold text-text-muted uppercase tracking-wider mb-1.5">
+          {t("listingMarket.label")}
+        </label>
+        <select
+          id="screener-listing-market"
+          className="w-full max-w-md rounded-xl border border-border bg-surface px-3 py-2 text-sm font-medium text-text shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+          value={filters.listing_market ?? ""}
+          onChange={(e) => {
+            const v = e.target.value;
+            onChange({
+              ...filters,
+              listing_market: v === "" ? undefined : (v as "US" | "TA"),
+            });
+          }}
+        >
+          <option value="">{t("listingMarket.all")}</option>
+          <option value="US">{t("listingMarket.us")}</option>
+          <option value="TA">{t("listingMarket.ta")}</option>
+        </select>
+      </div>
+
       <div className="p-5 border-t border-border">
         {activeTab === "ma" && (
           <div

@@ -8,7 +8,6 @@ from ..config.settings import TIMEFRAME
 from ..indicators.compute import compute_snapshot
 from ..repositories.market_data_repository import (
     enforce_retention,
-    get_all_tickers,
     get_latest_trade_date,
     get_listing_exchange,
     get_ticker_history,
@@ -16,7 +15,9 @@ from ..repositories.market_data_repository import (
     persist_listing_exchange,
     upsert_bars,
     upsert_snapshot,
+    upsert_symbol_market,
 )
+from .universe import tickers_for_refresh_universe
 from ..utils.listing_exchange import fetch_listing_exchange_yfinance
 from ..utils.market_data_fetcher import fetch_bars
 
@@ -26,7 +27,15 @@ JOB_NAME = "refresh_market_snapshot"
 BATCH_DELAY_SECONDS = 0.5
 
 
-def run(tickers: list[str] | None = None) -> dict:
+def _listing_market(ticker: str) -> str:
+    return "TA" if ticker.upper().endswith(".TA") else "US"
+
+
+def run(
+    tickers: list[str] | None = None,
+    *,
+    universe: str = "all",
+) -> dict:
     started_at = datetime.utcnow()
     logger.info("Starting %s at %s", JOB_NAME, started_at.isoformat())
 
@@ -38,7 +47,7 @@ def run(tickers: list[str] | None = None) -> dict:
     )
 
     if tickers is None:
-        tickers = get_all_tickers()
+        tickers = tickers_for_refresh_universe(universe)
 
     total = len(tickers)
     processed = 0
@@ -61,14 +70,19 @@ def run(tickers: list[str] | None = None) -> dict:
                 enforce_retention(ticker)
 
             history = get_ticker_history(ticker)
-            snapshot = compute_snapshot(ticker, history)
+            mk = _listing_market(ticker)
+            snapshot = compute_snapshot(ticker, history, market=mk)
             if snapshot:
                 upsert_snapshot(snapshot)
+                upsert_symbol_market(ticker, mk)
                 logger.info("Snapshot updated for %s", ticker)
                 if not get_listing_exchange(ticker):
-                    tv_ex = fetch_listing_exchange_yfinance(ticker)
-                    if tv_ex:
-                        persist_listing_exchange(ticker, tv_ex)
+                    if mk == "TA":
+                        persist_listing_exchange(ticker, "TASE")
+                    else:
+                        tv_ex = fetch_listing_exchange_yfinance(ticker)
+                        if tv_ex:
+                            persist_listing_exchange(ticker, tv_ex)
 
             processed += 1
             time.sleep(BATCH_DELAY_SECONDS)

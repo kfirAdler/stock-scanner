@@ -40,6 +40,11 @@ export async function GET(request: NextRequest) {
     .select("*")
     .eq("timeframe", "1D");
 
+  const listing = params.get("listing_market");
+  if (listing === "US" || listing === "TA") {
+    query = query.eq("market", listing);
+  }
+
   for (const key of BOOL_FILTERS) {
     if (params.get(key) === "true") {
       query = query.eq(key, true);

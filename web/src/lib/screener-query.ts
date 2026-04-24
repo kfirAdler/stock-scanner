@@ -47,6 +47,9 @@ const BOOLEAN_KEYS: (keyof ScreenerFilters)[] = [
 
 export function filtersToQueryString(filters: ScreenerFilters): string {
   const p = new URLSearchParams();
+  if (filters.listing_market === "US" || filters.listing_market === "TA") {
+    p.set("listing_market", filters.listing_market);
+  }
   for (const key of BOOLEAN_KEYS) {
     const v = filters[key];
     if (v === true) p.set(key as string, "true");
@@ -65,6 +68,10 @@ export function parseFiltersFromSearchParams(
   params: URLSearchParams
 ): ScreenerFilters {
   const f: ScreenerFilters = {};
+  const lm = params.get("listing_market");
+  if (lm === "US" || lm === "TA") {
+    f.listing_market = lm;
+  }
   for (const key of BOOLEAN_KEYS) {
     if (params.get(key as string) === "true") {
       (f as Record<string, boolean>)[key as string] = true;
@@ -166,7 +173,15 @@ export function tradingViewSymbol(
   ticker: string,
   listingExchange?: string | null
 ): string {
-  const t = formatTickerForTradingView(ticker);
+  const raw = ticker.trim();
+  if (/\.TA$/i.test(raw)) {
+    const base = raw
+      .replace(/\.TA$/i, "")
+      .replace(/\./g, "-")
+      .toUpperCase();
+    return `TASE:${base}`;
+  }
+  const t = formatTickerForTradingView(raw);
   const ex =
     (listingExchange && listingExchange.trim()) ||
     (typeof process !== "undefined" &&

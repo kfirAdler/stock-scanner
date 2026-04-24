@@ -40,6 +40,8 @@ export async function POST(request: NextRequest) {
     oldest_update: lastUpdate,
     help: {
       full_refresh: "python3 run_refresh.py",
+      full_refresh_us_only: "python3 run_refresh.py --universe us",
+      full_refresh_ta_only: "python3 run_refresh.py --universe ta",
       recompute_only: "python3 recompute_snapshots.py",
       single_ticker: "python3 recompute_snapshots.py --tickers AAPL",
     },

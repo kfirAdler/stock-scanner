@@ -23,6 +23,9 @@ export function mapYahooCodeToTradingViewExchange(
     BATS: "BATS",
     BZX: "BATS",
     CXI: "AMEX",
+    TLV: "TASE",
+    TASE: "TASE",
+    TA: "TASE",
   };
   const mapped = table[u];
   if (mapped) return mapped;

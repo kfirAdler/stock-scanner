@@ -39,6 +39,12 @@
     "results": "Results",
     "clearFilters": "Clear All",
     "applyFilters": "Apply",
+    "listingMarket": {
+      "label": "Universe",
+      "all": "All (US + TA-125)",
+      "us": "US only (S&P 500)",
+      "ta": "TA only (Tel Aviv 125)"
+    },
     "tabs": {
       "movingAverages": "Moving Averages",
       "signals": "Signals & state",

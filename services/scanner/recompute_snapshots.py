@@ -34,6 +34,7 @@ def main():
         get_all_tickers,
         get_ticker_history,
         upsert_snapshot,
+        upsert_symbol_market,
     )
     from src.indicators.compute import compute_snapshot
 
@@ -55,13 +56,15 @@ def main():
                 logger.warning("[%d/%d] %s: no history, skipping", i + 1, total, ticker)
                 continue
 
-            snapshot = compute_snapshot(ticker, history)
+            mk = "TA" if ticker.upper().endswith(".TA") else "US"
+            snapshot = compute_snapshot(ticker, history, market=mk)
             if snapshot is None:
                 logger.warning("[%d/%d] %s: not enough bars (%d), skipping",
                                i + 1, total, ticker, len(history))
                 continue
 
             upsert_snapshot(snapshot)
+            upsert_symbol_market(ticker, mk)
             processed += 1
 
             if processed % 25 == 0 or i == total - 1:

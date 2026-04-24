@@ -17,13 +17,22 @@ def main():
     parser.add_argument(
         "--tickers",
         nargs="*",
-        help="Specific tickers to refresh (default: all from DB)",
+        help="Specific tickers to refresh (overrides --universe)",
+    )
+    parser.add_argument(
+        "--universe",
+        choices=("all", "us", "ta"),
+        default="all",
+        help="Which index universe to refresh when --tickers is omitted (default: all)",
     )
     args = parser.parse_args()
 
     from src.jobs.refresh_market_snapshot import run
 
-    result = run(tickers=args.tickers if args.tickers else None)
+    if args.tickers:
+        result = run(tickers=args.tickers)
+    else:
+        result = run(universe=args.universe)
     print(json.dumps(result, indent=2))
     sys.exit(0 if result["failed"] == 0 else 1)
 

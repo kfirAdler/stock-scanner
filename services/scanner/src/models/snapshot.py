@@ -38,6 +38,7 @@ class IndicatorSnapshot:
     timeframe: str
     last_trade_date: date
     close: float
+    market: str = "US"
     last_bar_time: Optional[datetime] = None
 
     sma_20: Optional[float] = None
