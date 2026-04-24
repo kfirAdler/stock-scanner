@@ -99,6 +99,8 @@ def compute_snapshot(ticker: str, df: pd.DataFrame) -> IndicatorSnapshot | None:
         sell_signal=seq_state.sell_signal,
         strong_buy_signal=seq_state.strong_buy_signal,
         strong_sell_signal=seq_state.strong_sell_signal,
+        strong_buy_signal_bars_ago=seq_state.strong_buy_signal_bars_ago,
+        strong_sell_signal_bars_ago=seq_state.strong_sell_signal_bars_ago,
         # SMA position booleans
         is_above_sma20=_above(last_close, sma20),
         is_below_sma20=_below(last_close, sma20),

@@ -45,6 +45,9 @@ class SequenceState:
     sell_signal: bool = False
     strong_buy_signal: bool = False
     strong_sell_signal: bool = False
+    """Bars from the last row to the bar where that signal last fired (0 = last bar)."""
+    strong_buy_signal_bars_ago: Optional[int] = None
+    strong_sell_signal_bars_ago: Optional[int] = None
 
 
 def _is_up_fractal(highs: np.ndarray, center: int, n: int) -> bool:
@@ -155,6 +158,8 @@ def compute_sequence_state(df: pd.DataFrame) -> SequenceState:
     # --- Signal tracking for bars_ago computation ---
     last_buy_bar: Optional[int] = None
     last_sell_bar: Optional[int] = None
+    last_strong_buy_bar: Optional[int] = None
+    last_strong_sell_bar: Optional[int] = None
     last_buy_in_strong_up = False
     last_sell_in_strong_down = False
 
@@ -335,6 +340,10 @@ def compute_sequence_state(df: pd.DataFrame) -> SequenceState:
             last_signal_dir = 1
             last_buy_bar = i
             last_buy_in_strong_up = strong_up_ctx
+        if current_strong_buy:
+            last_strong_buy_bar = i
+        if current_strong_sell:
+            last_strong_sell_bar = i
 
     # ===== Build final snapshot state =====
     last_bar = n_bars - 1
@@ -379,4 +388,14 @@ def compute_sequence_state(df: pd.DataFrame) -> SequenceState:
         sell_signal=current_sell,
         strong_buy_signal=current_strong_buy,
         strong_sell_signal=current_strong_sell,
+        strong_buy_signal_bars_ago=(
+            last_bar - last_strong_buy_bar
+            if last_strong_buy_bar is not None
+            else None
+        ),
+        strong_sell_signal_bars_ago=(
+            last_bar - last_strong_sell_bar
+            if last_strong_sell_bar is not None
+            else None
+        ),
     )

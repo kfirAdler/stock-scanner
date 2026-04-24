@@ -32,8 +32,11 @@ interface ChartProps {
   height?: number;
   /** SMA lengths to plot (default 20 and 50). */
   smaPeriods?: number[];
-  /** YYYY-MM-DD of the bar to annotate (usually snapshot last_trade_date). */
+  /** YYYY-MM-DD for regular buy/sell markers on the latest bar. */
   signalBarDate?: string | null;
+  /** Bars from end to the bar where strong buy last fired (from snapshot). */
+  strongBuyBarsAgo?: number | null;
+  strongSellBarsAgo?: number | null;
   strongBuy?: boolean;
   strongSell?: boolean;
   buySignal?: boolean;
@@ -57,7 +60,7 @@ const SMA_LINE_COLORS = ["#3b82f6", "#22c55e", "#ef4444", "#eab308"];
 
 const DARK_THEME = {
   background: "#0b1120",
-  text: "#64748b",
+  text: "#a8b9cf",
   grid: "#1e293b",
   border: "#1e293b",
   crosshair: "#475569",
@@ -72,6 +75,8 @@ export function CandlestickChart({
   height = 420,
   smaPeriods = [20, 50],
   signalBarDate,
+  strongBuyBarsAgo,
+  strongSellBarsAgo,
   strongBuy,
   strongSell,
   buySignal,
@@ -140,6 +145,8 @@ export function CandlestickChart({
 
     const signalMarkers = buildSignalMarkers(bars, {
       signalBarDate: signalBarDate ?? null,
+      strongBuyBarsAgo: strongBuyBarsAgo ?? null,
+      strongSellBarsAgo: strongSellBarsAgo ?? null,
       strongBuy: !!strongBuy,
       strongSell: !!strongSell,
       buySignal: !!buySignal,
@@ -209,6 +216,8 @@ export function CandlestickChart({
     height,
     smaPeriods,
     signalBarDate,
+    strongBuyBarsAgo,
+    strongSellBarsAgo,
     strongBuy,
     strongSell,
     buySignal,
@@ -233,10 +242,95 @@ export function CandlestickChart({
   );
 }
 
+function barAtBarsAgoFromEnd(
+  bars: BarData[],
+  barsAgo: number | null
+): BarData | null {
+  if (barsAgo === null || barsAgo < 0 || bars.length === 0) return null;
+  const idx = bars.length - 1 - barsAgo;
+  if (idx < 0 || idx >= bars.length) return null;
+  return bars[idx] ?? null;
+}
+
+function barFromTradeDate(
+  bars: BarData[],
+  tradeDate: string | null
+): BarData | null {
+  if (!bars.length) return null;
+  if (!tradeDate) return bars[bars.length - 1] ?? null;
+  return bars.find((b) => b.trade_date === tradeDate) ?? bars[bars.length - 1] ?? null;
+}
+
+function pushStrongBuyMarkers(
+  markers: SeriesMarker<Time>[],
+  bar: BarData,
+  pad: number,
+  green: string
+) {
+  const t = bar.trade_date as Time;
+  const hi = Number(bar.high);
+  const lo = Number(bar.low);
+  markers.push(
+    {
+      time: t,
+      position: "atPriceTop",
+      shape: "arrowUp",
+      color: green,
+      price: hi + pad,
+      size: 2,
+    },
+    {
+      time: t,
+      position: "atPriceBottom",
+      shape: "arrowUp",
+      color: green,
+      price: lo - pad,
+      size: 2,
+    }
+  );
+}
+
+function pushStrongSellMarkers(
+  markers: SeriesMarker<Time>[],
+  bar: BarData,
+  pad: number,
+  red: string
+) {
+  const t = bar.trade_date as Time;
+  const hi = Number(bar.high);
+  markers.push(
+    {
+      time: t,
+      position: "atPriceTop",
+      shape: "arrowDown",
+      color: red,
+      price: hi + pad,
+      size: 2,
+    },
+    {
+      time: t,
+      position: "atPriceTop",
+      shape: "arrowDown",
+      color: red,
+      price: hi + pad * 2.7,
+      size: 2,
+    }
+  );
+}
+
+function padForBar(bar: BarData, atr14: number | null): number {
+  const hi = Number(bar.high);
+  const lo = Number(bar.low);
+  const range = Math.max(hi - lo, Math.abs(hi) * 0.001);
+  return atr14 !== null && atr14 > 0 ? atr14 * 0.12 : range * 0.15;
+}
+
 function buildSignalMarkers(
   bars: BarData[],
   opts: {
     signalBarDate: string | null;
+    strongBuyBarsAgo: number | null;
+    strongSellBarsAgo: number | null;
     strongBuy: boolean;
     strongSell: boolean;
     buySignal: boolean;
@@ -245,81 +339,57 @@ function buildSignalMarkers(
     isDark: boolean;
   }
 ): SeriesMarker<Time>[] {
-  if (!opts.signalBarDate) return [];
-  const bar =
-    bars.find((b) => b.trade_date === opts.signalBarDate) ??
-    bars[bars.length - 1];
-  if (!bar) return [];
-
-  const t = bar.trade_date as Time;
-  const hi = Number(bar.high);
-  const lo = Number(bar.low);
-  const range = Math.max(hi - lo, Math.abs(hi) * 0.001);
-  const pad =
-    opts.atr14 !== null && opts.atr14 > 0
-      ? opts.atr14 * 0.12
-      : range * 0.15;
-
   const green = opts.isDark ? "#4ade80" : "#16a34a";
   const red = opts.isDark ? "#f87171" : "#dc2626";
   const markers: SeriesMarker<Time>[] = [];
 
-  if (opts.strongBuy) {
-    markers.push(
-      {
-        time: t,
-        position: "atPriceTop",
+  const showStrongBuy =
+    (opts.strongBuyBarsAgo !== null && opts.strongBuyBarsAgo >= 0) ||
+    opts.strongBuy;
+  const strongBuyBar =
+    barAtBarsAgoFromEnd(bars, opts.strongBuyBarsAgo) ??
+    (opts.strongBuy ? barFromTradeDate(bars, opts.signalBarDate) : null);
+
+  if (showStrongBuy && strongBuyBar) {
+    pushStrongBuyMarkers(markers, strongBuyBar, padForBar(strongBuyBar, opts.atr14), green);
+  } else if (opts.buySignal && opts.signalBarDate) {
+    const buyBar = barFromTradeDate(bars, opts.signalBarDate);
+    if (buyBar) {
+      markers.push({
+        time: buyBar.trade_date as Time,
+        position: "belowBar",
         shape: "arrowUp",
         color: green,
-        price: hi + pad,
-        size: 2,
-      },
-      {
-        time: t,
-        position: "atPriceBottom",
-        shape: "arrowUp",
-        color: green,
-        price: lo - pad,
-        size: 2,
-      }
-    );
-  } else if (opts.buySignal) {
-    markers.push({
-      time: t,
-      position: "belowBar",
-      shape: "arrowUp",
-      color: green,
-      size: 1,
-    });
+        size: 1,
+      });
+    }
   }
 
-  if (opts.strongSell) {
-    markers.push(
-      {
-        time: t,
-        position: "atPriceTop",
-        shape: "arrowDown",
-        color: red,
-        price: hi + pad,
-        size: 2,
-      },
-      {
-        time: t,
-        position: "atPriceTop",
-        shape: "arrowDown",
-        color: red,
-        price: hi + pad * 2.7,
-        size: 2,
-      }
+  const showStrongSell =
+    (opts.strongSellBarsAgo !== null && opts.strongSellBarsAgo >= 0) ||
+    opts.strongSell;
+  const strongSellBar =
+    barAtBarsAgoFromEnd(bars, opts.strongSellBarsAgo) ??
+    (opts.strongSell ? barFromTradeDate(bars, opts.signalBarDate) : null);
+
+  if (showStrongSell && strongSellBar) {
+    pushStrongSellMarkers(
+      markers,
+      strongSellBar,
+      padForBar(strongSellBar, opts.atr14),
+      red
     );
-  } else if (opts.sellSignal) {
-    markers.push({
-      time: t,
-      position: "aboveBar",
-      shape: "arrowDown",
-      color: red,
-      size: 1,
-    });
+  } else if (opts.sellSignal && opts.signalBarDate) {
+    const sellBar = barFromTradeDate(bars, opts.signalBarDate);
+    if (sellBar) {
+      markers.push({
+        time: sellBar.trade_date as Time,
+        position: "aboveBar",
+        shape: "arrowDown",
+        color: red,
+        size: 1,
+      });
+    }
   }
 
   return markers;

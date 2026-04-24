@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { clsx } from "clsx";
@@ -42,6 +42,15 @@ export function TickerChartPanel({
   const locale = useLocale();
   const searchParams = useSearchParams();
   const [tab, setTab] = useState<TabId>("tradingview");
+  const [tvRemountKey, setTvRemountKey] = useState(0);
+
+  useEffect(() => {
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) setTvRemountKey((k) => k + 1);
+    };
+    window.addEventListener("pageshow", onPageShow);
+    return () => window.removeEventListener("pageshow", onPageShow);
+  }, []);
 
   const filters = useMemo(
     () => parseFiltersFromSearchParams(searchParams),
@@ -52,6 +61,7 @@ export function TickerChartPanel({
     [filters]
   );
   const tvStudies = useMemo(() => filtersToTvStudies(filters), [filters]);
+  const tvStudiesKey = useMemo(() => JSON.stringify(tvStudies), [tvStudies]);
   const appSmaPeriods = useMemo(() => smaPeriodsFromFilters(filters), [filters]);
   const showScreenerHint = activeFilterCount > 0;
   const showSequenceNote = hasSequenceFilters(filters);
@@ -88,7 +98,10 @@ export function TickerChartPanel({
           type="button"
           role="tab"
           aria-selected={tab === "tradingview"}
-          onClick={() => setTab("tradingview")}
+          onClick={() => {
+            setTvRemountKey((k) => k + 1);
+            setTab("tradingview");
+          }}
           className={clsx(
             "rounded-lg px-3 py-1.5 text-xs font-bold transition-colors",
             tab === "tradingview"
@@ -117,9 +130,11 @@ export function TickerChartPanel({
       {tab === "tradingview" && (
         <div role="tabpanel" className="space-y-2">
           <TradingViewAdvancedChart
+            key={`${tvSymbol}-${tvRemountKey}`}
             symbol={tvSymbol}
             height={560}
             studies={tvStudies}
+            studiesKey={tvStudiesKey}
             locale={locale}
           />
           <p className="mt-2 text-center text-[10px] text-text-muted">
@@ -138,10 +153,13 @@ export function TickerChartPanel({
       {tab === "app" && (
         <div role="tabpanel" className="space-y-2">
           <CandlestickChart
+            key={`app-${ticker}-${bars.length}`}
             bars={bars}
             height={420}
             smaPeriods={appSmaPeriods}
             signalBarDate={snapshot.last_trade_date}
+            strongBuyBarsAgo={snapshot.strong_buy_signal_bars_ago ?? null}
+            strongSellBarsAgo={snapshot.strong_sell_signal_bars_ago ?? null}
             strongBuy={!!snapshot.strong_buy_signal}
             strongSell={!!snapshot.strong_sell_signal}
             buySignal={!!snapshot.buy_signal && !snapshot.strong_buy_signal}

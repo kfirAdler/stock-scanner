@@ -51,6 +51,9 @@ export interface SnapshotRow {
   sell_signal: boolean;
   strong_buy_signal: boolean;
   strong_sell_signal: boolean;
+  /** Bars from latest bar to the bar where strong buy last fired (0 = last bar). */
+  strong_buy_signal_bars_ago?: number | null;
+  strong_sell_signal_bars_ago?: number | null;
   is_above_sma20: boolean | null;
   is_below_sma20: boolean | null;
   is_above_sma50: boolean | null;

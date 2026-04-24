@@ -73,6 +73,8 @@ class IndicatorSnapshot:
     sell_signal: bool = False
     strong_buy_signal: bool = False
     strong_sell_signal: bool = False
+    strong_buy_signal_bars_ago: Optional[int] = None
+    strong_sell_signal_bars_ago: Optional[int] = None
 
     is_above_sma20: Optional[bool] = None
     is_below_sma20: Optional[bool] = None
