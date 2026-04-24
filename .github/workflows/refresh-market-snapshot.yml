@@ -6,12 +6,20 @@ name: Refresh market snapshot
 
 on:
   schedule:
-    # US equity regular session (~09:30–16:00 America/New_York) in UTC:
-    # EDT ≈ 13:30–20:00 UTC, EST ≈ 14:30–21:00 UTC. These three lines run every
-    # 15 minutes across that band (some slots sit just outside RTH at DST edges).
+    # --- US: NYSE/NASDAQ regular session Mon–Fri 09:30–16:00 America/New_York ---
+    # GitHub Actions `schedule` is always UTC (no DST). Eastern Time is:
+    #   EDT (~mid Mar–early Nov): 09:30 ET = 13:30 UTC, 16:00 ET = 20:00 UTC
+    #   EST (~early Nov–mid Mar): 09:30 ET = 14:30 UTC, 16:00 ET = 21:00 UTC
+    # Union of both = run every 15m from 13:30 through 21:00 UTC Mon–Fri (covers
+    # full RTH in either offset + small buffer after the bell for last prints).
     - cron: "30,45 13 * * 1-5"
     - cron: "*/15 14-20 * * 1-5"
     - cron: "0,15,30,45 21 * * 1-5"
+    # --- Israel: TASE regular session Sun–Thu ~09:00–17:35 Asia/Jerusalem ---
+    # ~09:00 IL ≈ 06:00 UTC (IDT, UTC+3) or 07:00 UTC (IST, UTC+2); ~17:35 IL ≈
+    # 14:35–15:35 UTC. Sun–Thu *UTC* approximates the IL trading week; US market
+    # is closed on those UTC mornings. Holidays are not skipped here (job is safe).
+    - cron: "*/30 6-16 * * 0-4"
   workflow_dispatch:
     inputs:
       tickers:
