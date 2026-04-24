@@ -92,6 +92,13 @@ def fetch_bars_yfinance(
 
 
 def fetch_bars(ticker: str, start_date: date, end_date: date) -> pd.DataFrame | None:
+    """Stooq often requires an API key for CSV; Tel Aviv symbols work reliably via yfinance."""
+    u = ticker.strip().upper()
+    if u.endswith(".TA"):
+        df = fetch_bars_yfinance(ticker, start_date, end_date)
+        if df is not None and not df.empty:
+            return df
+        return fetch_bars_stooq(ticker, start_date, end_date)
     df = fetch_bars_stooq(ticker, start_date, end_date)
     if df is not None and not df.empty:
         return df

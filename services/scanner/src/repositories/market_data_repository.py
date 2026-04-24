@@ -91,22 +91,40 @@ def upsert_bars(ticker: str, df: pd.DataFrame) -> int:
     records = []
     now = datetime.utcnow().isoformat()
     for _, row in df.iterrows():
+        o, h, l, c, v = (
+            row["open"],
+            row["high"],
+            row["low"],
+            row["close"],
+            row["volume"],
+        )
+        if any(pd.isna(x) for x in (o, h, l, c)):
+            continue
+        if pd.isna(v):
+            v = 0.0
         records.append({
             "ticker": ticker,
             "trade_date": row["trade_date"].isoformat()
             if isinstance(row["trade_date"], date)
             else str(row["trade_date"]),
-            "open": float(row["open"]),
-            "high": float(row["high"]),
-            "low": float(row["low"]),
-            "close": float(row["close"]),
-            "volume": float(row["volume"]),
+            "open": float(o),
+            "high": float(h),
+            "low": float(l),
+            "close": float(c),
+            "volume": float(v),
             "created_at": now,
         })
 
-    client.table("market_raw_data").upsert(
-        records, on_conflict="ticker,trade_date"
-    ).execute()
+    if not records:
+        return 0
+
+    # Avoid oversized single requests on first-time backfills (hundreds of rows per ticker).
+    chunk_size = 400
+    for i in range(0, len(records), chunk_size):
+        chunk = records[i : i + chunk_size]
+        client.table("market_raw_data").upsert(
+            chunk, on_conflict="ticker,trade_date"
+        ).execute()
     return len(records)
 
 

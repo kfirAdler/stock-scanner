@@ -66,6 +66,13 @@ def run(
                 if new_bars is not None and not new_bars.empty:
                     upsert_bars(ticker, new_bars)
                     logger.info("Upserted %d new bars for %s", len(new_bars), ticker)
+                elif latest is None:
+                    logger.warning(
+                        "No OHLC from data providers for %s (requested from %s); "
+                        "check symbol on Yahoo Finance or Stooq API access",
+                        ticker,
+                        start,
+                    )
 
                 enforce_retention(ticker)
 
