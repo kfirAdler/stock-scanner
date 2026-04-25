@@ -113,7 +113,7 @@ export function FilterPanel({
           <Button variant="ghost" size="sm" onClick={clearAll} disabled={activeFilterCount === 0}>
             {t("clearFilters")}
           </Button>
-          <Button size="sm" onClick={onApply} loading={loading}>
+          <Button size="sm" onClick={() => onApply()} loading={loading}>
             {t("applyFilters")}
           </Button>
         </div>
