@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { FilterPanel } from "@/components/screener/FilterPanel";
 import { ResultsTable } from "@/components/screener/ResultsTable";
@@ -24,6 +24,8 @@ function countActiveFilters(filters: ScreenerFilters) {
 export default function ScreenerPage() {
   const t = useTranslations("screener");
   const [filters, setFilters] = useState<ScreenerFilters>({});
+  const filtersRef = useRef<ScreenerFilters>({});
+  const [appliedFilters, setAppliedFilters] = useState<ScreenerFilters>({});
   const [favoriteFilters, setFavoriteFilters] = useState<ScreenerFilters | null>(null);
   const [favoriteLoading, setFavoriteLoading] = useState(true);
   const [favoriteSaving, setFavoriteSaving] = useState(false);
@@ -33,13 +35,15 @@ export default function ScreenerPage() {
   const [hasSearched, setHasSearched] = useState(false);
   const [gate, setGate] = useState<Gate>(null);
 
-  const fetchResults = useCallback(async (nextFilters: ScreenerFilters = filters) => {
+  const fetchResults = useCallback(async (nextFilters: ScreenerFilters = filtersRef.current) => {
+    const normalizedFilters = normalizeFilters(nextFilters);
     setLoading(true);
     setHasSearched(true);
     setGate(null);
+    setAppliedFilters(normalizedFilters);
     try {
       const params = new URLSearchParams();
-      for (const [key, value] of Object.entries(nextFilters)) {
+      for (const [key, value] of Object.entries(normalizedFilters)) {
         if (value !== undefined && value !== null && value !== "") {
           params.set(key, String(value));
         }
@@ -63,7 +67,7 @@ export default function ScreenerPage() {
     } finally {
       setLoading(false);
     }
-  }, [filters]);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -103,6 +107,11 @@ export default function ScreenerPage() {
     ? t("favorite.save")
     : t("favorite.load");
 
+  function handleFiltersChange(nextFilters: ScreenerFilters) {
+    filtersRef.current = nextFilters;
+    setFilters(nextFilters);
+  }
+
   async function handleFavoriteClick() {
     if (activeFilterCount > 0) {
       setFavoriteSaving(true);
@@ -140,6 +149,7 @@ export default function ScreenerPage() {
     }
 
     setFilters(favoriteFilters);
+    filtersRef.current = favoriteFilters;
     setFavoriteStatus(t("favorite.loaded"));
     await fetchResults(favoriteFilters);
   }
@@ -157,7 +167,7 @@ export default function ScreenerPage() {
         <>
           <FilterPanel
             filters={filters}
-            onChange={setFilters}
+            onChange={handleFiltersChange}
             onApply={fetchResults}
             loading={loading}
             onFavoriteClick={handleFavoriteClick}
@@ -170,7 +180,7 @@ export default function ScreenerPage() {
             <ResultsTable
               rows={results}
               loading={loading}
-              screenerFilters={filters}
+              screenerFilters={appliedFilters}
             />
           )}
         </>
