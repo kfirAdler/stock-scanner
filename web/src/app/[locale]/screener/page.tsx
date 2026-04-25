@@ -129,46 +129,47 @@ export default function ScreenerPage() {
 
   const activeFilterCount = useMemo(() => countActiveFilters(filters), [filters]);
   const hasFavorite = !!favoriteFilters && countActiveFilters(favoriteFilters) > 0;
-  const favoriteLabel = activeFilterCount > 0
-    ? t("favorite.save")
-    : t("favorite.load");
 
   function handleFiltersChange(nextFilters: ScreenerFilters) {
     filtersRef.current = nextFilters;
     setFilters(nextFilters);
   }
 
-  async function handleFavoriteClick() {
-    if (activeFilterCount > 0) {
-      setFavoriteSaving(true);
-      setFavoriteStatus(null);
-      try {
-        const normalized = normalizeFilters(filters);
-        const res = await fetch("/api/preferences", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ favorite_screener_filter: normalized }),
-        });
-
-        if (res.status === 401) {
-          setFavoriteStatus(t("favorite.signInRequired"));
-          return;
-        }
-
-        if (!res.ok) {
-          throw new Error("Failed to save favorite");
-        }
-
-        setFavoriteFilters(normalized);
-        setFavoriteStatus(t("favorite.saved"));
-      } catch {
-        setFavoriteStatus(t("favorite.saveFailed"));
-      } finally {
-        setFavoriteSaving(false);
-      }
+  async function handleSaveFavorite() {
+    if (activeFilterCount === 0) {
+      setFavoriteStatus(t("favorite.emptySave"));
       return;
     }
 
+    setFavoriteSaving(true);
+    setFavoriteStatus(null);
+    try {
+      const normalized = normalizeFilters(filters);
+      const res = await fetch("/api/preferences", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ favorite_screener_filter: normalized }),
+      });
+
+      if (res.status === 401) {
+        setFavoriteStatus(t("favorite.signInRequired"));
+        return;
+      }
+
+      if (!res.ok) {
+        throw new Error("Failed to save favorite");
+      }
+
+      setFavoriteFilters(normalized);
+      setFavoriteStatus(t("favorite.saved"));
+    } catch {
+      setFavoriteStatus(t("favorite.saveFailed"));
+    } finally {
+      setFavoriteSaving(false);
+    }
+  }
+
+  async function handleLoadFavorite() {
     if (!favoriteFilters) {
       setFavoriteStatus(t("favorite.empty"));
       return;
@@ -205,10 +206,11 @@ export default function ScreenerPage() {
             onChange={handleFiltersChange}
             onApply={handleApply}
             loading={loading}
-            onFavoriteClick={handleFavoriteClick}
-            favoriteLoading={favoriteLoading || favoriteSaving}
+            onSaveFavorite={handleSaveFavorite}
+            onLoadFavorite={handleLoadFavorite}
+            favoriteSaving={favoriteSaving}
+            favoriteLoading={favoriteLoading}
             favoriteAvailable={hasFavorite}
-            favoriteLabel={favoriteLabel}
             favoriteStatus={favoriteStatus}
           />
           {hasSearched && (

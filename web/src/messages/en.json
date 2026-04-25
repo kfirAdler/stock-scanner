@@ -95,10 +95,12 @@
     "applyFilters": "Apply",
     "favorite": {
       "save": "Save Favorite",
+      "update": "Update Favorite",
       "load": "Load Favorite",
       "saved": "Favorite filter saved.",
       "loaded": "Favorite filter loaded.",
       "empty": "Save a filter first, then use the star to load it later.",
+      "emptySave": "Choose at least one filter before saving a favorite.",
       "saveFailed": "Could not save favorite filter.",
       "signInRequired": "Sign in to save a favorite filter."
     },

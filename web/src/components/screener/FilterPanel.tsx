@@ -15,10 +15,11 @@ interface FilterPanelProps {
   onChange: (filters: ScreenerFilters) => void;
   onApply: () => void;
   loading?: boolean;
-  onFavoriteClick: () => void;
+  onSaveFavorite: () => void;
+  onLoadFavorite: () => void;
+  favoriteSaving?: boolean;
   favoriteLoading?: boolean;
   favoriteAvailable?: boolean;
-  favoriteLabel: string;
   favoriteStatus?: string | null;
 }
 
@@ -45,10 +46,11 @@ export function FilterPanel({
   onChange,
   onApply,
   loading,
-  onFavoriteClick,
+  onSaveFavorite,
+  onLoadFavorite,
+  favoriteSaving,
   favoriteLoading,
   favoriteAvailable,
-  favoriteLabel,
   favoriteStatus,
 }: FilterPanelProps) {
   const t = useTranslations("screener");
@@ -97,18 +99,32 @@ export function FilterPanel({
             type="button"
             variant={favoriteAvailable ? "secondary" : "ghost"}
             size="sm"
-            onClick={onFavoriteClick}
-            loading={favoriteLoading}
-            disabled={!favoriteAvailable && activeFilterCount === 0}
+            onClick={onSaveFavorite}
+            loading={favoriteSaving}
+            disabled={activeFilterCount === 0}
             className={clsx(
               "min-w-0",
               favoriteAvailable && "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:border-amber-900/60 dark:bg-amber-950/50 dark:text-amber-300"
             )}
-            aria-label={favoriteLabel}
-            title={favoriteLabel}
+            aria-label={favoriteAvailable ? t("favorite.update") : t("favorite.save")}
+            title={favoriteAvailable ? t("favorite.update") : t("favorite.save")}
           >
             <StarIcon filled={!!favoriteAvailable} />
-            <span className="hidden sm:inline">{favoriteLabel}</span>
+            <span className="hidden sm:inline">
+              {favoriteAvailable ? t("favorite.update") : t("favorite.save")}
+            </span>
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onLoadFavorite}
+            loading={favoriteLoading}
+            disabled={!favoriteAvailable}
+            aria-label={t("favorite.load")}
+            title={t("favorite.load")}
+          >
+            <span>{t("favorite.load")}</span>
           </Button>
           <Button variant="ghost" size="sm" onClick={clearAll} disabled={activeFilterCount === 0}>
             {t("clearFilters")}
