@@ -15,9 +15,42 @@ interface FilterPanelProps {
   onChange: (filters: ScreenerFilters) => void;
   onApply: () => void;
   loading?: boolean;
+  onFavoriteClick: () => void;
+  favoriteLoading?: boolean;
+  favoriteAvailable?: boolean;
+  favoriteLabel: string;
+  favoriteStatus?: string | null;
 }
 
-export function FilterPanel({ filters, onChange, onApply, loading }: FilterPanelProps) {
+function StarIcon({ filled }: { filled: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      fill={filled ? "currentColor" : "none"}
+      className="h-4 w-4"
+      aria-hidden="true"
+    >
+      <path
+        d="M10 2.25 12.4 7.1l5.35.78-3.87 3.77.91 5.32L10 14.45l-4.79 2.52.91-5.32L2.25 7.88l5.35-.78L10 2.25Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function FilterPanel({
+  filters,
+  onChange,
+  onApply,
+  loading,
+  onFavoriteClick,
+  favoriteLoading,
+  favoriteAvailable,
+  favoriteLabel,
+  favoriteStatus,
+}: FilterPanelProps) {
   const t = useTranslations("screener");
   const [activeTab, setActiveTab] = useState<TabId>("ma");
 
@@ -60,6 +93,23 @@ export function FilterPanel({ filters, onChange, onApply, loading }: FilterPanel
           )}
         </div>
         <div className="flex gap-2">
+          <Button
+            type="button"
+            variant={favoriteAvailable ? "secondary" : "ghost"}
+            size="sm"
+            onClick={onFavoriteClick}
+            loading={favoriteLoading}
+            disabled={!favoriteAvailable && activeFilterCount === 0}
+            className={clsx(
+              "min-w-0",
+              favoriteAvailable && "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:border-amber-900/60 dark:bg-amber-950/50 dark:text-amber-300"
+            )}
+            aria-label={favoriteLabel}
+            title={favoriteLabel}
+          >
+            <StarIcon filled={!!favoriteAvailable} />
+            <span className="hidden sm:inline">{favoriteLabel}</span>
+          </Button>
           <Button variant="ghost" size="sm" onClick={clearAll} disabled={activeFilterCount === 0}>
             {t("clearFilters")}
           </Button>
@@ -68,6 +118,15 @@ export function FilterPanel({ filters, onChange, onApply, loading }: FilterPanel
           </Button>
         </div>
       </div>
+
+      {favoriteStatus && (
+        <div
+          className="border-b border-border bg-surface px-5 py-2 text-xs font-medium text-text-secondary"
+          aria-live="polite"
+        >
+          {favoriteStatus}
+        </div>
+      )}
 
       <div role="tablist" className="flex overflow-x-auto bg-surface">
         {tabs.map((tab) => (

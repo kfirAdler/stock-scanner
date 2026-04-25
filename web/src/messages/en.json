@@ -90,6 +90,15 @@
     "results": "Results",
     "clearFilters": "Clear All",
     "applyFilters": "Apply",
+    "favorite": {
+      "save": "Save Favorite",
+      "load": "Load Favorite",
+      "saved": "Favorite filter saved.",
+      "loaded": "Favorite filter loaded.",
+      "empty": "Save a filter first, then use the star to load it later.",
+      "saveFailed": "Could not save favorite filter.",
+      "signInRequired": "Sign in to save a favorite filter."
+    },
     "listingMarket": {
       "label": "Universe",
       "all": "All (US + TA-125)",
