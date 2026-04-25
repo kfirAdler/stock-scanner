@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Checkbox } from "@/components/ui/Checkbox";
+import { CURRENT_TERMS_VERSION } from "@/lib/terms";
 
 export default function RegisterPage() {
   const t = useTranslations();
@@ -43,7 +44,7 @@ export default function RegisterPage() {
     if (data.user) {
       await supabase.from("user_terms_acceptance").insert({
         user_id: data.user.id,
-        terms_version: "1.0",
+        terms_version: CURRENT_TERMS_VERSION,
       });
     }
 

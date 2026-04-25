@@ -304,6 +304,43 @@
     "accept": "I accept the Terms of Use",
     "mustAccept": "You must accept the Terms of Use to continue",
     "version": "Version {version}",
-    "body": "By using Stock Scanner, you agree to the following terms and conditions. This platform provides market data for informational purposes only. It does not constitute financial advice. Past performance does not guarantee future results. Use the information at your own risk. We do not guarantee the accuracy, completeness, or timeliness of any data presented. The platform may be unavailable during maintenance or due to technical issues. We reserve the right to modify these terms at any time."
+    "summaryTitle": "Important legal summary",
+    "summaryBody": "Stock Scanner is an informational software tool only. It does not provide investment, legal, tax, or brokerage advice. You are solely responsible for your decisions, trades, risk management, compliance obligations, and any losses that result from using the platform.",
+    "intro": "By accessing or using Stock Scanner, you agree to these Terms of Use. If you do not agree, do not use the platform.",
+    "acceptedSuccess": "Terms accepted successfully.",
+    "sections": {
+      "eligibility": {
+        "title": "Eligibility and Account Use",
+        "body": "You are responsible for maintaining the confidentiality of your account and for all activity that occurs under it. You may use the platform only in compliance with applicable laws, regulations, and exchange or broker restrictions that apply to you."
+      },
+      "informationOnly": {
+        "title": "Informational Use Only",
+        "body": "The platform provides screening tools, market data, calculations, charts, and other output for informational and educational purposes only. All content is general in nature and is not tailored to your financial situation, objectives, or risk tolerance."
+      },
+      "noAdvice": {
+        "title": "No Investment or Professional Advice",
+        "body": "Nothing on the platform constitutes investment advice, a recommendation, solicitation, portfolio management service, brokerage service, legal advice, tax advice, accounting advice, or any fiduciary relationship. No statement on the platform should be interpreted as advice to buy, sell, hold, or avoid any security or strategy."
+      },
+      "userResponsibility": {
+        "title": "User Responsibility",
+        "body": "You are solely responsible for your research, judgment, orders, execution decisions, compliance, suitability analysis, and risk management. You accept full responsibility for verifying any information before acting on it and for all gains, losses, liabilities, taxes, and consequences arising from your use of the platform."
+      },
+      "dataAvailability": {
+        "title": "Data, Accuracy, and Availability",
+        "body": "Market data, calculations, and platform output may be delayed, incomplete, inaccurate, unavailable, or interrupted. We do not guarantee accuracy, completeness, timeliness, availability, or fitness for any particular purpose. The platform is provided on an \"as is\" and \"as available\" basis."
+      },
+      "liability": {
+        "title": "Limitation of Liability",
+        "body": "To the maximum extent permitted by law, the platform owner, operator, affiliates, and service providers are not liable for any direct, indirect, incidental, consequential, special, exemplary, regulatory, or financial damages, trading losses, lost profits, lost opportunities, data loss, or claims arising out of or related to your use of or inability to use the platform."
+      },
+      "indemnity": {
+        "title": "Indemnification",
+        "body": "You agree to defend, indemnify, and hold harmless the platform owner, operator, affiliates, and service providers from and against claims, liabilities, damages, losses, costs, and expenses, including reasonable legal fees, arising out of your use of the platform, your violation of these terms, or your violation of any law, regulation, or third-party right."
+      },
+      "changes": {
+        "title": "Changes to the Terms",
+        "body": "We may update these terms from time to time. Continued use of the platform after updated terms become effective constitutes acceptance of the revised terms."
+      }
+    }
   }
 }
