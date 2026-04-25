@@ -52,6 +52,7 @@ export function Header() {
 
   async function handleSignOut() {
     try {
+      window.localStorage.removeItem("screener.favoriteFilter");
       const supabase = createClient();
       await supabase.auth.signOut();
     } catch {

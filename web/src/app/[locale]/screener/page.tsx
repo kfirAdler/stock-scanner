@@ -8,7 +8,6 @@ import { PremiumGate } from "@/components/billing/PremiumGate";
 import type { ScreenerFilters, SnapshotRow } from "@/lib/screener-types";
 
 type Gate = null | "login" | "subscribe";
-const FAVORITE_FILTER_STORAGE_KEY = "screener.favoriteFilter";
 
 function normalizeFilters(filters: ScreenerFilters): ScreenerFilters {
   return Object.fromEntries(
@@ -77,18 +76,11 @@ export default function ScreenerPage() {
 
     async function loadFavorite() {
       try {
-        const stored = window.localStorage.getItem(FAVORITE_FILTER_STORAGE_KEY);
-        if (stored && !cancelled) {
-          const parsed = JSON.parse(stored) as ScreenerFilters;
-          setFavoriteFilters(normalizeFilters(parsed));
-        }
-      } catch {
-        // ignore malformed local storage
-      }
-
-      try {
         const res = await fetch("/api/preferences", { cache: "no-store" });
         if (!res.ok) {
+          if (!cancelled) {
+            setFavoriteFilters(null);
+          }
           return;
         }
         const data = await res.json();
@@ -98,17 +90,11 @@ export default function ScreenerPage() {
             ? normalizeFilters(favorite as ScreenerFilters)
             : null;
           setFavoriteFilters(normalizedFavorite);
-          if (normalizedFavorite) {
-            window.localStorage.setItem(
-              FAVORITE_FILTER_STORAGE_KEY,
-              JSON.stringify(normalizedFavorite)
-            );
-          } else {
-            window.localStorage.removeItem(FAVORITE_FILTER_STORAGE_KEY);
-          }
         }
       } catch {
-        // ignore
+        if (!cancelled) {
+          setFavoriteFilters(null);
+        }
       } finally {
         if (!cancelled) {
           setFavoriteLoading(false);
@@ -181,10 +167,6 @@ export default function ScreenerPage() {
       }
 
       setFavoriteFilters(normalized);
-      window.localStorage.setItem(
-        FAVORITE_FILTER_STORAGE_KEY,
-        JSON.stringify(normalized)
-      );
       setFavoriteStatus(t("favorite.saved"));
     } catch {
       setFavoriteStatus(t("favorite.saveFailed"));
