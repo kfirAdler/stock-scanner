@@ -5,9 +5,11 @@ import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/Button";
 
 type GateKind = "login" | "subscribe";
+type ExtendedGateKind = GateKind | "multiFilterLogin";
 
-export function PremiumGate({ kind }: { kind: GateKind }) {
+export function PremiumGate({ kind }: { kind: ExtendedGateKind }) {
   const t = useTranslations("premium");
+  const isLoginGate = kind === "login" || kind === "multiFilterLogin";
 
   return (
     <div className="relative overflow-hidden rounded-3xl border border-border-strong bg-surface-raised shadow-lg ring-1 ring-black/[0.03] dark:ring-white/[0.06]">
@@ -25,19 +27,35 @@ export function PremiumGate({ kind }: { kind: GateKind }) {
           </svg>
         </div>
         <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-text">
-          {kind === "login" ? t("gateTitleLogin") : t("gateTitleSubscribe")}
+          {kind === "multiFilterLogin"
+            ? t("gateTitleMultiFilterLogin")
+            : isLoginGate
+              ? t("gateTitleLogin")
+              : t("gateTitleSubscribe")}
         </h2>
         <p className="text-sm text-text-secondary leading-relaxed">
-          {kind === "login" ? t("gateBodyLogin") : t("gateBodySubscribe")}
+          {kind === "multiFilterLogin"
+            ? t("gateBodyMultiFilterLogin")
+            : isLoginGate
+              ? t("gateBodyLogin")
+              : t("gateBodySubscribe")}
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
-          {kind === "login" ? (
-            <Link href="/auth/login">
-              <Button variant="primary" size="lg" className="w-full sm:w-auto min-w-[200px]">
-                {t("signIn")}
-              </Button>
-            </Link>
-          ) : (
+          {isLoginGate ? (
+            <>
+              <Link href="/auth/login">
+                <Button variant="primary" size="lg" className="w-full sm:w-auto min-w-[200px]">
+                  {t("signIn")}
+                </Button>
+              </Link>
+              <Link href="/auth/register">
+                <Button variant="secondary" size="lg" className="w-full sm:w-auto min-w-[200px]">
+                  {t("createAccount")}
+                </Button>
+              </Link>
+            </>
+          )}
+          {!isLoginGate ? (
             <>
               <Link href="/settings">
                 <Button variant="primary" size="lg" className="w-full sm:w-auto min-w-[200px]">
@@ -52,7 +70,7 @@ export function PremiumGate({ kind }: { kind: GateKind }) {
                 </a>
               ) : null}
             </>
-          )}
+          ) : null}
         </div>
         {process.env.NEXT_PUBLIC_PREMIUM_CONTACT_EMAIL && kind === "subscribe" && (
           <p className="text-xs text-text-muted pt-2">

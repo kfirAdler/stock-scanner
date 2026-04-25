@@ -34,6 +34,8 @@ export default function ScreenerPage() {
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [gate, setGate] = useState<Gate>(null);
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [multiFilterGateOpen, setMultiFilterGateOpen] = useState(false);
 
   const fetchResults = useCallback(async (nextFilters: ScreenerFilters = filtersRef.current) => {
     const normalizedFilters = normalizeFilters(nextFilters);
@@ -101,6 +103,30 @@ export default function ScreenerPage() {
     };
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadUserState() {
+      try {
+        const res = await fetch("/api/me/entitlement");
+        const data = await res.json();
+        if (!cancelled && data && typeof data.loggedIn === "boolean") {
+          setLoggedIn(data.loggedIn);
+        }
+      } catch {
+        if (!cancelled) {
+          setLoggedIn(false);
+        }
+      }
+    }
+
+    void loadUserState();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const activeFilterCount = useMemo(() => countActiveFilters(filters), [filters]);
   const hasFavorite = !!favoriteFilters && countActiveFilters(favoriteFilters) > 0;
   const favoriteLabel = activeFilterCount > 0
@@ -154,6 +180,15 @@ export default function ScreenerPage() {
     await fetchResults(favoriteFilters);
   }
 
+  async function handleApply() {
+    if (!loggedIn && activeFilterCount > 1) {
+      setMultiFilterGateOpen(true);
+      return;
+    }
+
+    await fetchResults();
+  }
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 space-y-6">
       <div className="space-y-1">
@@ -168,7 +203,7 @@ export default function ScreenerPage() {
           <FilterPanel
             filters={filters}
             onChange={handleFiltersChange}
-            onApply={fetchResults}
+            onApply={handleApply}
             loading={loading}
             onFavoriteClick={handleFavoriteClick}
             favoriteLoading={favoriteLoading || favoriteSaving}
@@ -184,6 +219,24 @@ export default function ScreenerPage() {
             />
           )}
         </>
+      )}
+
+      {multiFilterGateOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-text/45 px-4 backdrop-blur-sm">
+          <div className="relative w-full max-w-2xl">
+            <button
+              type="button"
+              onClick={() => setMultiFilterGateOpen(false)}
+              className="absolute end-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full bg-surface-raised/90 text-text-secondary shadow-sm ring-1 ring-border transition-colors hover:text-text"
+              aria-label={t("guestLimit.close")}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
+                <path fillRule="evenodd" d="M4.22 4.22a.75.75 0 011.06 0L10 8.94l4.72-4.72a.75.75 0 111.06 1.06L11.06 10l4.72 4.72a.75.75 0 11-1.06 1.06L10 11.06l-4.72 4.72a.75.75 0 11-1.06-1.06L8.94 10 4.22 5.28a.75.75 0 010-1.06z" clipRule="evenodd" />
+              </svg>
+            </button>
+            <PremiumGate kind="multiFilterLogin" />
+          </div>
+        </div>
       )}
     </div>
   );

@@ -26,8 +26,8 @@
   },
   "marketing": {
     "badge": "Institutional-grade scans",
-    "headline": "Precision equity screening",
-    "lead": "Daily precomputed indicators, sequence logic, and volatility filters across US and Tel Aviv universes — built for members who expect speed, clarity, and a polished workspace.",
+    "headline": "Stock Scanner",
+    "lead": "Fast stock screening with precomputed indicators, sequence logic, and volatility filters across US and Tel Aviv universes.",
     "features": {
       "ma": {
         "title": "Moving averages",
@@ -58,9 +58,12 @@
   "premium": {
     "gateTitleLogin": "Member access",
     "gateBodyLogin": "Sign in with the account linked to your membership to run scans and load ticker data.",
+    "gateTitleMultiFilterLogin": "Sign in to combine filters",
+    "gateBodyMultiFilterLogin": "Guest access includes one screener filter at a time. Sign in to run multi-filter scans, save favorites, and build cleaner setups faster.",
     "gateTitleSubscribe": "Upgrade required",
     "gateBodySubscribe": "Market scans, the full filter set, and ticker detail data are reserved for active members. Upgrade your plan to unlock everything.",
     "signIn": "Sign in",
+    "createAccount": "Create account",
     "viewAccount": "Account & billing",
     "contactSales": "Contact us",
     "emailLine": "Questions: {email}",
@@ -98,6 +101,9 @@
       "empty": "Save a filter first, then use the star to load it later.",
       "saveFailed": "Could not save favorite filter.",
       "signInRequired": "Sign in to save a favorite filter."
+    },
+    "guestLimit": {
+      "close": "Close sign-in prompt"
     },
     "listingMarket": {
       "label": "Universe",
