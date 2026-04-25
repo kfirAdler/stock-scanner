@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { CURRENT_TERMS_VERSION } from "@/lib/terms";
 
 export async function GET() {
   const supabase = await createClient();
@@ -31,5 +32,7 @@ export async function GET() {
     preferences: prefsResult.data ?? { locale: "en", theme: "system" },
     termsAccepted: (termsResult.data ?? []).length > 0,
     latestTermsVersion: termsResult.data?.[0]?.terms_version ?? null,
+    currentTermsVersion: CURRENT_TERMS_VERSION,
+    acceptedCurrentTerms: termsResult.data?.[0]?.terms_version === CURRENT_TERMS_VERSION,
   });
 }

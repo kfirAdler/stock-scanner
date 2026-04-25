@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { CURRENT_TERMS_VERSION } from "@/lib/terms";
 
 export default function TermsPage() {
   const t = useTranslations("terms");
+  const router = useRouter();
   const [accepted, setAccepted] = useState(false);
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
@@ -30,7 +32,10 @@ export default function TermsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ terms_version: CURRENT_TERMS_VERSION }),
       });
-      if (res.ok) setDone(true);
+      if (res.ok) {
+        setDone(true);
+        router.replace("/");
+      }
     } catch {
       // ignore
     } finally {

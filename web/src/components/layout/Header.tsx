@@ -108,6 +108,12 @@ export function Header() {
             >
               {t("nav.stockLookup")}
             </Link>
+            <Link
+              href="/terms"
+              className="px-3 py-1.5 rounded-md text-sm font-bold text-text-secondary hover:text-text hover:bg-surface-alt transition-colors"
+            >
+              {t("nav.terms")}
+            </Link>
             {user && (
               <Link
                 href="/saved-screens"
@@ -153,6 +159,14 @@ export function Header() {
                     >
                       {t("nav.settings")}
                     </Link>
+                    <Link
+                      href="/terms"
+                      className="block px-4 py-2 text-sm text-text-secondary hover:text-text hover:bg-surface-alt transition-colors"
+                      role="menuitem"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      {t("nav.terms")}
+                    </Link>
                     <div className="my-1 border-t border-border" />
                     <button
                       onClick={handleSignOut}
@@ -166,9 +180,17 @@ export function Header() {
               )}
             </div>
           ) : (
-            <Link href="/auth/login" className="ms-1">
-              <Button size="sm">{t("common.signIn")}</Button>
-            </Link>
+            <>
+              <Link
+                href="/terms"
+                className="hidden sm:inline-flex px-3 py-1.5 rounded-md text-sm font-bold text-text-secondary hover:text-text hover:bg-surface-alt transition-colors"
+              >
+                {t("nav.terms")}
+              </Link>
+              <Link href="/auth/login" className="ms-1">
+                <Button size="sm">{t("common.signIn")}</Button>
+              </Link>
+            </>
           )}
         </div>
       </div>

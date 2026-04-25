@@ -107,6 +107,11 @@
     "guestLimit": {
       "close": "Close sign-in prompt"
     },
+    "legalNotice": {
+      "title": "Important legal notice",
+      "body": "This screener is for informational use only and does not provide investment advice. You are solely responsible for any decisions or trades made using this platform. Read the full",
+      "link": "Terms of Use"
+    },
     "listingMarket": {
       "label": "Universe",
       "all": "All (US + TA-125)",

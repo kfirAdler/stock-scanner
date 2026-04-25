@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { FilterPanel } from "@/components/screener/FilterPanel";
 import { ResultsTable } from "@/components/screener/ResultsTable";
 import { PremiumGate } from "@/components/billing/PremiumGate";
@@ -201,6 +202,16 @@ export default function ScreenerPage() {
       <div className="space-y-1">
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-text">{t("title")}</h1>
         <p className="text-sm text-text-muted max-w-2xl">{t("premiumSubtitle")}</p>
+      </div>
+
+      <div className="rounded-2xl border border-warning/30 bg-warning-soft/40 px-5 py-4 text-sm text-text-secondary">
+        <p className="font-bold text-text">{t("legalNotice.title")}</p>
+        <p className="mt-1 leading-relaxed">
+          {t("legalNotice.body")}{" "}
+          <Link href="/terms" className="font-bold text-primary hover:underline">
+            {t("legalNotice.link")}
+          </Link>
+        </p>
       </div>
 
       {gate && <PremiumGate kind={gate === "login" ? "login" : "subscribe"} />}
