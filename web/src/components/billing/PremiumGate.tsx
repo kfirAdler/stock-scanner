@@ -54,7 +54,7 @@ export function PremiumGate({ kind }: { kind: ExtendedGateKind }) {
                 </Button>
               </Link>
             </>
-          )}
+          ) : null}
           {!isLoginGate ? (
             <>
               <Link href="/settings">
