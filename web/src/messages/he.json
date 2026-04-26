@@ -87,12 +87,27 @@
   "auth": {
     "loginTitle": "התחבר לסורק מניות",
     "registerTitle": "צור חשבון",
+    "planHelp": "בחר את התוכנית הרצויה לפני יצירת החשבון.",
     "googleSignIn": "המשך עם גוגל",
     "emailPlaceholder": "you@example.com",
     "passwordPlaceholder": "הסיסמה שלך",
     "noAccount": "אין לך חשבון?",
     "hasAccount": "כבר יש לך חשבון?",
-    "forgotPassword": "שכחת סיסמה?"
+    "forgotPassword": "שכחת סיסמה?",
+    "plan": {
+      "premium": {
+        "title": "פרימיום",
+        "body": "גישה מלאה לכל נתוני השוק, הסריקות, הסריקות השמורות ופיצ'רי הפרימיום העתידיים."
+      },
+      "essential": {
+        "title": "אסנשיאל",
+        "body": "הרץ כל סריקה שתרצה ושמור את הסריקות שלך להמשך."
+      },
+      "demo": {
+        "title": "דמו",
+        "body": "גישה מלאה ל-30 יום, ולאחר מכן החשבון יחזור לגישת חינם."
+      }
+    }
   },
   "screener": {
     "title": "סורק מניות",

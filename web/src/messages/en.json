@@ -87,12 +87,27 @@
   "auth": {
     "loginTitle": "Sign in to Stock Scanner",
     "registerTitle": "Create your account",
+    "planHelp": "Choose the plan you want before creating your account.",
     "googleSignIn": "Continue with Google",
     "emailPlaceholder": "you@example.com",
     "passwordPlaceholder": "Your password",
     "noAccount": "Don't have an account?",
     "hasAccount": "Already have an account?",
-    "forgotPassword": "Forgot password?"
+    "forgotPassword": "Forgot password?",
+    "plan": {
+      "premium": {
+        "title": "Premium",
+        "body": "Full access to all market data, screens, saved scans, and future premium features."
+      },
+      "essential": {
+        "title": "Essential",
+        "body": "Run any screener scan you want and save your scans for later."
+      },
+      "demo": {
+        "title": "Demo",
+        "body": "Full access for 30 days, then the account falls back to free access."
+      }
+    }
   },
   "screener": {
     "title": "Stock Screener",
