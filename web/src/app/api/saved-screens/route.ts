@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { assertScreenerAccess } from "@/lib/market-access";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET() {
+  const gate = await assertScreenerAccess();
+  if (!gate.allowed) return gate.response;
+
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
@@ -23,6 +27,9 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const gate = await assertScreenerAccess();
+  if (!gate.allowed) return gate.response;
+
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 

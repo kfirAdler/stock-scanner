@@ -22,7 +22,8 @@
     "stockLookup": "Lookup",
     "savedScreens": "Saved Screens",
     "settings": "Settings",
-    "terms": "Terms of Use"
+    "terms": "Terms of Use",
+    "menu": "Open navigation"
   },
   "marketing": {
     "badge": "Institutional-grade scans",
@@ -68,12 +69,19 @@
     "contactSales": "Contact us",
     "emailLine": "Questions: {email}",
     "headerBadge": "Member",
+    "headerBadgePremium": "Premium",
+    "headerBadgeEssential": "Essential",
+    "headerBadgeDemo": "Demo",
     "headerBadgeLocked": "Preview",
     "settingsTitle": "Membership",
     "planFree": "Standard",
-    "planPro": "Full access",
+    "planPremium": "Premium",
+    "planEssential": "Essential",
+    "planDemo": "Demo",
+    "planDemoExpired": "Demo expired",
     "planHintOpen": "All market features are open on this deployment.",
-    "planHintPaid": "Upgrade to Full access to use the screener, lookups, and charts without limits.",
+    "planHintPaid": "Premium and active demo users can access all market data. Essential users can run scans and save screens.",
+    "planExpiresOn": "Demo access ends on {date}.",
     "planRow": "Current plan: {plan}"
   },
   "auth": {
@@ -302,7 +310,9 @@
     "namePlaceholder": "My screen",
     "viewScan": "View scan",
     "enableAlerts": "Alerts",
-    "alertsComingSoon": "Alerts for new stocks entering this scan will be added in a future update."
+    "alertsPremium": "Premium",
+    "alertsComingSoon": "Alerts for new stocks entering this scan will be added in a future update.",
+    "alertsPremiumHint": "New-entry alerts are planned as a Premium feature and are still disabled for now."
   },
   "settings": {
     "title": "Settings",

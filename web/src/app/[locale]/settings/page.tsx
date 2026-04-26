@@ -6,6 +6,15 @@ import { useTheme } from "next-themes";
 import { useRouter } from "@/i18n/navigation";
 import { Button } from "@/components/ui/Button";
 
+type ClientEntitlement = {
+  loggedIn: boolean;
+  requiresSubscription: boolean;
+  tier: "free" | "premium" | "essential" | "demo";
+  effectiveTier: "free" | "premium" | "essential" | "demo";
+  status: "active" | "inactive" | "expired";
+  expiresAt: string | null;
+};
+
 export default function SettingsPage() {
   const t = useTranslations("settings");
   const tp = useTranslations("premium");
@@ -13,11 +22,7 @@ export default function SettingsPage() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [entitlement, setEntitlement] = useState<{
-    loggedIn: boolean;
-    requiresSubscription: boolean;
-    tier: "free" | "pro";
-  } | null>(null);
+  const [entitlement, setEntitlement] = useState<ClientEntitlement | null>(null);
 
   useEffect(() => setMounted(true), []);
 
@@ -29,7 +34,10 @@ export default function SettingsPage() {
           setEntitlement({
             loggedIn: d.loggedIn,
             requiresSubscription: !!d.requiresSubscription,
-            tier: d.tier === "pro" ? "pro" : "free",
+            tier: d.tier ?? "free",
+            effectiveTier: d.effectiveTier ?? "free",
+            status: d.status ?? "inactive",
+            expiresAt: d.expiresAt ?? null,
           });
         }
       })
@@ -59,15 +67,22 @@ export default function SettingsPage() {
     { value: "system", label: t("themeSystem") },
   ];
 
-  const planLabel =
-    entitlement?.tier === "pro" ? tp("planPro") : tp("planFree");
+  let planLabel = tp("planFree");
+  if (entitlement?.tier === "premium") {
+    planLabel = tp("planPremium");
+  } else if (entitlement?.tier === "essential") {
+    planLabel = tp("planEssential");
+  } else if (entitlement?.tier === "demo") {
+    planLabel =
+      entitlement.status === "expired" ? tp("planDemoExpired") : tp("planDemo");
+  }
 
   return (
-    <div className="mx-auto max-w-xl px-4 py-6 space-y-8">
+    <div className="mx-auto max-w-xl space-y-8 px-4 py-6">
       <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
 
-      <section className="rounded-2xl border border-border-strong bg-surface-raised p-5 space-y-3 shadow-sm">
-        <h2 className="font-bold text-sm uppercase tracking-wider text-text-muted">
+      <section className="space-y-3 rounded-2xl border border-border-strong bg-surface-raised p-5 shadow-sm">
+        <h2 className="text-sm font-bold uppercase tracking-wider text-text-muted">
           {t("membershipTitle")}
         </h2>
         {!entitlement ? (
@@ -76,11 +91,22 @@ export default function SettingsPage() {
           <>
             <p className="text-sm font-bold text-text">
               {t("membershipPlanLabel")}:{" "}
-              <span className={entitlement.tier === "pro" ? "text-primary" : ""}>
+              <span
+                className={
+                  entitlement.effectiveTier !== "free" ? "text-primary" : ""
+                }
+              >
                 {planLabel}
               </span>
             </p>
-            <p className="text-xs text-text-secondary leading-relaxed">
+            {entitlement.tier === "demo" && entitlement.expiresAt && (
+              <p className="text-xs text-text-secondary">
+                {tp("planExpiresOn", {
+                  date: new Date(entitlement.expiresAt).toLocaleDateString(),
+                })}
+              </p>
+            )}
+            <p className="text-xs leading-relaxed text-text-secondary">
               {entitlement.requiresSubscription
                 ? tp("planHintPaid")
                 : tp("planHintOpen")}
@@ -99,8 +125,9 @@ export default function SettingsPage() {
               size="sm"
               onClick={() => {
                 setTheme(opt.value);
-                savePreferences("en", opt.value);
+                void savePreferences("en", opt.value);
               }}
+              disabled={saving}
             >
               {opt.label}
             </Button>

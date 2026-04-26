@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { assertMarketDataAccess } from "@/lib/market-access";
+import { assertScreenerAccess } from "@/lib/market-access";
 import { createServiceClient } from "@/lib/supabase/server";
 
 const BOOL_FILTERS = [
@@ -33,7 +33,7 @@ function parseNum(params: URLSearchParams, key: string): number | undefined {
 }
 
 export async function GET(request: NextRequest) {
-  const gate = await assertMarketDataAccess();
+  const gate = await assertScreenerAccess();
   if (!gate.allowed) return gate.response;
 
   const params = request.nextUrl.searchParams;

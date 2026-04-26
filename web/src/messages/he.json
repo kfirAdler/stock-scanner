@@ -22,7 +22,8 @@
     "stockLookup": "חיפוש",
     "savedScreens": "סריקות שמורות",
     "settings": "הגדרות",
-    "terms": "תנאי שימוש"
+    "terms": "תנאי שימוש",
+    "menu": "פתח תפריט ניווט"
   },
   "marketing": {
     "badge": "סריקה ברמת מוסדיים",
@@ -68,12 +69,19 @@
     "contactSales": "צור קשר",
     "emailLine": "שאלות: {email}",
     "headerBadge": "חבר",
+    "headerBadgePremium": "פרימיום",
+    "headerBadgeEssential": "אסנשיאל",
+    "headerBadgeDemo": "דמו",
     "headerBadgeLocked": "תצוגה מקדימה",
     "settingsTitle": "מנוי",
     "planFree": "סטנדרט",
-    "planPro": "גישה מלאה",
+    "planPremium": "פרימיום",
+    "planEssential": "אסנשיאל",
+    "planDemo": "דמו",
+    "planDemoExpired": "דמו שפג תוקפו",
     "planHintOpen": "בפריסה זו כל תכונות השוק פתוחות.",
-    "planHintPaid": "שדרג ל־גישה מלאה כדי להשתמש בסורק, בחיפוש ובגרפים ללא הגבלה.",
+    "planHintPaid": "משתמשי פרימיום ודמו פעיל מקבלים גישה מלאה לנתוני השוק. משתמשי אסנשיאל יכולים להריץ סריקות ולשמור סריקות.",
+    "planExpiresOn": "גישת הדמו מסתיימת בתאריך {date}.",
     "planRow": "תוכנית נוכחית: {plan}"
   },
   "auth": {
@@ -302,7 +310,9 @@
     "namePlaceholder": "הסריקה שלי",
     "viewScan": "הצג סריקה",
     "enableAlerts": "התראות",
-    "alertsComingSoon": "התראות על מניות חדשות שנכנסו לסריקה יתווספו בעדכון עתידי."
+    "alertsPremium": "פרימיום",
+    "alertsComingSoon": "התראות על מניות חדשות שנכנסו לסריקה יתווספו בעדכון עתידי.",
+    "alertsPremiumHint": "התראות על כניסת מניות חדשות לסריקה מתוכננות כפיצ'ר פרימיום ועדיין כבויות."
   },
   "settings": {
     "title": "הגדרות",
