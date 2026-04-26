@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { useSearchParams } from "next/navigation";
 import { FilterPanel } from "@/components/screener/FilterPanel";
 import { ResultsTable } from "@/components/screener/ResultsTable";
 import { PremiumGate } from "@/components/billing/PremiumGate";
@@ -26,7 +25,6 @@ function countActiveFilters(filters: ScreenerFilters) {
 
 export default function ScreenerPage() {
   const t = useTranslations("screener");
-  const searchParams = useSearchParams();
   const [filters, setFilters] = useState<ScreenerFilters>({});
   const filtersRef = useRef<ScreenerFilters>({});
   const [appliedFilters, setAppliedFilters] = useState<ScreenerFilters>({});
@@ -115,7 +113,9 @@ export default function ScreenerPage() {
   }, []);
 
   useEffect(() => {
-    const nextFilters = parseFiltersFromSearchParams(searchParams);
+    const nextFilters = parseFiltersFromSearchParams(
+      new URLSearchParams(window.location.search)
+    );
     const normalized = normalizeFilters(nextFilters);
 
     filtersRef.current = normalized;
@@ -124,7 +124,7 @@ export default function ScreenerPage() {
     if (countActiveFilters(normalized) > 0) {
       void fetchResults(normalized);
     }
-  }, [fetchResults, searchParams]);
+  }, [fetchResults]);
 
   useEffect(() => {
     let cancelled = false;
