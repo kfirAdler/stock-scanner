@@ -17,12 +17,20 @@ export default function TermsPage() {
     "eligibility",
     "informationOnly",
     "noAdvice",
+    "noLicense",
     "userResponsibility",
     "dataAvailability",
     "liability",
     "indemnity",
+    "thirdParty",
+    "noWarranty",
+    "riskAcknowledgement",
     "changes",
+    "governingLaw",
   ] as const;
+  const visibleSections = sections.filter((section) =>
+    t.has(`sections.${section}.title`)
+  );
 
   async function handleAccept() {
     setSaving(true);
@@ -55,7 +63,7 @@ export default function TermsPage() {
 
       <div className="rounded-2xl border border-border bg-surface-alt p-6 space-y-6">
         <p className="text-sm leading-relaxed text-text-secondary">{t("intro")}</p>
-        {sections.map((section) => (
+        {visibleSections.map((section) => (
           <section key={section} className="space-y-2">
             <h2 className="text-sm font-bold uppercase tracking-wider text-text-muted">
               {t(`sections.${section}.title`)}

@@ -3,10 +3,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { useSearchParams } from "next/navigation";
 import { FilterPanel } from "@/components/screener/FilterPanel";
 import { ResultsTable } from "@/components/screener/ResultsTable";
 import { PremiumGate } from "@/components/billing/PremiumGate";
 import type { ScreenerFilters, SnapshotRow } from "@/lib/screener-types";
+import { parseFiltersFromSearchParams } from "@/lib/screener-query";
 
 type Gate = null | "login" | "subscribe";
 
@@ -24,6 +26,7 @@ function countActiveFilters(filters: ScreenerFilters) {
 
 export default function ScreenerPage() {
   const t = useTranslations("screener");
+  const searchParams = useSearchParams();
   const [filters, setFilters] = useState<ScreenerFilters>({});
   const filtersRef = useRef<ScreenerFilters>({});
   const [appliedFilters, setAppliedFilters] = useState<ScreenerFilters>({});
@@ -31,6 +34,7 @@ export default function ScreenerPage() {
   const [favoriteLoading, setFavoriteLoading] = useState(true);
   const [favoriteSaving, setFavoriteSaving] = useState(false);
   const [favoriteStatus, setFavoriteStatus] = useState<string | null>(null);
+  const [saveScanLoading, setSaveScanLoading] = useState(false);
   const [results, setResults] = useState<SnapshotRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
@@ -111,6 +115,18 @@ export default function ScreenerPage() {
   }, []);
 
   useEffect(() => {
+    const nextFilters = parseFiltersFromSearchParams(searchParams);
+    const normalized = normalizeFilters(nextFilters);
+
+    filtersRef.current = normalized;
+    setFilters(normalized);
+
+    if (countActiveFilters(normalized) > 0) {
+      void fetchResults(normalized);
+    }
+  }, [fetchResults, searchParams]);
+
+  useEffect(() => {
     let cancelled = false;
 
     async function loadUserState() {
@@ -176,6 +192,44 @@ export default function ScreenerPage() {
     }
   }
 
+  async function handleSaveScan() {
+    if (activeFilterCount === 0) {
+      setFavoriteStatus(t("saveScanEmpty"));
+      return;
+    }
+
+    const name = window.prompt(t("saveScanPrompt"), t("saveScanDefaultName"));
+    if (!name || name.trim() === "") {
+      return;
+    }
+
+    setSaveScanLoading(true);
+    setFavoriteStatus(null);
+    try {
+      const normalized = normalizeFilters(filters);
+      const res = await fetch("/api/saved-screens", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim(), filter_json: normalized }),
+      });
+
+      if (res.status === 401) {
+        setFavoriteStatus(t("saveScanSignInRequired"));
+        return;
+      }
+
+      if (!res.ok) {
+        throw new Error("Failed to save scan");
+      }
+
+      setFavoriteStatus(t("saveScanSaved"));
+    } catch {
+      setFavoriteStatus(t("saveScanFailed"));
+    } finally {
+      setSaveScanLoading(false);
+    }
+  }
+
   async function handleLoadFavorite() {
     if (!favoriteFilters) {
       setFavoriteStatus(t("favorite.empty"));
@@ -223,6 +277,8 @@ export default function ScreenerPage() {
             onChange={handleFiltersChange}
             onApply={handleApply}
             loading={loading}
+            onSaveScan={handleSaveScan}
+            saveScanLoading={saveScanLoading}
             onSaveFavorite={handleSaveFavorite}
             onLoadFavorite={handleLoadFavorite}
             favoriteSaving={favoriteSaving}

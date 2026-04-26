@@ -15,6 +15,8 @@ interface FilterPanelProps {
   onChange: (filters: ScreenerFilters) => void;
   onApply: () => void;
   loading?: boolean;
+  onSaveScan: () => void;
+  saveScanLoading?: boolean;
   onSaveFavorite: () => void;
   onLoadFavorite: () => void;
   favoriteSaving?: boolean;
@@ -46,6 +48,8 @@ export function FilterPanel({
   onChange,
   onApply,
   loading,
+  onSaveScan,
+  saveScanLoading,
   onSaveFavorite,
   onLoadFavorite,
   favoriteSaving,
@@ -95,6 +99,16 @@ export function FilterPanel({
           )}
         </div>
         <div className="flex gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={onSaveScan}
+            loading={saveScanLoading}
+            disabled={activeFilterCount === 0}
+          >
+            <span>{t("saveScan")}</span>
+          </Button>
           <Button
             type="button"
             variant={favoriteAvailable ? "secondary" : "ghost"}

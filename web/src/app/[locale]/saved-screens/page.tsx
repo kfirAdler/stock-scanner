@@ -59,6 +59,7 @@ export default function SavedScreensPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-6 space-y-6">
       <h1 className="text-2xl font-bold">{t("savedScreens.title")}</h1>
+      <p className="text-sm text-text-secondary max-w-2xl">{t("savedScreens.subtitle")}</p>
 
       {screens.length === 0 ? (
         <p className="text-text-secondary py-12 text-center">{t("savedScreens.empty")}</p>
@@ -77,9 +78,14 @@ export default function SavedScreensPage() {
                   {Object.keys(screen.filter_json).length} filters
                 </p>
               </div>
-              <Button size="sm" variant="secondary" onClick={() => applyScreen(screen)}>
-                {t("screener.applyFilters")}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button size="sm" variant="secondary" onClick={() => applyScreen(screen)}>
+                  {t("savedScreens.viewScan")}
+                </Button>
+                <Button size="sm" variant="ghost" disabled title={t("savedScreens.alertsComingSoon")}>
+                  {t("savedScreens.enableAlerts")}
+                </Button>
+              </div>
             </div>
           ))}
         </div>

@@ -93,6 +93,13 @@
     "results": "תוצאות",
     "clearFilters": "נקה הכל",
     "applyFilters": "החל",
+    "saveScan": "שמור סריקה",
+    "saveScanPrompt": "איך לקרוא לסריקה השמורה?",
+    "saveScanDefaultName": "הסריקה שלי",
+    "saveScanSaved": "הסריקה נשמרה.",
+    "saveScanFailed": "לא ניתן לשמור את הסריקה.",
+    "saveScanEmpty": "בחר לפחות מסנן אחד לפני שמירת סריקה.",
+    "saveScanSignInRequired": "צריך להתחבר כדי לשמור סריקות.",
     "favorite": {
       "save": "שמור מועדף",
       "update": "עדכן מועדף",
@@ -288,10 +295,14 @@
   },
   "savedScreens": {
     "title": "סריקות שמורות",
+    "subtitle": "פתח מחדש סריקות שמורות ונהל בעתיד התראות על מניות חדשות שנכנסו לסריקה.",
     "empty": "אין סריקות שמורות",
     "saveCurrent": "שמור סריקה נוכחית",
     "nameLabel": "שם הסריקה",
-    "namePlaceholder": "הסריקה שלי"
+    "namePlaceholder": "הסריקה שלי",
+    "viewScan": "הצג סריקה",
+    "enableAlerts": "התראות",
+    "alertsComingSoon": "התראות על מניות חדשות שנכנסו לסריקה יתווספו בעדכון עתידי."
   },
   "settings": {
     "title": "הגדרות",

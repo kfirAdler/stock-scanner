@@ -93,6 +93,13 @@
     "results": "Results",
     "clearFilters": "Clear All",
     "applyFilters": "Apply",
+    "saveScan": "Save Scan",
+    "saveScanPrompt": "Name this saved scan",
+    "saveScanDefaultName": "My scan",
+    "saveScanSaved": "Scan saved.",
+    "saveScanFailed": "Could not save scan.",
+    "saveScanEmpty": "Choose at least one filter before saving a scan.",
+    "saveScanSignInRequired": "Sign in to save scans.",
     "favorite": {
       "save": "Save Favorite",
       "update": "Update Favorite",
@@ -288,10 +295,14 @@
   },
   "savedScreens": {
     "title": "Saved Screens",
+    "subtitle": "Reopen saved scans and manage future scan alerts from one place.",
     "empty": "No saved screens yet",
     "saveCurrent": "Save Current Screen",
     "nameLabel": "Screen name",
-    "namePlaceholder": "My screen"
+    "namePlaceholder": "My screen",
+    "viewScan": "View scan",
+    "enableAlerts": "Alerts",
+    "alertsComingSoon": "Alerts for new stocks entering this scan will be added in a future update."
   },
   "settings": {
     "title": "Settings",
