@@ -1,5 +1,5 @@
 import { Assistant } from "next/font/google";
-import { NextIntlClientProvider, useMessages } from "next-intl";
+import { NextIntlClientProvider } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing, type Locale } from "@/i18n/routing";
@@ -51,12 +51,33 @@ export default async function LocaleLayout({
             <TermsAcceptanceGate />
             <Header />
             <main className="flex-1">{children}</main>
-            <footer className="border-t border-border-strong/40 bg-surface-alt/60">
-              <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 text-xs text-text-muted sm:px-6">
-                <p>{messages.common.appName}</p>
-                <Link href="/terms" className="font-bold text-text-secondary hover:text-text">
-                  {messages.nav.terms}
-                </Link>
+            <footer className="border-t border-border-strong/40 bg-surface-alt/70">
+              <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                  <div className="max-w-2xl space-y-2">
+                    <p className="text-sm font-bold text-text">{messages.common.appName}</p>
+                    <p className="text-xs leading-relaxed text-text-muted">
+                      {messages.footer.disclaimer}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-bold text-text-secondary">
+                    <Link href="/terms" className="hover:text-text">
+                      {messages.footer.terms}
+                    </Link>
+                    <Link href="/privacy" className="hover:text-text">
+                      {messages.footer.privacy}
+                    </Link>
+                    <Link href="/disclaimer" className="hover:text-text">
+                      {messages.footer.disclaimerLink}
+                    </Link>
+                    <Link href="/contact" className="hover:text-text">
+                      {messages.footer.contact}
+                    </Link>
+                  </div>
+                </div>
+                <div className="mt-4 border-t border-border/70 pt-3 text-[11px] text-text-muted">
+                  {messages.footer.educationalOnly}
+                </div>
               </div>
             </footer>
           </NextIntlClientProvider>

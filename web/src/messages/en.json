@@ -20,40 +20,159 @@
     "dashboard": "Dashboard",
     "screener": "Screener",
     "stockLookup": "Lookup",
+    "features": "Features",
     "savedScreens": "Saved Screens",
     "settings": "Settings",
     "terms": "Terms of Use",
     "menu": "Open navigation"
   },
   "marketing": {
-    "badge": "Institutional-grade scans",
-    "headline": "Stock Scanner",
-    "lead": "Fast stock screening with precomputed indicators, sequence logic, and volatility filters across US and Tel Aviv universes.",
-    "features": {
-      "ma": {
-        "title": "Moving averages",
-        "desc": "SMA 20–200 positioning versus price for trend and pullback context."
-      },
-      "bb": {
-        "title": "Bollinger proximity",
-        "desc": "Distance to upper and lower bands to spot extension and mean-reversion setups."
-      },
-      "seq": {
-        "title": "Sequence engine",
-        "desc": "Custom sequence breaks, strong-context flags, and last-bar signal states."
-      },
-      "atr": {
-        "title": "Volatility (ATR)",
-        "desc": "ATR and ATR% filters to rank names by realized daily volatility."
-      },
+    "badge": "Precomputed market scans",
+    "headline": "Find stock setups faster",
+    "lead": "Scan thousands of US and Tel Aviv stocks using precomputed indicators, Bollinger proximity, moving averages, and custom sequence logic.",
+    "ctaPrimary": "Start Scanning",
+    "ctaSecondary": "Quick Lookup",
+    "microcopy": "No need to open charts one by one. Build a screen, run it, and find matching stocks in seconds.",
+    "updatedAt": "Market data last updated: {date}",
+    "stats": {
       "speed": {
-        "title": "Sub-second queries",
-        "desc": "Snapshots materialized in your database — filters return instantly at scale."
+        "value": "Fast scans",
+        "label": "Built to return matches quickly"
       },
-      "save": {
-        "title": "Saved screens",
-        "desc": "Store proven filter combinations and reopen them in one click."
+      "data": {
+        "value": "Precomputed",
+        "label": "Indicators prepared before you click"
+      },
+      "refresh": {
+        "value": "Regular refreshes",
+        "label": "Snapshot data stays current"
+      },
+      "universe": {
+        "value": "US + TASE",
+        "label": "Two market universes in one workflow"
       }
+    },
+    "preview": {
+      "eyebrow": "See it in action",
+      "title": "Scan thousands of stocks in seconds",
+      "body": "Choose your filters, run a scan, and instantly surface stocks that match your setup without opening charts one by one.",
+      "windowTitle": "Live scanner preview",
+      "snapshotCount": "{count} precomputed snapshots",
+      "snapshotFallback": "Precomputed snapshot feed",
+      "filtersLabel": "Scanner setup",
+      "filtersTitle": "Build a focused screen",
+      "strategyBadge": "Pullback + momentum",
+      "filters": {
+        "sma20": "Price above SMA 20",
+        "sma50": "Price above SMA 50",
+        "bb": "Near lower Bollinger Band",
+        "signal": "Strong buy signal"
+      },
+      "scanProgress": "Scan flow",
+      "scanDone": "Results loaded",
+      "scanPreparing": "Preparing filters",
+      "runScan": "Run Scan",
+      "scanHint": "Precomputed indicators remove the wait from each scan request.",
+      "resultsLabel": "Matching stocks",
+      "resultsTitle": "Review the names that match",
+      "fastTag": "Fast",
+      "table": {
+        "ticker": "Ticker",
+        "setup": "Setup",
+        "status": "Status"
+      },
+      "rows": {
+        "aapl": "Trend intact",
+        "amd": "Fresh pullback",
+        "msft": "Saved for review"
+      },
+      "status": {
+        "ready": "Ready",
+        "new": "New",
+        "saved": "Saved"
+      },
+      "savedScreenTitle": "Save the screen and reuse it later",
+      "savedScreenBody": "Turn a good filter mix into a repeatable strategy instead of rebuilding the same scan every morning.",
+      "savedScreenDone": "Saved screen",
+      "savedScreenPending": "Optional"
+    },
+    "features": {
+      "eyebrow": "Built for practical scanning",
+      "title": "Faster than checking charts one by one",
+      "body": "Stock Scanner is built to narrow the market down to the handful of names worth your attention right now.",
+      "cards": {
+        "ma": {
+          "title": "Moving averages",
+          "desc": "Instantly find stocks trading above or below key moving averages, so you can identify trend continuation, pullback, and recovery setups faster."
+        },
+        "bb": {
+          "title": "Bollinger proximity",
+          "desc": "Spot stocks stretched toward the upper band or pulling back near the lower band, helping you find possible extension and mean-reversion opportunities."
+        },
+        "seq": {
+          "title": "Sequence engine",
+          "desc": "Detect custom sequence breaks and strong buy or sell contexts automatically instead of reviewing each chart candle by candle."
+        },
+        "save": {
+          "title": "Saved screens",
+          "desc": "Save your favorite scan setups and rerun them anytime without rebuilding the same filter stack from scratch."
+        },
+        "alerts": {
+          "title": "Alert-ready workflows",
+          "desc": "Prepare saved screens for future notifications when a new stock enters one of your tracked setups."
+        },
+        "speed": {
+          "title": "Precomputed speed",
+          "desc": "Indicators are already calculated in the database, so the heavy work is done before you click Run Scan."
+        }
+      }
+    },
+    "saved": {
+      "eyebrow": "Saved screens",
+      "title": "Save your strategy. Let the scanner watch for new matches.",
+      "body": "Build a screen once, save it, and rerun it whenever you want. Later, alerts can notify you when a new stock enters one of your saved screens.",
+      "bullets": {
+        "save": "Save frequently used filter combinations",
+        "rerun": "Rerun screens without rebuilding them",
+        "track": "Track new stocks that enter a saved setup",
+        "premium": "Prepare the foundation for email alerts and premium notifications"
+      },
+      "comingSoon": "Alerts coming soon",
+      "mock": {
+        "label": "New match",
+        "time": "After latest refresh",
+        "title": "AMD entered your \"Pullback near SMA 50\" screen",
+        "body": "This is the kind of saved-screen workflow that turns a manual habit into a repeatable alert-ready process."
+      }
+    },
+    "compare": {
+      "eyebrow": "Why Stock Scanner",
+      "title": "Why not just use TradingView?",
+      "body": "TradingView is excellent for charting one ticker at a time. Stock Scanner is built for finding opportunities across an entire market universe.",
+      "cards": {
+        "bulk": {
+          "title": "Bulk scanning",
+          "desc": "Scan thousands of stocks at once instead of opening charts one by one."
+        },
+        "logic": {
+          "title": "Multi-filter logic",
+          "desc": "Combine moving averages, Bollinger proximity, volatility, price, and sequence logic in one scan."
+        },
+        "sequence": {
+          "title": "Custom sequence signals",
+          "desc": "Use proprietary sequence-break logic tailored to this scanner instead of relying only on basic built-in filters."
+        },
+        "alerts": {
+          "title": "Saved screens and alerts",
+          "desc": "Save your favorite setups and prepare them for future notifications when new stocks match them."
+        }
+      }
+    },
+    "finalCta": {
+      "title": "Ready to find your next setup?",
+      "body": "Start scanning with precomputed indicators, saved screens, and a workflow designed for traders who want answers fast.",
+      "primary": "Start Scanning",
+      "secondary": "Lookup a Ticker"
     }
   },
   "premium": {
@@ -112,6 +231,7 @@
   "screener": {
     "title": "Stock Screener",
     "premiumSubtitle": "Member workspace — filters query our precomputed daily snapshot store.",
+    "updatedAt": "Market data last updated: {date}",
     "filters": "Filters",
     "results": "Results",
     "clearFilters": "Clear All",
@@ -339,6 +459,56 @@
     "membershipTitle": "Membership",
     "membershipLoading": "Checking plan…",
     "membershipPlanLabel": "Current plan"
+  },
+  "footer": {
+    "terms": "Terms of Use",
+    "privacy": "Privacy Policy",
+    "disclaimerLink": "Disclaimer",
+    "contact": "Contact",
+    "disclaimer": "Stock Scanner provides market data, filters, and technical analysis tools for educational and informational purposes only. It is not financial advice.",
+    "educationalOnly": "Use this platform as a research tool, not as a promise of performance or a substitute for independent judgment."
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "intro": "This page explains how Stock Scanner handles account information and product usage data.",
+    "sections": {
+      "data": {
+        "title": "What we store",
+        "body": "We store the account data needed to operate the product, including login details managed by Supabase, user preferences, saved screens, and membership entitlements."
+      },
+      "usage": {
+        "title": "How product data is used",
+        "body": "Saved screens, favorites, and related account data are used only to deliver the features you request inside your own account experience."
+      },
+      "sharing": {
+        "title": "Sharing and disclosure",
+        "body": "We do not treat your saved screens or personal account data as shared community content by default. Access is restricted to the authenticated user and system operators as required to run the service."
+      }
+    }
+  },
+  "disclaimer": {
+    "title": "Disclaimer",
+    "intro": "Stock Scanner is a technical market research tool. It does not provide investment advice or brokerage services.",
+    "sections": {
+      "education": {
+        "title": "Educational and informational use",
+        "body": "Market data, indicators, saved screens, and lookup results are provided to help you research setups more efficiently."
+      },
+      "responsibility": {
+        "title": "User responsibility",
+        "body": "You remain fully responsible for all decisions, trades, compliance obligations, and risk management choices made using information from this platform."
+      },
+      "noGuarantee": {
+        "title": "No guarantee",
+        "body": "Signals, filters, and screen results do not guarantee performance, timing, or profitability. Always verify market conditions independently before acting."
+      }
+    }
+  },
+  "contact": {
+    "title": "Contact",
+    "body": "For account or product questions, contact the Stock Scanner team using the address below.",
+    "emailLabel": "Contact email",
+    "emailFallback": "Set NEXT_PUBLIC_PREMIUM_CONTACT_EMAIL to show your public support address here."
   },
   "terms": {
     "title": "Terms of Use",

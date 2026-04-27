@@ -155,7 +155,7 @@ export function Header() {
           <nav className="hidden items-center gap-1 md:flex" aria-label="Main navigation">
             <NavLink href="/screener" label={t("nav.screener")} />
             <NavLink href="/stock-lookup" label={t("nav.stockLookup")} />
-            <NavLink href="/terms" label={t("nav.terms")} />
+            <NavLink href="/#features" label={t("nav.features")} />
             {showSavedScreensLink && <NavLink href="/saved-screens" label={t("nav.savedScreens")} />}
           </nav>
         </div>
@@ -217,12 +217,6 @@ export function Header() {
             </div>
           ) : (
             <>
-              <Link
-                href="/terms"
-                className="hidden rounded-md px-3 py-1.5 text-sm font-bold text-text-secondary transition-colors hover:bg-surface-alt hover:text-text sm:inline-flex"
-              >
-                {t("nav.terms")}
-              </Link>
               <Link href="/auth/login" className="ms-1 hidden sm:block">
                 <Button size="sm">{t("common.signIn")}</Button>
               </Link>
@@ -268,7 +262,7 @@ export function Header() {
             <nav className="space-y-1" aria-label="Mobile navigation">
               <NavLink href="/screener" label={t("nav.screener")} mobile onClick={closeMenus} />
               <NavLink href="/stock-lookup" label={t("nav.stockLookup")} mobile onClick={closeMenus} />
-              <NavLink href="/terms" label={t("nav.terms")} mobile onClick={closeMenus} />
+              <NavLink href="/#features" label={t("nav.features")} mobile onClick={closeMenus} />
               {showSavedScreensLink && (
                 <>
                   <NavLink href="/saved-screens" label={t("nav.savedScreens")} mobile onClick={closeMenus} />

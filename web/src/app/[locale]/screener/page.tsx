@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { FilterPanel } from "@/components/screener/FilterPanel";
 import { ResultsTable } from "@/components/screener/ResultsTable";
@@ -25,6 +25,7 @@ function countActiveFilters(filters: ScreenerFilters) {
 
 export default function ScreenerPage() {
   const t = useTranslations("screener");
+  const locale = useLocale();
   const [filters, setFilters] = useState<ScreenerFilters>({});
   const filtersRef = useRef<ScreenerFilters>({});
   const [appliedFilters, setAppliedFilters] = useState<ScreenerFilters>({});
@@ -39,6 +40,7 @@ export default function ScreenerPage() {
   const [gate, setGate] = useState<Gate>(null);
   const [loggedIn, setLoggedIn] = useState(false);
   const [multiFilterGateOpen, setMultiFilterGateOpen] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
   const fetchResults = useCallback(async (nextFilters: ScreenerFilters = filtersRef.current) => {
     const normalizedFilters = normalizeFilters(nextFilters);
@@ -113,6 +115,31 @@ export default function ScreenerPage() {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+
+    async function loadMarketMeta() {
+      try {
+        const res = await fetch("/api/market-meta");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled) {
+          setLastUpdated(data.lastUpdated ?? null);
+        }
+      } catch {
+        if (!cancelled) {
+          setLastUpdated(null);
+        }
+      }
+    }
+
+    void loadMarketMeta();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     const nextFilters = parseFiltersFromSearchParams(
       new URLSearchParams(window.location.search)
     );
@@ -152,6 +179,17 @@ export default function ScreenerPage() {
 
   const activeFilterCount = useMemo(() => countActiveFilters(filters), [filters]);
   const hasFavorite = !!favoriteFilters && countActiveFilters(favoriteFilters) > 0;
+  const formattedLastUpdated = useMemo(() => {
+    if (!lastUpdated) return null;
+    try {
+      return new Intl.DateTimeFormat(locale, {
+        dateStyle: "medium",
+        timeStyle: "short",
+      }).format(new Date(lastUpdated));
+    } catch {
+      return null;
+    }
+  }, [lastUpdated, locale]);
 
   function handleFiltersChange(nextFilters: ScreenerFilters) {
     filtersRef.current = nextFilters;
@@ -256,6 +294,11 @@ export default function ScreenerPage() {
       <div className="space-y-1">
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-text">{t("title")}</h1>
         <p className="text-sm text-text-muted max-w-2xl">{t("premiumSubtitle")}</p>
+        {formattedLastUpdated && (
+          <p className="text-xs font-medium text-text-muted">
+            {t("updatedAt", { date: formattedLastUpdated })}
+          </p>
+        )}
       </div>
 
       <div className="rounded-2xl border border-warning/30 bg-warning-soft/40 px-5 py-4 text-sm text-text-secondary">
