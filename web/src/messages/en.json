@@ -145,29 +145,6 @@
         "body": "This is the kind of saved-screen workflow that turns a manual habit into a repeatable alert-ready process."
       }
     },
-    "compare": {
-      "eyebrow": "Why Stock Scanner",
-      "title": "Why not just use TradingView?",
-      "body": "TradingView is excellent for charting one ticker at a time. Stock Scanner is built for finding opportunities across an entire market universe.",
-      "cards": {
-        "bulk": {
-          "title": "Bulk scanning",
-          "desc": "Scan thousands of stocks at once instead of opening charts one by one."
-        },
-        "logic": {
-          "title": "Multi-filter logic",
-          "desc": "Combine moving averages, Bollinger proximity, volatility, price, and sequence logic in one scan."
-        },
-        "sequence": {
-          "title": "Custom sequence signals",
-          "desc": "Use proprietary sequence-break logic tailored to this scanner instead of relying only on basic built-in filters."
-        },
-        "alerts": {
-          "title": "Saved screens and alerts",
-          "desc": "Save your favorite setups and prepare them for future notifications when new stocks match them."
-        }
-      }
-    },
     "finalCta": {
       "title": "Ready to find your next setup?",
       "body": "Start scanning with precomputed indicators, saved screens, and a workflow designed for traders who want answers fast.",

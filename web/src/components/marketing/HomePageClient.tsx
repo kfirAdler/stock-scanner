@@ -76,7 +76,6 @@ export function HomePageClient() {
     { key: "speed", icon: <SpeedIcon />, color: "primary" as const },
   ];
 
-  const compareCards = ["bulk", "logic", "sequence", "alerts"];
   const savedBullets = ["save", "rerun", "track", "premium"];
 
   const formattedUpdate = useMemo(() => {
@@ -418,36 +417,6 @@ export function HomePageClient() {
               </p>
             </div>
           </div>
-        </div>
-      </section>
-
-      <section className="py-10 sm:py-16">
-        <div className="mx-auto max-w-3xl text-center">
-          <p className="text-[12px] font-bold uppercase tracking-[0.18em] text-primary">
-            {t("compare.eyebrow")}
-          </p>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight text-text sm:text-4xl">
-            {t("compare.title")}
-          </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-text-secondary">
-            {t("compare.body")}
-          </p>
-        </div>
-
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-          {compareCards.map((key) => (
-            <div
-              key={key}
-              className="rounded-[24px] border border-border-strong/70 bg-surface-raised p-7 shadow-[0_14px_40px_rgba(15,23,42,0.06)]"
-            >
-              <h3 className="text-lg font-bold text-text">
-                {t(`compare.cards.${key}.title`)}
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-text-secondary">
-                {t(`compare.cards.${key}.desc`)}
-              </p>
-            </div>
-          ))}
         </div>
       </section>
 
