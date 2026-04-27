@@ -14,6 +14,9 @@ type MarketMeta = {
   snapshotCount: number;
 };
 
+type PreviewDirection = "up" | "down";
+type PreviewTone = "buy" | "bull" | "strong";
+
 const colorMap: Record<CardColor, string> = {
   primary: "bg-primary-soft text-primary",
   accent: "bg-accent-soft text-accent",
@@ -296,25 +299,25 @@ export function HomePageClient() {
                       {
                         ticker: "AAPL",
                         close: "214.42",
-                        sma20: "up",
-                        sma50: "up",
-                        sequence: { label: t("preview.rows.aapl"), tone: "buy" as const },
+                        sma20: "up" as PreviewDirection,
+                        sma50: "up" as PreviewDirection,
+                        sequence: { label: t("preview.rows.aapl"), tone: "buy" as PreviewTone },
                         activeAt: 3,
                       },
                       {
                         ticker: "AMD",
                         close: "176.83",
-                        sma20: "down",
-                        sma50: "up",
-                        sequence: { label: t("preview.rows.amd"), tone: "bull" as const },
+                        sma20: "down" as PreviewDirection,
+                        sma50: "up" as PreviewDirection,
+                        sequence: { label: t("preview.rows.amd"), tone: "bull" as PreviewTone },
                         activeAt: 4,
                       },
                       {
                         ticker: "MSFT",
                         close: "468.15",
-                        sma20: "up",
-                        sma50: "up",
-                        sequence: { label: t("preview.rows.msft"), tone: "strong" as const },
+                        sma20: "up" as PreviewDirection,
+                        sma50: "up" as PreviewDirection,
+                        sequence: { label: t("preview.rows.msft"), tone: "strong" as PreviewTone },
                         activeAt: 5,
                       },
                     ].map((row) => {
@@ -555,7 +558,7 @@ function AlertIcon() {
   );
 }
 
-function PreviewSmaPill({ direction }: { direction: "up" | "down" }) {
+function PreviewSmaPill({ direction }: { direction: PreviewDirection }) {
   if (direction === "up") {
     return (
       <span className="inline-block rounded px-1.5 py-0.5 text-[10px] font-bold bg-success-soft text-success">
@@ -575,7 +578,7 @@ function PreviewSignalBadge({
   tone,
   label,
 }: {
-  tone: "buy" | "bull" | "strong";
+  tone: PreviewTone;
   label: string;
 }) {
   if (tone === "strong") {
