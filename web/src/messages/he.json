@@ -78,18 +78,15 @@
       "fastTag": "מהיר",
       "table": {
         "ticker": "סימול",
-        "setup": "סטאפ",
-        "status": "סטטוס"
+        "close": "סגירה",
+        "sma20": "SMA 20",
+        "sma50": "SMA 50",
+        "sequence": "רצף"
       },
       "rows": {
-        "aapl": "המגמה נשמרת",
-        "amd": "פולבק טרי",
-        "msft": "נשמר לבדיקה"
-      },
-      "status": {
-        "ready": "מוכן",
-        "new": "חדש",
-        "saved": "נשמר"
+        "aapl": "BUY",
+        "amd": "Bull 4",
+        "msft": "STRONG BUY"
       },
       "savedScreenTitle": "שמור את הסריקה והשתמש בה שוב",
       "savedScreenBody": "הפוך שילוב מסננים טוב לאסטרטגיה שחוזרים אליה במקום לבנות את אותה סריקה כל בוקר מחדש.",

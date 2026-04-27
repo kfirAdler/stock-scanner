@@ -283,30 +283,66 @@ export function HomePageClient() {
                   </div>
                 </div>
 
-                <div className="mt-6 overflow-hidden rounded-2xl border border-border">
-                  <div className="grid grid-cols-[1.1fr_0.9fr_0.9fr] gap-2 bg-surface-alt px-4 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted">
+                <div className="mt-6 overflow-hidden rounded-2xl border border-border shadow-sm">
+                  <div className="grid grid-cols-[1.1fr_0.95fr_0.7fr_0.7fr_0.8fr] gap-2 border-b border-border bg-surface-alt px-4 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted">
                     <span>{t("preview.table.ticker")}</span>
-                    <span className="market-inline-ltr">{t("preview.table.setup")}</span>
-                    <span>{t("preview.table.status")}</span>
+                    <span className="text-end">{t("preview.table.close")}</span>
+                    <span className="text-center market-inline-ltr">{t("preview.table.sma20")}</span>
+                    <span className="text-center market-inline-ltr">{t("preview.table.sma50")}</span>
+                    <span>{t("preview.table.sequence")}</span>
                   </div>
-                  <div className="divide-y divide-border bg-surface">
+                  <div className="divide-y divide-border bg-surface text-sm">
                     {[
-                      { ticker: "AAPL", setup: t("preview.rows.aapl"), status: t("preview.status.ready"), activeAt: 3 },
-                      { ticker: "AMD", setup: t("preview.rows.amd"), status: t("preview.status.new"), activeAt: 4 },
-                      { ticker: "MSFT", setup: t("preview.rows.msft"), status: t("preview.status.saved"), activeAt: 5 },
+                      {
+                        ticker: "AAPL",
+                        close: "214.42",
+                        sma20: "up",
+                        sma50: "up",
+                        sequence: { label: t("preview.rows.aapl"), tone: "buy" as const },
+                        activeAt: 3,
+                      },
+                      {
+                        ticker: "AMD",
+                        close: "176.83",
+                        sma20: "down",
+                        sma50: "up",
+                        sequence: { label: t("preview.rows.amd"), tone: "bull" as const },
+                        activeAt: 4,
+                      },
+                      {
+                        ticker: "MSFT",
+                        close: "468.15",
+                        sma20: "up",
+                        sma50: "up",
+                        sequence: { label: t("preview.rows.msft"), tone: "strong" as const },
+                        activeAt: 5,
+                      },
                     ].map((row) => {
                       const visible = previewStep >= row.activeAt;
                       return (
                         <div
                           key={row.ticker}
                           className={clsx(
-                            "grid grid-cols-[1.1fr_0.9fr_0.9fr] gap-2 px-4 py-3 transition-all duration-500",
+                            "grid grid-cols-[1.1fr_0.95fr_0.7fr_0.7fr_0.8fr] items-center gap-2 px-4 py-3 transition-all duration-500",
                             visible ? "translate-y-0 opacity-100" : "translate-y-2 opacity-30"
                           )}
                         >
                           <span className="market-inline-ltr font-bold text-primary">{row.ticker}</span>
-                          <span className="text-sm text-text-secondary">{row.setup}</span>
-                          <span className="text-sm font-bold text-text">{row.status}</span>
+                          <span className="text-end font-bold tabular-nums text-text">
+                            {row.close}
+                          </span>
+                          <span className="text-center">
+                            <PreviewSmaPill direction={row.sma20} />
+                          </span>
+                          <span className="text-center">
+                            <PreviewSmaPill direction={row.sma50} />
+                          </span>
+                          <span>
+                            <PreviewSignalBadge
+                              tone={row.sequence.tone}
+                              label={row.sequence.label}
+                            />
+                          </span>
                         </div>
                       );
                     })}
@@ -517,6 +553,48 @@ function AlertIcon() {
       <path fillRule="evenodd" d="M10 2a4 4 0 00-4 4v1.586A2 2 0 015.414 9L4.707 9.707A1 1 0 005.414 11h9.172a1 1 0 00.707-1.707L14.586 9A2 2 0 0114 7.586V6a4 4 0 00-4-4zm-2 12a2 2 0 104 0H8z" clipRule="evenodd" />
     </svg>
   );
+}
+
+function PreviewSmaPill({ direction }: { direction: "up" | "down" }) {
+  if (direction === "up") {
+    return (
+      <span className="inline-block rounded px-1.5 py-0.5 text-[10px] font-bold bg-success-soft text-success">
+        ↑
+      </span>
+    );
+  }
+
+  return (
+    <span className="inline-block rounded px-1.5 py-0.5 text-[10px] font-bold bg-danger-soft text-danger">
+      ↓
+    </span>
+  );
+}
+
+function PreviewSignalBadge({
+  tone,
+  label,
+}: {
+  tone: "buy" | "bull" | "strong";
+  label: string;
+}) {
+  if (tone === "strong") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2 py-0.5 text-[10px] font-bold text-success">
+        ▲▲ {label}
+      </span>
+    );
+  }
+
+  if (tone === "buy") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2 py-0.5 text-[10px] font-bold text-success">
+        ▲ {label}
+      </span>
+    );
+  }
+
+  return <span className="text-[10px] font-bold text-success">{label}</span>;
 }
 
 function CheckIcon() {

@@ -78,18 +78,15 @@
       "fastTag": "Fast",
       "table": {
         "ticker": "Ticker",
-        "setup": "Setup",
-        "status": "Status"
+        "close": "Close",
+        "sma20": "SMA 20",
+        "sma50": "SMA 50",
+        "sequence": "Sequence"
       },
       "rows": {
-        "aapl": "Trend intact",
-        "amd": "Fresh pullback",
-        "msft": "Saved for review"
-      },
-      "status": {
-        "ready": "Ready",
-        "new": "New",
-        "saved": "Saved"
+        "aapl": "BUY",
+        "amd": "Bull 4",
+        "msft": "STRONG BUY"
       },
       "savedScreenTitle": "Save the screen and reuse it later",
       "savedScreenBody": "Turn a good filter mix into a repeatable strategy instead of rebuilding the same scan every morning.",
