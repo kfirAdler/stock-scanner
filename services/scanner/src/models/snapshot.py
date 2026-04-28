@@ -86,7 +86,7 @@ class IndicatorSnapshot:
     is_above_sma200: Optional[bool] = None
     is_below_sma200: Optional[bool] = None
 
-    updated_at: Optional[datetime] = field(default=None)
+    updated_at: Optional[datetime] = field(default_factory=datetime.utcnow)
 
     def to_dict(self) -> dict:
         d = {}
