@@ -33,7 +33,7 @@
     "ctaPrimary": "Start Scanning",
     "ctaSecondary": "Quick Lookup",
     "microcopy": "No need to open charts one by one. Build a screen, run it, and find matching stocks in seconds.",
-    "updatedAt": "Market data last updated: {date}",
+    "updatedAt": "Last data refresh: {date}",
     "stats": {
       "speed": {
         "value": "Fast scans",
@@ -205,7 +205,7 @@
   "screener": {
     "title": "Stock Screener",
     "premiumSubtitle": "Member workspace — filters query our precomputed daily snapshot store.",
-    "updatedAt": "Market data last updated: {date}",
+    "updatedAt": "Last data refresh: {date}",
     "filters": "Filters",
     "results": "Results",
     "clearFilters": "Clear All",
