@@ -61,13 +61,18 @@ def fetch_bars_yfinance(
     try:
         import yfinance as yf
 
-        data = yf.download(
-            ticker,
+        download_args = dict(
+            tickers=ticker,
             start=start_date.isoformat(),
             end=(end_date + timedelta(days=1)).isoformat(),
             progress=False,
             auto_adjust=True,
         )
+        try:
+            data = yf.download(**download_args, show_errors=False)
+        except TypeError:
+            # Compatibility with older yfinance versions that do not support show_errors.
+            data = yf.download(**download_args)
         if data.empty:
             return None
 
