@@ -51,7 +51,7 @@ export default async function LocaleLayout({
             <TermsAcceptanceGate />
             <Header />
             <main className="flex-1">{children}</main>
-            <footer className="border-t border-border-strong/40 bg-surface-alt/70">
+            <footer className="border-t border-border-strong/40 bg-surface">
               <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
                 <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                   <div className="max-w-2xl space-y-2">
