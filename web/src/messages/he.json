@@ -246,6 +246,13 @@
       "gte": "שווי שוק ≥",
       "lte": "שווי שוק ≤"
     },
+    "categories": {
+      "sequence": "רצף",
+      "signals": "איתותים",
+      "trend": "מגמה",
+      "location": "מיקום",
+      "volatility": "תנודתיות"
+    },
     "timeframes": {
       "1D": "יומי",
       "1W": "שבועי",
@@ -270,6 +277,14 @@
       "value": "ערך",
       "remove": "הסר"
     },
+    "layoutHint": "בחר קודם טווח זמן, אחר כך קטגוריה, ושלב מסננים בין הבלוקים היומי, השבועי והחודשי.",
+    "blockTitle": "{timeframe} · {category}",
+    "blockSubtitle": "כל הבחירות מכל טווחי הזמן מחוברות ב-AND.",
+    "valueLabel": "ערך",
+    "valuePlaceholder": "הכנס ערך",
+    "selectHint": "לחץ על אזור אחד כדי להחיל אותו על טווח הזמן הזה.",
+    "activeFiltersLabel": "מסננים פעילים",
+    "activeFiltersEmpty": "עדיין לא נבחרו מסננים.",
     "rules": {
       "is_above_sma20": "מחיר מעל SMA 20",
       "is_below_sma20": "מחיר מתחת SMA 20",

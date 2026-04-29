@@ -246,6 +246,13 @@
       "gte": "Market cap ≥",
       "lte": "Market cap ≤"
     },
+    "categories": {
+      "sequence": "Sequence",
+      "signals": "Signals",
+      "trend": "Trend",
+      "location": "Location",
+      "volatility": "Volatility"
+    },
     "timeframes": {
       "1D": "Daily",
       "1W": "Weekly",
@@ -270,6 +277,14 @@
       "value": "Value",
       "remove": "Remove"
     },
+    "layoutHint": "Choose a timeframe first, then open a category tab and combine filters across daily, weekly, and monthly blocks.",
+    "blockTitle": "{timeframe} · {category}",
+    "blockSubtitle": "Selections from all timeframe blocks are combined with AND.",
+    "valueLabel": "Value",
+    "valuePlaceholder": "Enter a value",
+    "selectHint": "Tap one zone to apply it for this timeframe.",
+    "activeFiltersLabel": "Active Filters",
+    "activeFiltersEmpty": "No filters selected yet.",
     "rules": {
       "is_above_sma20": "Price above SMA 20",
       "is_below_sma20": "Price below SMA 20",

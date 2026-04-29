@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { clsx } from "clsx";
 import { Button } from "@/components/ui/Button";
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Tooltip } from "@/components/ui/Tooltip";
 import {
   RULE_DEFINITIONS,
+  activeRuleCountForTimeframe,
   countActiveFilters,
   createRule,
   ruleDefinitionsByField,
@@ -18,6 +19,17 @@ import type {
   ScreenerRuleField,
   ScreenerTimeframe,
 } from "@/lib/screener-types";
+
+type CategoryTab = "sequence" | "signals" | "trend" | "location" | "volatility";
+
+const TIMEFRAME_TABS: ScreenerTimeframe[] = ["1D", "1W", "1M"];
+const CATEGORY_TABS: CategoryTab[] = [
+  "sequence",
+  "signals",
+  "trend",
+  "location",
+  "volatility",
+];
 
 interface FilterPanelProps {
   filters: ScreenerPayload;
@@ -52,6 +64,59 @@ function StarIcon({ filled }: { filled: boolean }) {
   );
 }
 
+function ChipButton({
+  active,
+  label,
+  onClick,
+  tooltip,
+}: {
+  active: boolean;
+  label: string;
+  onClick: () => void;
+  tooltip?: string;
+}) {
+  return (
+    <div className="inline-flex items-center gap-2">
+      <button
+        type="button"
+        onClick={onClick}
+        className={clsx(
+          "inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-semibold transition-colors",
+          active
+            ? "border-primary bg-primary text-white"
+            : "border-border bg-surface text-text-secondary hover:border-primary/35 hover:text-text"
+        )}
+      >
+        <span>{label}</span>
+      </button>
+      {tooltip ? (
+        <span className={active ? "text-white" : ""}>
+          <Tooltip content={tooltip} />
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+function ActiveFilterPill({
+  label,
+  onRemove,
+}: {
+  label: string;
+  onRemove: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onRemove}
+      className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-bold text-primary hover:bg-primary/10"
+    >
+      <span>{label}</span>
+      <span aria-hidden="true">×</span>
+    </button>
+  );
+}
+
 export function FilterPanel({
   filters,
   onChange,
@@ -68,50 +133,114 @@ export function FilterPanel({
 }: FilterPanelProps) {
   const t = useTranslations("screener");
   const definitions = useMemo(() => ruleDefinitionsByField(), []);
+  const [activeTimeframe, setActiveTimeframe] = useState<ScreenerTimeframe>("1D");
+  const [activeCategory, setActiveCategory] = useState<CategoryTab>("sequence");
   const activeFilterCount = countActiveFilters(filters);
-
-  function updateRule(ruleId: string, patch: Partial<ScreenerRule>) {
-    onChange({
-      ...filters,
-      rules: filters.rules.map((rule) => {
-        if (rule.id !== ruleId) return rule;
-        const next = { ...rule, ...patch };
-        const definition = definitions[next.field];
-        const nextOperator = definition.operators.includes(next.operator)
-          ? next.operator
-          : definition.operators[0];
-        const nextValue =
-          definition.input === "none"
-            ? undefined
-            : definition.input === "select"
-              ? typeof next.value === "string"
-                ? next.value
-                : definition.valueOptions?.[0]?.value
-              : typeof next.value === "number"
-                ? next.value
-                : Number(next.value ?? 0);
-        return { ...next, operator: nextOperator as ScreenerRule["operator"], value: nextValue };
-      }),
-    });
-  }
-
-  function removeRule(ruleId: string) {
-    onChange({
-      ...filters,
-      rules: filters.rules.filter((rule) => rule.id !== ruleId),
-    });
-  }
-
-  function addRule() {
-    onChange({
-      ...filters,
-      rules: [...filters.rules, createRule()],
-    });
-  }
 
   function clearAll() {
     onChange({ version: 1, rules: [] });
   }
+
+  function getRule(timeframe: ScreenerTimeframe, field: ScreenerRuleField) {
+    return filters.rules.find(
+      (rule) => rule.timeframe === timeframe && rule.field === field
+    );
+  }
+
+  function upsertRule(nextRule: ScreenerRule) {
+    const existing = getRule(nextRule.timeframe, nextRule.field);
+    if (existing) {
+      onChange({
+        ...filters,
+        rules: filters.rules.map((rule) =>
+          rule.id === existing.id ? { ...rule, ...nextRule, id: existing.id } : rule
+        ),
+      });
+      return;
+    }
+    onChange({
+      ...filters,
+      rules: [...filters.rules, nextRule],
+    });
+  }
+
+  function removeRule(timeframe: ScreenerTimeframe, field: ScreenerRuleField) {
+    onChange({
+      ...filters,
+      rules: filters.rules.filter(
+        (rule) => !(rule.timeframe === timeframe && rule.field === field)
+      ),
+    });
+  }
+
+  function toggleBooleanRule(timeframe: ScreenerTimeframe, field: ScreenerRuleField) {
+    const existing = getRule(timeframe, field);
+    if (existing) {
+      removeRule(timeframe, field);
+      return;
+    }
+    const seeded = createRule(field, timeframe);
+    upsertRule({
+      ...seeded,
+      operator: "is_true",
+      value: undefined,
+    });
+  }
+
+  function setNumericRule(
+    timeframe: ScreenerTimeframe,
+    field: ScreenerRuleField,
+    operator: ScreenerRule["operator"],
+    rawValue: string
+  ) {
+    if (rawValue === "") {
+      removeRule(timeframe, field);
+      return;
+    }
+    const numeric = Number(rawValue);
+    if (Number.isNaN(numeric)) return;
+    const seeded = createRule(field, timeframe);
+    upsertRule({
+      ...seeded,
+      operator,
+      value: numeric,
+    });
+  }
+
+  function setSelectRule(
+    timeframe: ScreenerTimeframe,
+    field: ScreenerRuleField,
+    value: string
+  ) {
+    if (!value) {
+      removeRule(timeframe, field);
+      return;
+    }
+    const seeded = createRule(field, timeframe);
+    upsertRule({
+      ...seeded,
+      operator: "eq",
+      value,
+    });
+  }
+
+  const currentDefinitions = RULE_DEFINITIONS.filter(
+    (definition) => definition.category === activeCategory
+  );
+
+  const activeRulePills = filters.rules.map((rule) => {
+    const definition = definitions[rule.field];
+    let suffix = "";
+    if (typeof rule.value === "number") suffix = ` ${t(`operators.${rule.operator}`)} ${rule.value}`;
+    if (typeof rule.value === "string" && rule.field === "fib_zone") {
+      suffix = ` ${t("operators.eq")} ${t(`fibZones.${rule.value}`)}`;
+    }
+    return {
+      key: `${rule.timeframe}-${rule.field}`,
+      label: `${t(`timeframes.${rule.timeframe}`)} · ${t(definition.labelKey)}${suffix}`,
+      remove: () => removeRule(rule.timeframe, rule.field),
+    };
+  });
 
   return (
     <div className="rounded-2xl border border-border bg-surface-raised shadow-sm overflow-hidden">
@@ -215,134 +344,216 @@ export function FilterPanel({
         />
       </div>
 
-      <div className="p-5 space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-bold text-text">{t("ruleBuilder.title")}</h3>
-            <p className="text-xs text-text-muted mt-1">{t("ruleBuilder.subtitle")}</p>
-          </div>
-          <Button type="button" size="sm" variant="secondary" onClick={addRule}>
-            {t("ruleBuilder.addRule")}
-          </Button>
+      <div className="px-5 pt-5 pb-3 border-b border-border bg-surface">
+        <div role="tablist" className="flex flex-wrap gap-2">
+          {TIMEFRAME_TABS.map((timeframe) => {
+            const count = activeRuleCountForTimeframe(filters, timeframe);
+            return (
+              <button
+                key={timeframe}
+                type="button"
+                role="tab"
+                aria-selected={activeTimeframe === timeframe}
+                onClick={() => setActiveTimeframe(timeframe)}
+                className={clsx(
+                  "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold transition-colors",
+                  activeTimeframe === timeframe
+                    ? "border-primary bg-primary text-white"
+                    : "border-border bg-surface-alt text-text-secondary hover:text-text"
+                )}
+              >
+                <span>{t(`timeframes.${timeframe}`)}</span>
+                {count > 0 ? (
+                  <span className={clsx(
+                    "inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-bold",
+                    activeTimeframe === timeframe
+                      ? "bg-white/20 text-white"
+                      : "bg-primary/10 text-primary"
+                  )}>
+                    {count}
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+        <p className="mt-3 text-xs text-text-muted">{t("layoutHint")}</p>
+      </div>
+
+      <div className="px-5 py-4 border-b border-border bg-surface">
+        <div role="tablist" className="flex flex-wrap gap-2">
+          {CATEGORY_TABS.map((category) => {
+            const count = filters.rules.filter(
+              (rule) =>
+                rule.timeframe === activeTimeframe &&
+                definitions[rule.field].category === category
+            ).length;
+            return (
+              <button
+                key={category}
+                type="button"
+                role="tab"
+                aria-selected={activeCategory === category}
+                onClick={() => setActiveCategory(category)}
+                className={clsx(
+                  "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold uppercase tracking-wide transition-colors",
+                  activeCategory === category
+                    ? "border-text bg-text text-white"
+                    : "border-border bg-surface-alt text-text-muted hover:text-text"
+                )}
+              >
+                <span>{t(`categories.${category}`)}</span>
+                {count > 0 ? (
+                  <span className={clsx(
+                    "inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px]",
+                    activeCategory === category
+                      ? "bg-white/20 text-white"
+                      : "bg-primary/10 text-primary"
+                  )}>
+                    {count}
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="p-5 space-y-5 bg-surface">
+        <div>
+          <h3 className="text-sm font-bold text-text">
+            {t("blockTitle", {
+              timeframe: t(`timeframes.${activeTimeframe}`),
+              category: t(`categories.${activeCategory}`),
+            })}
+          </h3>
+          <p className="mt-1 text-xs text-text-muted">{t("blockSubtitle")}</p>
         </div>
 
-        {filters.rules.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-border bg-surface px-4 py-6 text-sm text-text-muted">
-            {t("ruleBuilder.empty")}
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {filters.rules.map((rule) => {
-              const definition = definitions[rule.field];
+        <div className="flex flex-wrap gap-2">
+          {currentDefinitions
+            .filter((definition) => definition.input === "none")
+            .map((definition) => {
+              const active = !!getRule(activeTimeframe, definition.field);
               return (
-                <div key={rule.id} className="rounded-xl border border-border bg-surface p-4">
-                  <div className="grid gap-3 lg:grid-cols-[120px_minmax(0,1fr)_140px_160px_auto]">
+                <ChipButton
+                  key={`${activeTimeframe}-${definition.field}`}
+                  active={active}
+                  label={t(definition.labelKey)}
+                  tooltip={
+                    definition.descriptionKey ? t(definition.descriptionKey) : undefined
+                  }
+                  onClick={() =>
+                    toggleBooleanRule(activeTimeframe, definition.field)
+                  }
+                />
+              );
+            })}
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          {currentDefinitions
+            .filter((definition) => definition.input === "number")
+            .map((definition) => {
+              const rule = getRule(activeTimeframe, definition.field);
+              const operator = definition.operators[0] as ScreenerRule["operator"];
+              return (
+                <div key={`${activeTimeframe}-${definition.field}`} className="rounded-xl border border-border bg-surface-alt p-4">
+                  <div className="flex items-start justify-between gap-3">
                     <div>
-                      <label className="block text-[10px] font-bold text-text-muted uppercase tracking-wider mb-1.5">
-                        {t("ruleBuilder.timeframe")}
-                      </label>
-                      <select
-                        className="w-full rounded-xl border border-border bg-surface-alt px-3 py-2 text-sm font-medium text-text"
-                        value={rule.timeframe}
-                        onChange={(e) =>
-                          updateRule(rule.id, { timeframe: e.target.value as ScreenerTimeframe })
-                        }
-                      >
-                        <option value="1D">{t("timeframes.1D")}</option>
-                        <option value="1W">{t("timeframes.1W")}</option>
-                        <option value="1M">{t("timeframes.1M")}</option>
-                      </select>
+                      <p className="text-sm font-bold text-text">{t(definition.labelKey)}</p>
+                      <p className="mt-1 text-xs text-text-muted">
+                        {t(`operators.${operator}`)}
+                      </p>
                     </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-text-muted uppercase tracking-wider mb-1.5">
-                        {t("ruleBuilder.condition")}
-                      </label>
-                      <div className="flex items-center gap-2">
-                        <select
-                          className="w-full rounded-xl border border-border bg-surface-alt px-3 py-2 text-sm font-medium text-text"
-                          value={rule.field}
-                          onChange={(e) =>
-                            updateRule(rule.id, {
-                              field: e.target.value as ScreenerRuleField,
-                              operator: ruleDefinitionsByField()[e.target.value as ScreenerRuleField].operators[0] as ScreenerRule["operator"],
-                              value:
-                                ruleDefinitionsByField()[e.target.value as ScreenerRuleField].input === "select"
-                                  ? ruleDefinitionsByField()[e.target.value as ScreenerRuleField].valueOptions?.[0]?.value
-                                  : ruleDefinitionsByField()[e.target.value as ScreenerRuleField].input === "number"
-                                    ? 0
-                                    : undefined,
-                            })
-                          }
-                        >
-                          {RULE_DEFINITIONS.map((item) => (
-                            <option key={item.field} value={item.field}>
-                              {t(item.labelKey)}
-                            </option>
-                          ))}
-                        </select>
-                        {definition.descriptionKey && (
-                          <Tooltip content={t(definition.descriptionKey)} />
-                        )}
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-text-muted uppercase tracking-wider mb-1.5">
-                        {t("ruleBuilder.operator")}
-                      </label>
-                      <select
-                        className="w-full rounded-xl border border-border bg-surface-alt px-3 py-2 text-sm font-medium text-text"
-                        value={rule.operator}
-                        onChange={(e) => updateRule(rule.id, { operator: e.target.value as ScreenerRule["operator"] })}
-                      >
-                        {definition.operators.map((operator) => (
-                          <option key={operator} value={operator}>
-                            {t(`operators.${operator}`)}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      {definition.input === "number" && (
-                        <Input
-                          label={t("ruleBuilder.value")}
-                          type="number"
-                          step="0.1"
-                          value={typeof rule.value === "number" ? rule.value : ""}
-                          onChange={(e) =>
-                            updateRule(rule.id, {
-                              value: e.target.value === "" ? undefined : Number(e.target.value),
-                            })
-                          }
-                        />
-                      )}
-                      {definition.input === "select" && (
-                        <div>
-                          <label className="block text-[10px] font-bold text-text-muted uppercase tracking-wider mb-1.5">
-                            {t("ruleBuilder.value")}
-                          </label>
-                          <select
-                            className="w-full rounded-xl border border-border bg-surface-alt px-3 py-2 text-sm font-medium text-text"
-                            value={typeof rule.value === "string" ? rule.value : definition.valueOptions?.[0]?.value}
-                            onChange={(e) => updateRule(rule.id, { value: e.target.value })}
-                          >
-                            {definition.valueOptions?.map((option) => (
-                              <option key={option.value} value={option.value}>
-                                {t(option.labelKey)}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex items-end">
-                      <Button type="button" variant="ghost" size="sm" onClick={() => removeRule(rule.id)}>
-                        {t("ruleBuilder.remove")}
-                      </Button>
-                    </div>
+                    {definition.descriptionKey ? (
+                      <Tooltip content={t(definition.descriptionKey)} />
+                    ) : null}
+                  </div>
+                  <div className="mt-3">
+                    <Input
+                      label={t("valueLabel")}
+                      type="number"
+                      step="0.1"
+                      value={typeof rule?.value === "number" ? rule.value : ""}
+                      onChange={(e) =>
+                        setNumericRule(
+                          activeTimeframe,
+                          definition.field,
+                          operator,
+                          e.target.value
+                        )
+                      }
+                      placeholder={t("valuePlaceholder")}
+                    />
                   </div>
                 </div>
               );
             })}
+
+          {currentDefinitions
+            .filter((definition) => definition.input === "select")
+            .map((definition) => {
+              const rule = getRule(activeTimeframe, definition.field);
+              return (
+                <div key={`${activeTimeframe}-${definition.field}`} className="rounded-xl border border-border bg-surface-alt p-4 md:col-span-2">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-bold text-text">{t(definition.labelKey)}</p>
+                      <p className="mt-1 text-xs text-text-muted">{t("selectHint")}</p>
+                    </div>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {definition.valueOptions?.map((option) => (
+                      <ChipButton
+                        key={`${activeTimeframe}-${definition.field}-${option.value}`}
+                        active={rule?.value === option.value}
+                        label={t(option.labelKey)}
+                        onClick={() =>
+                          setSelectRule(
+                            activeTimeframe,
+                            definition.field,
+                            rule?.value === option.value ? "" : option.value
+                          )
+                        }
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+        </div>
+      </div>
+
+      <div className="border-t border-border bg-surface-alt/40 px-5 py-4">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
+          {t("activeFiltersLabel")}
+        </p>
+        {activeRulePills.length === 0 && !filters.listing_market && filters.market_cap_gte === undefined && filters.market_cap_lte === undefined ? (
+          <p className="mt-2 text-sm text-text-muted">{t("activeFiltersEmpty")}</p>
+        ) : (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {filters.listing_market ? (
+              <ActiveFilterPill
+                label={`${t("listingMarket.label")} · ${t(`listingMarket.${filters.listing_market.toLowerCase()}`)}`}
+                onRemove={() => onChange({ ...filters, listing_market: undefined })}
+              />
+            ) : null}
+            {filters.market_cap_gte !== undefined ? (
+              <ActiveFilterPill
+                label={`${t("marketCap.gte")} ${filters.market_cap_gte}`}
+                onRemove={() => onChange({ ...filters, market_cap_gte: undefined })}
+              />
+            ) : null}
+            {filters.market_cap_lte !== undefined ? (
+              <ActiveFilterPill
+                label={`${t("marketCap.lte")} ${filters.market_cap_lte}`}
+                onRemove={() => onChange({ ...filters, market_cap_lte: undefined })}
+              />
+            ) : null}
+            {activeRulePills.map((pill) => (
+              <ActiveFilterPill key={pill.key} label={pill.label} onRemove={pill.remove} />
+            ))}
           </div>
         )}
       </div>

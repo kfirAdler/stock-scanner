@@ -59,6 +59,7 @@ export const DEFAULT_SCREENER_PAYLOAD: ScreenerPayload = {
 export type RuleDefinition = {
   field: ScreenerRuleField;
   labelKey: string;
+  category: "sequence" | "signals" | "trend" | "location" | "volatility";
   descriptionKey?: string;
   operators: string[];
   input: "none" | "number" | "select";
@@ -66,38 +67,39 @@ export type RuleDefinition = {
 };
 
 export const RULE_DEFINITIONS: RuleDefinition[] = [
-  { field: "is_above_sma20", labelKey: "rules.is_above_sma20", operators: ["is_true"], input: "none" },
-  { field: "is_below_sma20", labelKey: "rules.is_below_sma20", operators: ["is_true"], input: "none" },
-  { field: "is_above_sma50", labelKey: "rules.is_above_sma50", operators: ["is_true"], input: "none" },
-  { field: "is_below_sma50", labelKey: "rules.is_below_sma50", operators: ["is_true"], input: "none" },
-  { field: "is_above_sma150", labelKey: "rules.is_above_sma150", operators: ["is_true"], input: "none" },
-  { field: "is_below_sma150", labelKey: "rules.is_below_sma150", operators: ["is_true"], input: "none" },
-  { field: "is_above_sma200", labelKey: "rules.is_above_sma200", operators: ["is_true"], input: "none" },
-  { field: "is_below_sma200", labelKey: "rules.is_below_sma200", operators: ["is_true"], input: "none" },
-  { field: "buy_signal", labelKey: "rules.buy_signal", descriptionKey: "tooltips.buy_signal", operators: ["is_true"], input: "none" },
-  { field: "sell_signal", labelKey: "rules.sell_signal", descriptionKey: "tooltips.sell_signal", operators: ["is_true"], input: "none" },
-  { field: "strong_buy_signal", labelKey: "rules.strong_buy_signal", descriptionKey: "tooltips.strong_buy_signal", operators: ["is_true"], input: "none" },
-  { field: "strong_sell_signal", labelKey: "rules.strong_sell_signal", descriptionKey: "tooltips.strong_sell_signal", operators: ["is_true"], input: "none" },
-  { field: "bullish_sequence_active", labelKey: "rules.bullish_sequence_active", descriptionKey: "tooltips.bullish_sequence_active", operators: ["is_true"], input: "none" },
-  { field: "bearish_sequence_active", labelKey: "rules.bearish_sequence_active", descriptionKey: "tooltips.bearish_sequence_active", operators: ["is_true"], input: "none" },
-  { field: "strong_up_sequence_context", labelKey: "rules.strong_up_sequence_context", operators: ["is_true"], input: "none" },
-  { field: "strong_down_sequence_context", labelKey: "rules.strong_down_sequence_context", operators: ["is_true"], input: "none" },
-  { field: "down_sequence_broke_recently", labelKey: "rules.down_sequence_broke_recently", descriptionKey: "tooltips.down_sequence_broke_recently", operators: ["is_true"], input: "none" },
-  { field: "up_sequence_broke_recently", labelKey: "rules.up_sequence_broke_recently", descriptionKey: "tooltips.up_sequence_broke_recently", operators: ["is_true"], input: "none" },
-  { field: "down_sequence_broke_in_strong_up_context", labelKey: "rules.down_sequence_broke_in_strong_up_context", operators: ["is_true"], input: "none" },
-  { field: "up_sequence_broke_in_strong_down_context", labelKey: "rules.up_sequence_broke_in_strong_down_context", operators: ["is_true"], input: "none" },
-  { field: "pct_to_bb_upper", labelKey: "rules.pct_to_bb_upper", operators: ["lte", "gte"], input: "number" },
-  { field: "pct_to_bb_lower", labelKey: "rules.pct_to_bb_lower", operators: ["lte", "gte"], input: "number" },
-  { field: "atr_percent", labelKey: "rules.atr_percent", operators: ["lt", "gt"], input: "number" },
-  { field: "atr_14", labelKey: "rules.atr_14", operators: ["lt", "gt"], input: "number" },
-  { field: "close", labelKey: "rules.close", operators: ["gte", "lte"], input: "number" },
-  { field: "up_sequence_count", labelKey: "rules.up_sequence_count", operators: ["gte"], input: "number" },
-  { field: "down_sequence_count", labelKey: "rules.down_sequence_count", operators: ["gte"], input: "number" },
-  { field: "up_sequence_break_bars_ago", labelKey: "rules.up_sequence_break_bars_ago", operators: ["lte"], input: "number" },
-  { field: "down_sequence_break_bars_ago", labelKey: "rules.down_sequence_break_bars_ago", operators: ["lte"], input: "number" },
+  { field: "is_above_sma20", labelKey: "rules.is_above_sma20", category: "trend", operators: ["is_true"], input: "none" },
+  { field: "is_below_sma20", labelKey: "rules.is_below_sma20", category: "trend", operators: ["is_true"], input: "none" },
+  { field: "is_above_sma50", labelKey: "rules.is_above_sma50", category: "trend", operators: ["is_true"], input: "none" },
+  { field: "is_below_sma50", labelKey: "rules.is_below_sma50", category: "trend", operators: ["is_true"], input: "none" },
+  { field: "is_above_sma150", labelKey: "rules.is_above_sma150", category: "trend", operators: ["is_true"], input: "none" },
+  { field: "is_below_sma150", labelKey: "rules.is_below_sma150", category: "trend", operators: ["is_true"], input: "none" },
+  { field: "is_above_sma200", labelKey: "rules.is_above_sma200", category: "trend", operators: ["is_true"], input: "none" },
+  { field: "is_below_sma200", labelKey: "rules.is_below_sma200", category: "trend", operators: ["is_true"], input: "none" },
+  { field: "buy_signal", labelKey: "rules.buy_signal", category: "signals", descriptionKey: "tooltips.buy_signal", operators: ["is_true"], input: "none" },
+  { field: "sell_signal", labelKey: "rules.sell_signal", category: "signals", descriptionKey: "tooltips.sell_signal", operators: ["is_true"], input: "none" },
+  { field: "strong_buy_signal", labelKey: "rules.strong_buy_signal", category: "signals", descriptionKey: "tooltips.strong_buy_signal", operators: ["is_true"], input: "none" },
+  { field: "strong_sell_signal", labelKey: "rules.strong_sell_signal", category: "signals", descriptionKey: "tooltips.strong_sell_signal", operators: ["is_true"], input: "none" },
+  { field: "bullish_sequence_active", labelKey: "rules.bullish_sequence_active", category: "sequence", descriptionKey: "tooltips.bullish_sequence_active", operators: ["is_true"], input: "none" },
+  { field: "bearish_sequence_active", labelKey: "rules.bearish_sequence_active", category: "sequence", descriptionKey: "tooltips.bearish_sequence_active", operators: ["is_true"], input: "none" },
+  { field: "strong_up_sequence_context", labelKey: "rules.strong_up_sequence_context", category: "sequence", operators: ["is_true"], input: "none" },
+  { field: "strong_down_sequence_context", labelKey: "rules.strong_down_sequence_context", category: "sequence", operators: ["is_true"], input: "none" },
+  { field: "down_sequence_broke_recently", labelKey: "rules.down_sequence_broke_recently", category: "sequence", descriptionKey: "tooltips.down_sequence_broke_recently", operators: ["is_true"], input: "none" },
+  { field: "up_sequence_broke_recently", labelKey: "rules.up_sequence_broke_recently", category: "sequence", descriptionKey: "tooltips.up_sequence_broke_recently", operators: ["is_true"], input: "none" },
+  { field: "down_sequence_broke_in_strong_up_context", labelKey: "rules.down_sequence_broke_in_strong_up_context", category: "sequence", operators: ["is_true"], input: "none" },
+  { field: "up_sequence_broke_in_strong_down_context", labelKey: "rules.up_sequence_broke_in_strong_down_context", category: "sequence", operators: ["is_true"], input: "none" },
+  { field: "pct_to_bb_upper", labelKey: "rules.pct_to_bb_upper", category: "location", operators: ["lte", "gte"], input: "number" },
+  { field: "pct_to_bb_lower", labelKey: "rules.pct_to_bb_lower", category: "location", operators: ["lte", "gte"], input: "number" },
+  { field: "atr_percent", labelKey: "rules.atr_percent", category: "volatility", operators: ["lt", "gt"], input: "number" },
+  { field: "atr_14", labelKey: "rules.atr_14", category: "volatility", operators: ["lt", "gt"], input: "number" },
+  { field: "close", labelKey: "rules.close", category: "location", operators: ["gte", "lte"], input: "number" },
+  { field: "up_sequence_count", labelKey: "rules.up_sequence_count", category: "sequence", operators: ["gte"], input: "number" },
+  { field: "down_sequence_count", labelKey: "rules.down_sequence_count", category: "sequence", operators: ["gte"], input: "number" },
+  { field: "up_sequence_break_bars_ago", labelKey: "rules.up_sequence_break_bars_ago", category: "sequence", operators: ["lte"], input: "number" },
+  { field: "down_sequence_break_bars_ago", labelKey: "rules.down_sequence_break_bars_ago", category: "sequence", operators: ["lte"], input: "number" },
   {
     field: "fib_zone",
     labelKey: "rules.fib_zone",
+    category: "location",
     operators: ["eq"],
     input: "select",
     valueOptions: [
@@ -305,6 +307,13 @@ export function ruleDefinitionsByField(): Record<ScreenerRuleField, RuleDefiniti
   return Object.fromEntries(
     RULE_DEFINITIONS.map((definition) => [definition.field, definition])
   ) as Record<ScreenerRuleField, RuleDefinition>;
+}
+
+export function activeRuleCountForTimeframe(
+  payload: ScreenerPayload,
+  timeframe: ScreenerTimeframe
+): number {
+  return payload.rules.filter((rule) => rule.timeframe === timeframe).length;
 }
 
 export function ruleLabelKey(field: ScreenerRuleField): string {
