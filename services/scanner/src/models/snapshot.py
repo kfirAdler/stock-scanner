@@ -76,6 +76,18 @@ class IndicatorSnapshot:
     strong_sell_signal: bool = False
     strong_buy_signal_bars_ago: Optional[int] = None
     strong_sell_signal_bars_ago: Optional[int] = None
+    fib_swing_side: Optional[str] = None
+    fib_swing_low: Optional[float] = None
+    fib_swing_high: Optional[float] = None
+    fib_level_382: Optional[float] = None
+    fib_level_500: Optional[float] = None
+    fib_level_618: Optional[float] = None
+    fib_level_786: Optional[float] = None
+    fib_zone_0_382: bool = False
+    fib_zone_382_500: bool = False
+    fib_zone_500_618: bool = False
+    fib_zone_618_786: bool = False
+    fib_zone_786_100: bool = False
 
     is_above_sma20: Optional[bool] = None
     is_below_sma20: Optional[bool] = None

@@ -6,7 +6,7 @@ import { Link } from "@/i18n/navigation";
 import { clsx } from "clsx";
 import { Input } from "@/components/ui/Input";
 import { PremiumGate } from "@/components/billing/PremiumGate";
-import type { ScreenerFilters } from "@/lib/screener-types";
+import type { LegacyScreenerFilters } from "@/lib/screener-types";
 
 type AccessGate = null | "login" | "subscribe";
 
@@ -24,7 +24,7 @@ type CoverageEntry = {
   reasonParams?: Record<string, string | number>;
 };
 
-type FilterCoverageRow = CoverageEntry & { filterKey: keyof ScreenerFilters };
+type FilterCoverageRow = CoverageEntry & { filterKey: keyof LegacyScreenerFilters };
 
 type CoveragePayload = {
   ticker: string;
@@ -185,7 +185,7 @@ export function StockLookupClient() {
         ? tScr("ma.aboveSMA", { period })
         : tScr("ma.belowSMA", { period });
     }
-    const mapKeys: (keyof ScreenerFilters)[] = [
+    const mapKeys: (keyof LegacyScreenerFilters)[] = [
       "pct_to_bb_upper_lte",
       "pct_to_bb_upper_gte",
       "pct_to_bb_lower_lte",
@@ -213,7 +213,7 @@ export function StockLookupClient() {
       "strong_up_sequence_context",
       "strong_down_sequence_context",
     ];
-    if (mapKeys.includes(key as keyof ScreenerFilters)) {
+    if (mapKeys.includes(key as keyof LegacyScreenerFilters)) {
       return lookupMsg.filterLabels[key] ?? key.replace(/_/g, " ");
     }
     return key;

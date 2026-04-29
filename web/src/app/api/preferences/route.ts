@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { coerceStoredScreen } from "@/lib/screener-query";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET() {
@@ -20,7 +21,12 @@ export async function GET() {
   }
 
   return NextResponse.json({
-    preferences: data ?? {
+    preferences: data
+      ? {
+          ...data,
+          favorite_screener_filter: coerceStoredScreen(data.favorite_screener_filter),
+        }
+      : {
       locale: "en",
       theme: "system",
       favorite_screener_filter: null,
@@ -51,7 +57,10 @@ export async function POST(request: NextRequest) {
   }
 
   if ("favorite_screener_filter" in body) {
-    payload.favorite_screener_filter = body.favorite_screener_filter ?? null;
+    payload.favorite_screener_filter =
+      body.favorite_screener_filter == null
+        ? null
+        : coerceStoredScreen(body.favorite_screener_filter);
   }
 
   const { error } = await supabase

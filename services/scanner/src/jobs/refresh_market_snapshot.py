@@ -4,22 +4,21 @@ import logging
 import time
 from datetime import date, datetime, timedelta
 
-from ..config.settings import TIMEFRAME
+from ..config.settings import INITIAL_BACKFILL_DAYS, SNAPSHOT_TIMEFRAMES
 from ..indicators.compute import compute_snapshot
 from ..repositories.market_data_repository import (
     enforce_retention,
     get_latest_trade_date,
-    get_listing_exchange,
     get_ticker_history,
     log_scan_run,
-    persist_listing_exchange,
     upsert_bars,
     upsert_snapshot,
-    upsert_symbol_market,
+    upsert_symbol_metadata,
 )
 from .universe import tickers_for_refresh_universe
-from ..utils.listing_exchange import fetch_listing_exchange_yfinance
 from ..utils.market_data_fetcher import fetch_bars
+from ..utils.symbol_metadata import fetch_symbol_metadata_yfinance
+from ..utils.timeframe_aggregation import aggregate_bars
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +40,7 @@ def run(
 
     log_scan_run(
         job_name=JOB_NAME,
-        timeframe=TIMEFRAME,
+        timeframe="ALL",
         status="running",
         started_at=started_at,
     )
@@ -59,7 +58,11 @@ def run(
     for ticker in tickers:
         try:
             latest = get_latest_trade_date(ticker)
-            start = (latest + timedelta(days=1)) if latest else (today - timedelta(days=900))
+            start = (
+                latest + timedelta(days=1)
+                if latest
+                else (today - timedelta(days=INITIAL_BACKFILL_DAYS))
+            )
 
             if start <= today:
                 new_bars = fetch_bars(ticker, start, today)
@@ -78,18 +81,26 @@ def run(
 
             history = get_ticker_history(ticker)
             mk = _listing_market(ticker)
-            snapshot = compute_snapshot(ticker, history, market=mk)
-            if snapshot:
-                upsert_snapshot(snapshot)
-                upsert_symbol_market(ticker, mk)
-                logger.info("Snapshot updated for %s", ticker)
-                if not get_listing_exchange(ticker):
-                    if mk == "TA":
-                        persist_listing_exchange(ticker, "TASE")
-                    else:
-                        tv_ex = fetch_listing_exchange_yfinance(ticker)
-                        if tv_ex:
-                            persist_listing_exchange(ticker, tv_ex)
+            for timeframe in SNAPSHOT_TIMEFRAMES:
+                aggregated = aggregate_bars(history, timeframe, market=mk)
+                snapshot = compute_snapshot(
+                    ticker,
+                    aggregated,
+                    market=mk,
+                    timeframe=timeframe,
+                )
+                if snapshot:
+                    upsert_snapshot(snapshot)
+
+            metadata = fetch_symbol_metadata_yfinance(ticker)
+            listing_exchange = "TASE" if mk == "TA" else metadata.get("listing_exchange")
+            upsert_symbol_metadata(
+                ticker,
+                market=mk,
+                listing_exchange=listing_exchange,
+                market_cap=metadata.get("market_cap"),
+            )
+            logger.info("Snapshots updated for %s", ticker)
 
             processed += 1
             time.sleep(BATCH_DELAY_SECONDS)
@@ -105,7 +116,7 @@ def run(
 
     log_scan_run(
         job_name=JOB_NAME,
-        timeframe=TIMEFRAME,
+        timeframe="ALL",
         status=status,
         started_at=started_at,
         finished_at=finished_at,

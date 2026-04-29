@@ -48,6 +48,9 @@ class SequenceState:
     """Bars from the last row to the bar where that signal last fired (0 = last bar)."""
     strong_buy_signal_bars_ago: Optional[int] = None
     strong_sell_signal_bars_ago: Optional[int] = None
+    last_completed_sequence_side: Optional[str] = None
+    last_completed_sequence_low: Optional[float] = None
+    last_completed_sequence_high: Optional[float] = None
 
 
 def _is_up_fractal(highs: np.ndarray, center: int, n: int) -> bool:
@@ -170,6 +173,9 @@ def compute_sequence_state(df: pd.DataFrame) -> SequenceState:
     current_sell = False
     current_strong_buy = False
     current_strong_sell = False  # never set True per Pine code
+    last_completed_sequence_side: Optional[str] = None
+    last_completed_sequence_low: Optional[float] = None
+    last_completed_sequence_high: Optional[float] = None
 
     for i in range(n_bars):
         # ===== 1. Fractal detection (confirmed at bar i, centered at i - n) =====
@@ -251,6 +257,9 @@ def compute_sequence_state(df: pd.DataFrame) -> SequenceState:
                     up_max_low = lo
                     up_max_close = c
             else:
+                last_completed_sequence_side = "up"
+                last_completed_sequence_low = up_max_low
+                last_completed_sequence_high = up_max_high
                 if (up_seq_count >= MIN_SEQ_BARS and c < o
                         and last_signal_dir != -1):
                     current_sell = True
@@ -293,6 +302,9 @@ def compute_sequence_state(df: pd.DataFrame) -> SequenceState:
                     down_max_high = h
                     down_max_high_close = c
             else:
+                last_completed_sequence_side = "down"
+                last_completed_sequence_low = down_min_low
+                last_completed_sequence_high = down_max_high
                 if (down_seq_count >= MIN_SEQ_BARS and c >= o
                         and last_signal_dir != 1):
                     current_buy = True
@@ -398,4 +410,7 @@ def compute_sequence_state(df: pd.DataFrame) -> SequenceState:
             if last_strong_sell_bar is not None
             else None
         ),
+        last_completed_sequence_side=last_completed_sequence_side,
+        last_completed_sequence_low=last_completed_sequence_low,
+        last_completed_sequence_high=last_completed_sequence_high,
     )

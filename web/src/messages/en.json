@@ -204,7 +204,7 @@
   },
   "screener": {
     "title": "Stock Screener",
-    "premiumSubtitle": "Member workspace — filters query our precomputed daily snapshot store.",
+    "premiumSubtitle": "Member workspace — build daily, weekly, and monthly rules against our precomputed snapshot store.",
     "updatedAt": "Last data refresh: {date}",
     "filters": "Filters",
     "results": "Results",
@@ -241,6 +241,83 @@
       "all": "All (US + TA-125)",
       "us": "US only (S&P 500)",
       "ta": "TA only (Tel Aviv 125)"
+    },
+    "marketCap": {
+      "gte": "Market cap ≥",
+      "lte": "Market cap ≤"
+    },
+    "timeframes": {
+      "1D": "Daily",
+      "1W": "Weekly",
+      "1M": "Monthly"
+    },
+    "operators": {
+      "is_true": "is true",
+      "lte": "≤",
+      "gte": "≥",
+      "lt": "<",
+      "gt": ">",
+      "eq": "is"
+    },
+    "ruleBuilder": {
+      "title": "Rule builder",
+      "subtitle": "Add timeframe-aware rules. All rules are combined with AND.",
+      "addRule": "Add Rule",
+      "empty": "No rules yet. Add your first daily, weekly, or monthly rule.",
+      "timeframe": "Timeframe",
+      "condition": "Condition",
+      "operator": "Operator",
+      "value": "Value",
+      "remove": "Remove"
+    },
+    "rules": {
+      "is_above_sma20": "Price above SMA 20",
+      "is_below_sma20": "Price below SMA 20",
+      "is_above_sma50": "Price above SMA 50",
+      "is_below_sma50": "Price below SMA 50",
+      "is_above_sma150": "Price above SMA 150",
+      "is_below_sma150": "Price below SMA 150",
+      "is_above_sma200": "Price above SMA 200",
+      "is_below_sma200": "Price below SMA 200",
+      "buy_signal": "Bullish break signal",
+      "sell_signal": "Bearish break signal",
+      "strong_buy_signal": "Strong bullish break",
+      "strong_sell_signal": "Strong bearish break",
+      "bullish_sequence_active": "Up sequence active",
+      "bearish_sequence_active": "Down sequence active",
+      "strong_up_sequence_context": "Strong up sequence context",
+      "strong_down_sequence_context": "Strong down sequence context",
+      "down_sequence_broke_recently": "Down sequence broke recently",
+      "up_sequence_broke_recently": "Up sequence broke recently",
+      "down_sequence_broke_in_strong_up_context": "Down sequence broke in strong up context",
+      "up_sequence_broke_in_strong_down_context": "Up sequence broke in strong down context",
+      "pct_to_bb_upper": "% distance to BB upper",
+      "pct_to_bb_lower": "% distance to BB lower",
+      "atr_percent": "ATR %",
+      "atr_14": "ATR 14",
+      "close": "Close",
+      "up_sequence_count": "Up sequence length",
+      "down_sequence_count": "Down sequence length",
+      "up_sequence_break_bars_ago": "Up-sequence break within N bars",
+      "down_sequence_break_bars_ago": "Down-sequence break within N bars",
+      "fib_zone": "Fibonacci retracement zone"
+    },
+    "fibZones": {
+      "0_382": "0% to 38.2%",
+      "382_500": "38.2% to 50%",
+      "500_618": "50% to 61.8%",
+      "618_786": "61.8% to 78.6%",
+      "786_100": "78.6% to 100%"
+    },
+    "tooltips": {
+      "buy_signal": "A bullish break signal fires when a down sequence fails on the latest candle. It marks a sequence-failure event, not a guarantee of trend reversal.",
+      "sell_signal": "A bearish break signal fires when an up sequence fails on the latest candle. It marks a sequence-failure event, not a guarantee of trend reversal.",
+      "strong_buy_signal": "A strong bullish break is a bullish break with stronger candle-body confirmation and close strength relative to the completed down sequence.",
+      "strong_sell_signal": "A strong bearish break would be the bearish mirror signal. It is kept for model symmetry even if it appears less often.",
+      "bullish_sequence_active": "The current candles still satisfy the up-sequence rules.",
+      "bearish_sequence_active": "The current candles still satisfy the down-sequence rules.",
+      "down_sequence_broke_recently": "A down sequence failed within the recent-candle threshold. This is a sequence event, not a standalone reversal call.",
+      "up_sequence_broke_recently": "An up sequence failed within the recent-candle threshold. This is a sequence event, not a standalone reversal call."
     },
     "tabs": {
       "movingAverages": "Moving Averages",
@@ -307,7 +384,8 @@
       "bbUpper": "% to BB Upper",
       "bbLower": "% to BB Lower",
       "seqState": "Sequence",
-      "signals": "Signals"
+      "signals": "Signals",
+      "timeframes": "Matched TFs"
     },
     "symbols": "{count} symbols found"
   },

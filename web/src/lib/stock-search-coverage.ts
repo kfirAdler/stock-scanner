@@ -1,4 +1,4 @@
-import type { ScreenerFilters, SnapshotRow } from "@/lib/screener-types";
+import type { LegacyScreenerFilters, SnapshotRow } from "@/lib/screener-types";
 import {
   SCREENER_BOOLEAN_FILTER_KEYS,
   SCREENER_NUMERIC_FILTER_KEYS,
@@ -66,11 +66,11 @@ function maFilterSupported(
 }
 
 function filterEntry(
-  key: keyof ScreenerFilters,
+  key: keyof LegacyScreenerFilters,
   supported: boolean,
   reasonKey?: string,
   reasonParams?: Record<string, string | number>
-): CoverageEntry & { filterKey: keyof ScreenerFilters } {
+): CoverageEntry & { filterKey: keyof LegacyScreenerFilters } {
   return {
     filterKey: key,
     id: String(key),
@@ -89,7 +89,7 @@ export function buildStockLookupCoverage(
 ): {
   barCount: number;
   indicators: CoverageEntry[];
-  screenerFilters: (CoverageEntry & { filterKey: keyof ScreenerFilters })[];
+  screenerFilters: (CoverageEntry & { filterKey: keyof LegacyScreenerFilters })[];
 } {
   const indicators: CoverageEntry[] = [];
 
@@ -181,8 +181,8 @@ export function buildStockLookupCoverage(
   return { barCount, indicators, screenerFilters };
 }
 
-function allFilterKeys(): (keyof ScreenerFilters)[] {
-  const keys = new Set<keyof ScreenerFilters>([
+function allFilterKeys(): (keyof LegacyScreenerFilters)[] {
+  const keys = new Set<keyof LegacyScreenerFilters>([
     ...SCREENER_BOOLEAN_FILTER_KEYS,
     ...SCREENER_NUMERIC_FILTER_KEYS,
   ]);
@@ -192,8 +192,8 @@ function allFilterKeys(): (keyof ScreenerFilters)[] {
 function buildFilterCoverage(
   row: SnapshotRow,
   barCount: number
-): (CoverageEntry & { filterKey: keyof ScreenerFilters })[] {
-  const out: (CoverageEntry & { filterKey: keyof ScreenerFilters })[] = [];
+): (CoverageEntry & { filterKey: keyof LegacyScreenerFilters })[] {
+  const out: (CoverageEntry & { filterKey: keyof LegacyScreenerFilters })[] = [];
 
   for (const key of SCREENER_BOOLEAN_FILTER_KEYS) {
     if (key.startsWith("is_above_sma") || key.startsWith("is_below_sma")) {

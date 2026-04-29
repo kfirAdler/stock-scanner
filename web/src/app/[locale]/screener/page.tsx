@@ -6,35 +6,34 @@ import { Link } from "@/i18n/navigation";
 import { FilterPanel } from "@/components/screener/FilterPanel";
 import { ResultsTable } from "@/components/screener/ResultsTable";
 import { PremiumGate } from "@/components/billing/PremiumGate";
-import type { ScreenerFilters, SnapshotRow } from "@/lib/screener-types";
-import { parseFiltersFromSearchParams } from "@/lib/screener-query";
+import type { ScreenerPayload, ScreenerResultRow } from "@/lib/screener-types";
+import {
+  DEFAULT_SCREENER_PAYLOAD,
+  coerceStoredScreen,
+  countActiveFilters,
+  parseScreenFromSearchParams,
+  screenToQueryString,
+} from "@/lib/screener-query";
 
 type Gate = null | "login" | "subscribe";
 
-function normalizeFilters(filters: ScreenerFilters): ScreenerFilters {
-  return Object.fromEntries(
-    Object.entries(filters)
-      .filter(([, value]) => value !== undefined && value !== null && value !== "")
-      .sort(([a], [b]) => a.localeCompare(b))
-  ) as ScreenerFilters;
-}
-
-function countActiveFilters(filters: ScreenerFilters) {
-  return Object.keys(normalizeFilters(filters)).length;
+function readInitialFilters(): ScreenerPayload {
+  if (typeof window === "undefined") return DEFAULT_SCREENER_PAYLOAD;
+  return parseScreenFromSearchParams(new URLSearchParams(window.location.search));
 }
 
 export default function ScreenerPage() {
   const t = useTranslations("screener");
   const locale = useLocale();
-  const [filters, setFilters] = useState<ScreenerFilters>({});
-  const filtersRef = useRef<ScreenerFilters>({});
-  const [appliedFilters, setAppliedFilters] = useState<ScreenerFilters>({});
-  const [favoriteFilters, setFavoriteFilters] = useState<ScreenerFilters | null>(null);
+  const [filters, setFilters] = useState<ScreenerPayload>(() => readInitialFilters());
+  const filtersRef = useRef<ScreenerPayload>(readInitialFilters());
+  const [appliedFilters, setAppliedFilters] = useState<ScreenerPayload>(() => readInitialFilters());
+  const [favoriteFilters, setFavoriteFilters] = useState<ScreenerPayload | null>(null);
   const [favoriteLoading, setFavoriteLoading] = useState(true);
   const [favoriteSaving, setFavoriteSaving] = useState(false);
   const [favoriteStatus, setFavoriteStatus] = useState<string | null>(null);
   const [saveScanLoading, setSaveScanLoading] = useState(false);
-  const [results, setResults] = useState<SnapshotRow[]>([]);
+  const [results, setResults] = useState<ScreenerResultRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [gate, setGate] = useState<Gate>(null);
@@ -42,20 +41,23 @@ export default function ScreenerPage() {
   const [multiFilterGateOpen, setMultiFilterGateOpen] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
-  const fetchResults = useCallback(async (nextFilters: ScreenerFilters = filtersRef.current) => {
-    const normalizedFilters = normalizeFilters(nextFilters);
+  const fetchResults = useCallback(async (nextFilters: ScreenerPayload = filtersRef.current) => {
+    const normalizedFilters = coerceStoredScreen(nextFilters) ?? DEFAULT_SCREENER_PAYLOAD;
     setLoading(true);
     setHasSearched(true);
     setGate(null);
     setAppliedFilters(normalizedFilters);
+    if (typeof window !== "undefined") {
+      const query = screenToQueryString(normalizedFilters);
+      const pathname = window.location.pathname;
+      window.history.replaceState({}, "", query ? `${pathname}${query}` : pathname);
+    }
     try {
-      const params = new URLSearchParams();
-      for (const [key, value] of Object.entries(normalizedFilters)) {
-        if (value !== undefined && value !== null && value !== "") {
-          params.set(key, String(value));
-        }
-      }
-      const res = await fetch(`/api/screener?${params.toString()}`);
+      const res = await fetch("/api/screener", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(normalizedFilters),
+      });
       if (res.status === 401) {
         setGate("login");
         setResults([]);
@@ -91,10 +93,7 @@ export default function ScreenerPage() {
         const data = await res.json();
         const favorite = data?.preferences?.favorite_screener_filter;
         if (!cancelled) {
-          const normalizedFavorite = favorite && typeof favorite === "object"
-            ? normalizeFilters(favorite as ScreenerFilters)
-            : null;
-          setFavoriteFilters(normalizedFavorite);
+          setFavoriteFilters(coerceStoredScreen(favorite));
         }
       } catch {
         if (!cancelled) {
@@ -140,16 +139,8 @@ export default function ScreenerPage() {
   }, []);
 
   useEffect(() => {
-    const nextFilters = parseFiltersFromSearchParams(
-      new URLSearchParams(window.location.search)
-    );
-    const normalized = normalizeFilters(nextFilters);
-
-    filtersRef.current = normalized;
-    setFilters(normalized);
-
-    if (countActiveFilters(normalized) > 0) {
-      void fetchResults(normalized);
+    if (countActiveFilters(filtersRef.current) > 0) {
+      void fetchResults(filtersRef.current);
     }
   }, [fetchResults]);
 
@@ -191,7 +182,7 @@ export default function ScreenerPage() {
     }
   }, [lastUpdated, locale]);
 
-  function handleFiltersChange(nextFilters: ScreenerFilters) {
+  function handleFiltersChange(nextFilters: ScreenerPayload) {
     filtersRef.current = nextFilters;
     setFilters(nextFilters);
   }
@@ -205,7 +196,7 @@ export default function ScreenerPage() {
     setFavoriteSaving(true);
     setFavoriteStatus(null);
     try {
-      const normalized = normalizeFilters(filters);
+      const normalized = coerceStoredScreen(filters) ?? DEFAULT_SCREENER_PAYLOAD;
       const res = await fetch("/api/preferences", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -244,7 +235,7 @@ export default function ScreenerPage() {
     setSaveScanLoading(true);
     setFavoriteStatus(null);
     try {
-      const normalized = normalizeFilters(filters);
+      const normalized = coerceStoredScreen(filters) ?? DEFAULT_SCREENER_PAYLOAD;
       const res = await fetch("/api/saved-screens", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

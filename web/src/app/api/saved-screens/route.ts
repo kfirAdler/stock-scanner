@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { assertScreenerAccess } from "@/lib/market-access";
+import { coerceStoredScreen } from "@/lib/screener-query";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET() {
@@ -23,7 +24,13 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ screens: data ?? [] });
+  return NextResponse.json({
+    screens:
+      (data ?? []).map((screen) => ({
+        ...screen,
+        filter_json: coerceStoredScreen(screen.filter_json),
+      })) ?? [],
+  });
 }
 
 export async function POST(request: NextRequest) {
@@ -38,7 +45,8 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { id, name, filter_json } = body;
+  const { id, name } = body;
+  const filter_json = coerceStoredScreen(body.filter_json);
 
   if (!name || !filter_json) {
     return NextResponse.json({ error: "name and filter_json required" }, { status: 400 });

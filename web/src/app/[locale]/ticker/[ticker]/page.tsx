@@ -160,10 +160,12 @@ export default function TickerDetailPage() {
           <StatCard
             label="Sequence"
             value={
-              snapshot.buy_signal ? "BUY Signal" :
-              snapshot.sell_signal ? "SELL Signal" :
-              snapshot.bullish_sequence_active ? `Bullish (${snapshot.up_sequence_count})` :
-              snapshot.bearish_sequence_active ? `Bearish (${snapshot.down_sequence_count})` :
+              snapshot.strong_buy_signal ? "Strong bullish break" :
+              snapshot.buy_signal ? "Bullish break signal" :
+              snapshot.strong_sell_signal ? "Strong bearish break" :
+              snapshot.sell_signal ? "Bearish break signal" :
+              snapshot.bullish_sequence_active ? `Up sequence (${snapshot.up_sequence_count})` :
+              snapshot.bearish_sequence_active ? `Down sequence (${snapshot.down_sequence_count})` :
               "Neutral"
             }
             signal={

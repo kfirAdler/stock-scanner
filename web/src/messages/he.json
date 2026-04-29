@@ -204,7 +204,7 @@
   },
   "screener": {
     "title": "סורק מניות",
-    "premiumSubtitle": "סביבת חברים — המסננים שואלים את מאגר צילומי המצב היומי המחושב מראש.",
+    "premiumSubtitle": "סביבת חברים — בנה חוקים יומיים, שבועיים וחודשיים מול מאגר צילומי המצב המחושב מראש.",
     "updatedAt": "רענון הנתונים האחרון: {date}",
     "filters": "מסננים",
     "results": "תוצאות",
@@ -241,6 +241,83 @@
       "all": "הכל (ארה״ב + ת״א-125)",
       "us": "ארה״ב בלבד (S&P 500)",
       "ta": "ת״א בלבד (ת״א-125)"
+    },
+    "marketCap": {
+      "gte": "שווי שוק ≥",
+      "lte": "שווי שוק ≤"
+    },
+    "timeframes": {
+      "1D": "יומי",
+      "1W": "שבועי",
+      "1M": "חודשי"
+    },
+    "operators": {
+      "is_true": "נכון",
+      "lte": "≤",
+      "gte": "≥",
+      "lt": "<",
+      "gt": ">",
+      "eq": "הוא"
+    },
+    "ruleBuilder": {
+      "title": "בונה חוקים",
+      "subtitle": "הוסף חוקים לפי טווח זמן. כל החוקים מחוברים ב-AND.",
+      "addRule": "הוסף חוק",
+      "empty": "עדיין אין חוקים. הוסף חוק יומי, שבועי או חודשי.",
+      "timeframe": "טווח זמן",
+      "condition": "תנאי",
+      "operator": "אופרטור",
+      "value": "ערך",
+      "remove": "הסר"
+    },
+    "rules": {
+      "is_above_sma20": "מחיר מעל SMA 20",
+      "is_below_sma20": "מחיר מתחת SMA 20",
+      "is_above_sma50": "מחיר מעל SMA 50",
+      "is_below_sma50": "מחיר מתחת SMA 50",
+      "is_above_sma150": "מחיר מעל SMA 150",
+      "is_below_sma150": "מחיר מתחת SMA 150",
+      "is_above_sma200": "מחיר מעל SMA 200",
+      "is_below_sma200": "מחיר מתחת SMA 200",
+      "buy_signal": "איתות שבירה שורי",
+      "sell_signal": "איתות שבירה דובי",
+      "strong_buy_signal": "שבירה שורית חזקה",
+      "strong_sell_signal": "שבירה דובית חזקה",
+      "bullish_sequence_active": "רצף עלייה פעיל",
+      "bearish_sequence_active": "רצף ירידה פעיל",
+      "strong_up_sequence_context": "הקשר רצף עלייה חזק",
+      "strong_down_sequence_context": "הקשר רצף ירידה חזק",
+      "down_sequence_broke_recently": "רצף ירידה נשבר לאחרונה",
+      "up_sequence_broke_recently": "רצף עלייה נשבר לאחרונה",
+      "down_sequence_broke_in_strong_up_context": "רצף ירידה נשבר בהקשר עלייה חזק",
+      "up_sequence_broke_in_strong_down_context": "רצף עלייה נשבר בהקשר ירידה חזק",
+      "pct_to_bb_upper": "% מרחק לרצועה עליונה",
+      "pct_to_bb_lower": "% מרחק לרצועה תחתונה",
+      "atr_percent": "ATR %",
+      "atr_14": "ATR 14",
+      "close": "סגירה",
+      "up_sequence_count": "אורך רצף עלייה",
+      "down_sequence_count": "אורך רצף ירידה",
+      "up_sequence_break_bars_ago": "שבירת רצף עלייה בתוך N נרות",
+      "down_sequence_break_bars_ago": "שבירת רצף ירידה בתוך N נרות",
+      "fib_zone": "אזור פיבונאצ'י"
+    },
+    "fibZones": {
+      "0_382": "0% עד 38.2%",
+      "382_500": "38.2% עד 50%",
+      "500_618": "50% עד 61.8%",
+      "618_786": "61.8% עד 78.6%",
+      "786_100": "78.6% עד 100%"
+    },
+    "tooltips": {
+      "buy_signal": "איתות שבירה שורי מופיע כאשר רצף ירידה נכשל בנר האחרון. זהו אירוע שבירת רצף, לא הבטחה להיפוך מגמה.",
+      "sell_signal": "איתות שבירה דובי מופיע כאשר רצף עלייה נכשל בנר האחרון. זהו אירוע שבירת רצף, לא הבטחה להיפוך מגמה.",
+      "strong_buy_signal": "שבירה שורית חזקה דורשת גם אישור מגוף הנר וגם סגירה חזקה ביחס לרצף הירידה שהושלם.",
+      "strong_sell_signal": "שבירה דובית חזקה נשמרת כסימטריה של המודל גם אם היא נדירה יותר.",
+      "bullish_sequence_active": "הנרות הנוכחיים עדיין עומדים בכללי רצף העלייה.",
+      "bearish_sequence_active": "הנרות הנוכחיים עדיין עומדים בכללי רצף הירידה.",
+      "down_sequence_broke_recently": "רצף ירידה נכשל בתוך סף הנרות האחרונים. זהו אירוע רצף, לא קריאת היפוך עצמאית.",
+      "up_sequence_broke_recently": "רצף עלייה נכשל בתוך סף הנרות האחרונים. זהו אירוע רצף, לא קריאת היפוך עצמאית."
     },
     "tabs": {
       "movingAverages": "ממוצעים נעים",
@@ -307,7 +384,8 @@
       "bbUpper": "% לרצועה עליונה",
       "bbLower": "% לרצועה תחתונה",
       "seqState": "רצף",
-      "signals": "איתותים"
+      "signals": "איתותים",
+      "timeframes": "טווחי זמן"
     },
     "symbols": "{count} מניות נמצאו"
   },

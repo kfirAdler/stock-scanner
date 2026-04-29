@@ -34,9 +34,11 @@ def main():
         get_all_tickers,
         get_ticker_history,
         upsert_snapshot,
-        upsert_symbol_market,
+        upsert_symbol_metadata,
     )
     from src.indicators.compute import compute_snapshot
+    from src.config.settings import SNAPSHOT_TIMEFRAMES
+    from src.utils.timeframe_aggregation import aggregate_bars
 
     if args.tickers:
         tickers = [t.upper() for t in args.tickers]
@@ -57,19 +59,43 @@ def main():
                 continue
 
             mk = "TA" if ticker.upper().endswith(".TA") else "US"
-            snapshot = compute_snapshot(ticker, history, market=mk)
-            if snapshot is None:
-                logger.warning("[%d/%d] %s: not enough bars (%d), skipping",
-                               i + 1, total, ticker, len(history))
+            wrote_any = False
+            for timeframe in SNAPSHOT_TIMEFRAMES:
+                aggregated = aggregate_bars(history, timeframe, market=mk)
+                snapshot = compute_snapshot(
+                    ticker,
+                    aggregated,
+                    market=mk,
+                    timeframe=timeframe,
+                )
+                if snapshot is None:
+                    continue
+                upsert_snapshot(snapshot)
+                wrote_any = True
+            if not wrote_any:
+                logger.warning(
+                    "[%d/%d] %s: not enough bars (%d), skipping",
+                    i + 1,
+                    total,
+                    ticker,
+                    len(history),
+                )
                 continue
-
-            upsert_snapshot(snapshot)
-            upsert_symbol_market(ticker, mk)
+            upsert_symbol_metadata(
+                ticker,
+                market=mk,
+                listing_exchange="TASE" if mk == "TA" else None,
+            )
             processed += 1
 
             if processed % 25 == 0 or i == total - 1:
-                logger.info("[%d/%d] Processed %d so far (last: %s, close=%.2f)",
-                            i + 1, total, processed, ticker, snapshot.close)
+                logger.info(
+                    "[%d/%d] Processed %d so far (last: %s)",
+                    i + 1,
+                    total,
+                    processed,
+                    ticker,
+                )
 
         except Exception as e:
             failed += 1

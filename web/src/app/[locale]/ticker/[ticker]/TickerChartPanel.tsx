@@ -11,7 +11,7 @@ import {
   countActiveFilters,
   filtersToTvStudies,
   hasSequenceFilters,
-  parseFiltersFromSearchParams,
+  parseScreenFromSearchParams,
   smaPeriodsFromFilters,
   tradingViewSymbol,
 } from "@/lib/screener-query";
@@ -53,7 +53,7 @@ export function TickerChartPanel({
   }, []);
 
   const filters = useMemo(
-    () => parseFiltersFromSearchParams(searchParams),
+    () => parseScreenFromSearchParams(searchParams),
     [searchParams]
   );
   const activeFilterCount = useMemo(

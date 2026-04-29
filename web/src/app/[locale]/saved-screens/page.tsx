@@ -4,11 +4,13 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { Button } from "@/components/ui/Button";
+import { countActiveFilters, screenToQueryString } from "@/lib/screener-query";
+import type { ScreenerPayload } from "@/lib/screener-types";
 
 interface SavedScreen {
   id: string;
   name: string;
-  filter_json: Record<string, unknown>;
+  filter_json: ScreenerPayload | null;
   updated_at: string;
 }
 
@@ -53,17 +55,14 @@ export default function SavedScreensPage() {
   }, [router]);
 
   useEffect(() => {
-    void load();
+    const timer = window.setTimeout(() => {
+      void load();
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [load]);
 
   function applyScreen(screen: SavedScreen) {
-    const params = new URLSearchParams();
-    for (const [key, value] of Object.entries(screen.filter_json)) {
-      if (value !== undefined && value !== null) {
-        params.set(key, String(value));
-      }
-    }
-    router.push(`/screener?${params.toString()}`);
+    router.push(`/screener${screen.filter_json ? screenToQueryString(screen.filter_json) : ""}`);
   }
 
   if (loading) {
@@ -102,7 +101,7 @@ export default function SavedScreensPage() {
                 <p className="mt-1 text-xs text-text-secondary">
                   {new Date(screen.updated_at).toLocaleDateString()}
                   {" · "}
-                  {Object.keys(screen.filter_json).length} filters
+                  {screen.filter_json ? countActiveFilters(screen.filter_json) : 0} filters
                 </p>
               </div>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">

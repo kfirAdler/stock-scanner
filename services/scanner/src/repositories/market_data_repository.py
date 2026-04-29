@@ -212,6 +212,37 @@ def persist_listing_exchange(ticker: str, exchange: str) -> None:
         client.table("symbol_metadata").insert(row).execute()
 
 
+def upsert_symbol_metadata(
+    ticker: str,
+    *,
+    market: str,
+    listing_exchange: str | None = None,
+    market_cap: float | None = None,
+) -> None:
+    client = _get_client()
+    now = datetime.utcnow().isoformat()
+    row: dict[str, object] = {
+        "ticker": ticker,
+        "market": market,
+        "updated_at": now,
+    }
+    if listing_exchange is not None:
+        row["listing_exchange"] = listing_exchange
+    if market_cap is not None:
+        row["market_cap"] = market_cap
+    existing = (
+        client.table("symbol_metadata")
+        .select("ticker")
+        .eq("ticker", ticker)
+        .limit(1)
+        .execute()
+    )
+    if existing.data:
+        client.table("symbol_metadata").update(row).eq("ticker", ticker).execute()
+    else:
+        client.table("symbol_metadata").insert(row).execute()
+
+
 def log_scan_run(
     job_name: str,
     timeframe: str,

@@ -14,11 +14,12 @@ from ..models.snapshot import IndicatorSnapshot
 from ..signals.sequence import compute_sequence_state
 from .atr import atr, atr_percent
 from .bollinger import bollinger_bands, pct_distance_to_band
+from .fibonacci import compute_fibonacci_state
 from .moving_averages import ema, sma
 
 
 def compute_snapshot(
-    ticker: str, df: pd.DataFrame, *, market: str = "US"
+    ticker: str, df: pd.DataFrame, *, market: str = "US", timeframe: str = TIMEFRAME
 ) -> IndicatorSnapshot | None:
     """Compute all indicators from OHLCV bars and return a snapshot for the latest bar.
 
@@ -46,6 +47,7 @@ def compute_snapshot(
     atr_pct = atr_percent(atr_series, close)
 
     seq_state = compute_sequence_state(df)
+    fib_state = compute_fibonacci_state(seq_state, float(close.iloc[-1]))
 
     last_idx = df.index[-1]
     last_row = df.iloc[-1]
@@ -68,7 +70,7 @@ def compute_snapshot(
 
     return IndicatorSnapshot(
         ticker=ticker,
-        timeframe=TIMEFRAME,
+        timeframe=timeframe,
         last_trade_date=last_row["trade_date"],
         last_bar_time=last_row.get("bar_time"),
         close=round(last_close, 4),
@@ -104,6 +106,18 @@ def compute_snapshot(
         strong_sell_signal=seq_state.strong_sell_signal,
         strong_buy_signal_bars_ago=seq_state.strong_buy_signal_bars_ago,
         strong_sell_signal_bars_ago=seq_state.strong_sell_signal_bars_ago,
+        fib_swing_side=fib_state.swing_side,
+        fib_swing_low=_latest(pd.Series([fib_state.swing_low])),
+        fib_swing_high=_latest(pd.Series([fib_state.swing_high])),
+        fib_level_382=_latest(pd.Series([fib_state.level_382])),
+        fib_level_500=_latest(pd.Series([fib_state.level_500])),
+        fib_level_618=_latest(pd.Series([fib_state.level_618])),
+        fib_level_786=_latest(pd.Series([fib_state.level_786])),
+        fib_zone_0_382=fib_state.zone_0_382,
+        fib_zone_382_500=fib_state.zone_382_500,
+        fib_zone_500_618=fib_state.zone_500_618,
+        fib_zone_618_786=fib_state.zone_618_786,
+        fib_zone_786_100=fib_state.zone_786_100,
         # SMA position booleans
         is_above_sma20=_above(last_close, sma20),
         is_below_sma20=_below(last_close, sma20),

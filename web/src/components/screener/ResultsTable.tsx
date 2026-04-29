@@ -4,22 +4,24 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { clsx } from "clsx";
 import { Link } from "@/i18n/navigation";
-import type { ScreenerFilters, SnapshotRow } from "@/lib/screener-types";
-import {
-  countActiveFilters,
-  filtersToQueryString,
-} from "@/lib/screener-query";
+import type { ScreenerPayload, ScreenerResultRow } from "@/lib/screener-types";
+import { countActiveFilters, screenToQueryString } from "@/lib/screener-query";
 
-type SortKey = "ticker" | "close" | "atr_percent" | "pct_to_bb_upper" | "pct_to_bb_lower";
+type SortKey =
+  | "ticker"
+  | "close"
+  | "atr_percent"
+  | "pct_to_bb_upper"
+  | "pct_to_bb_lower";
 type SortDir = "asc" | "desc";
 
 interface ResultsTableProps {
-  rows: SnapshotRow[];
+  rows: ScreenerResultRow[];
   loading?: boolean;
-  screenerFilters?: ScreenerFilters;
+  screenerFilters?: ScreenerPayload;
 }
 
-function fmt(val: number | null, decimals = 2): string {
+function fmt(val: number | null | undefined, decimals = 2): string {
   if (val === null || val === undefined) return "—";
   return val.toFixed(decimals);
 }
@@ -30,14 +32,19 @@ function SmaPill({ above, below }: { above: boolean | null; below: boolean | nul
   return <span className="text-text-muted">—</span>;
 }
 
-function SignalBadge({ row }: { row: SnapshotRow }) {
-  if (row.strong_buy_signal) return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-success-soft text-success">▲▲ STRONG BUY</span>;
-  if (row.buy_signal) return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-success-soft text-success">▲ BUY</span>;
-  if (row.strong_sell_signal) return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-danger-soft text-danger">▼▼ STRONG SELL</span>;
-  if (row.sell_signal) return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-danger-soft text-danger">▼ SELL</span>;
-  if (row.bullish_sequence_active) return <span className="text-[10px] text-success font-bold">Bull {row.up_sequence_count}</span>;
-  if (row.bearish_sequence_active) return <span className="text-[10px] text-danger font-bold">Bear {row.down_sequence_count}</span>;
+function SignalBadge({ row }: { row: ScreenerResultRow }) {
+  if (row.strong_buy_signal) return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-success-soft text-success">▲▲ STRONG BULLISH BREAK</span>;
+  if (row.buy_signal) return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-success-soft text-success">▲ BULLISH BREAK</span>;
+  if (row.strong_sell_signal) return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-danger-soft text-danger">▼▼ STRONG BEARISH BREAK</span>;
+  if (row.sell_signal) return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-danger-soft text-danger">▼ BEARISH BREAK</span>;
+  if (row.bullish_sequence_active) return <span className="text-[10px] text-success font-bold">Up {row.up_sequence_count}</span>;
+  if (row.bearish_sequence_active) return <span className="text-[10px] text-danger font-bold">Down {row.down_sequence_count}</span>;
   return <span className="text-text-muted text-[10px]">—</span>;
+}
+
+function sortIndicator(active: boolean, dir: SortDir) {
+  if (!active) return "";
+  return dir === "asc" ? "▲" : "▼";
 }
 
 export function ResultsTable({ rows, loading, screenerFilters }: ResultsTableProps) {
@@ -56,7 +63,7 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
 
   const tickerQuery =
     screenerFilters && countActiveFilters(screenerFilters) > 0
-      ? filtersToQueryString(screenerFilters)
+      ? screenToQueryString(screenerFilters)
       : "";
 
   const sorted = [...rows].sort((a, b) => {
@@ -66,22 +73,6 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
     if (av > bv) return sortDir === "asc" ? 1 : -1;
     return 0;
   });
-
-  function SortHeader({ label, colKey }: { label: string; colKey: SortKey }) {
-    const active = sortKey === colKey;
-    return (
-      <button
-        onClick={() => handleSort(colKey)}
-        className="inline-flex items-center gap-1 hover:text-text transition-colors group"
-        aria-sort={active ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
-      >
-        {label}
-        <span className={clsx("text-[10px] transition-opacity", active ? "opacity-100" : "opacity-0 group-hover:opacity-40")} aria-hidden="true">
-          {sortDir === "asc" ? "▲" : "▼"}
-        </span>
-      </button>
-    );
-  }
 
   if (loading) {
     return (
@@ -97,11 +88,6 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
   if (rows.length === 0) {
     return (
       <div className="text-center py-20 text-text-muted">
-        <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-surface-alt mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-6 h-6">
-            <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clipRule="evenodd" />
-          </svg>
-        </div>
         <p className="font-bold">{t("symbols", { count: 0 })}</p>
       </div>
     );
@@ -117,38 +103,58 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
           <thead>
             <tr className="border-b border-border bg-surface-alt text-start">
               <th scope="col" className="px-4 py-3 text-start text-xs font-bold text-text-muted">
-                <SortHeader label={t("table.ticker")} colKey="ticker" />
+                <button onClick={() => handleSort("ticker")} className="inline-flex items-center gap-1 hover:text-text transition-colors group">
+                  {t("table.ticker")}
+                  <span className={clsx("text-[10px] transition-opacity", sortKey === "ticker" ? "opacity-100" : "opacity-0 group-hover:opacity-40")} aria-hidden="true">
+                    {sortIndicator(sortKey === "ticker", sortDir)}
+                  </span>
+                </button>
               </th>
               <th scope="col" className="px-3 py-3 text-end text-xs font-bold text-text-muted">
-                <SortHeader label={t("table.close")} colKey="close" />
+                <button onClick={() => handleSort("close")} className="inline-flex items-center gap-1 hover:text-text transition-colors group">
+                  {t("table.close")}
+                  <span className={clsx("text-[10px] transition-opacity", sortKey === "close" ? "opacity-100" : "opacity-0 group-hover:opacity-40")} aria-hidden="true">
+                    {sortIndicator(sortKey === "close", sortDir)}
+                  </span>
+                </button>
               </th>
               <th scope="col" className="px-2 py-3 text-center text-xs font-bold text-text-muted">{t("table.sma20")}</th>
               <th scope="col" className="px-2 py-3 text-center text-xs font-bold text-text-muted">{t("table.sma50")}</th>
               <th scope="col" className="px-2 py-3 text-center text-xs font-bold text-text-muted">{t("table.sma150")}</th>
               <th scope="col" className="px-2 py-3 text-center text-xs font-bold text-text-muted">{t("table.sma200")}</th>
               <th scope="col" className="px-3 py-3 text-end text-xs font-bold text-text-muted">
-                <SortHeader label={t("table.atrPct")} colKey="atr_percent" />
+                <button onClick={() => handleSort("atr_percent")} className="inline-flex items-center gap-1 hover:text-text transition-colors group">
+                  {t("table.atrPct")}
+                  <span className={clsx("text-[10px] transition-opacity", sortKey === "atr_percent" ? "opacity-100" : "opacity-0 group-hover:opacity-40")} aria-hidden="true">
+                    {sortIndicator(sortKey === "atr_percent", sortDir)}
+                  </span>
+                </button>
               </th>
               <th scope="col" className="px-3 py-3 text-end text-xs font-bold text-text-muted">
-                <SortHeader label={t("table.bbUpper")} colKey="pct_to_bb_upper" />
+                <button onClick={() => handleSort("pct_to_bb_upper")} className="inline-flex items-center gap-1 hover:text-text transition-colors group">
+                  {t("table.bbUpper")}
+                  <span className={clsx("text-[10px] transition-opacity", sortKey === "pct_to_bb_upper" ? "opacity-100" : "opacity-0 group-hover:opacity-40")} aria-hidden="true">
+                    {sortIndicator(sortKey === "pct_to_bb_upper", sortDir)}
+                  </span>
+                </button>
               </th>
               <th scope="col" className="px-3 py-3 text-end text-xs font-bold text-text-muted">
-                <SortHeader label={t("table.bbLower")} colKey="pct_to_bb_lower" />
+                <button onClick={() => handleSort("pct_to_bb_lower")} className="inline-flex items-center gap-1 hover:text-text transition-colors group">
+                  {t("table.bbLower")}
+                  <span className={clsx("text-[10px] transition-opacity", sortKey === "pct_to_bb_lower" ? "opacity-100" : "opacity-0 group-hover:opacity-40")} aria-hidden="true">
+                    {sortIndicator(sortKey === "pct_to_bb_lower", sortDir)}
+                  </span>
+                </button>
               </th>
               <th scope="col" className="px-3 py-3 text-start text-xs font-bold text-text-muted">{t("table.seqState")}</th>
+              <th scope="col" className="px-3 py-3 text-start text-xs font-bold text-text-muted">{t("table.timeframes")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {sorted.map((row) => (
-              <tr
-                key={row.ticker}
-                className="hover:bg-surface-alt/50 transition-colors"
-              >
+              <tr key={row.ticker} className="hover:bg-surface-alt/50 transition-colors">
                 <td className="px-4 py-2.5">
-                  <Link
-                    href={`/ticker/${row.ticker}${tickerQuery}`}
-                    className="font-bold text-primary hover:underline decoration-primary/30 underline-offset-2"
-                  >
+                  <Link href={`/ticker/${row.ticker}${tickerQuery}`} className="font-bold text-primary hover:underline decoration-primary/30 underline-offset-2">
                     {row.ticker}
                   </Link>
                 </td>
@@ -161,6 +167,15 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
                 <td className="px-3 py-2.5 text-end tabular-nums text-text-secondary">{fmt(row.pct_to_bb_upper)}</td>
                 <td className="px-3 py-2.5 text-end tabular-nums text-text-secondary">{fmt(row.pct_to_bb_lower)}</td>
                 <td className="px-3 py-2.5"><SignalBadge row={row} /></td>
+                <td className="px-3 py-2.5">
+                  <div className="flex flex-wrap gap-1">
+                    {row.matched_timeframes?.map((timeframe) => (
+                      <span key={`${row.ticker}-${timeframe}`} className="inline-flex rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+                        {timeframe}
+                      </span>
+                    ))}
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
