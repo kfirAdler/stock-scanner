@@ -155,9 +155,15 @@ const LEGACY_NUMERIC_FIELDS: Record<
   down_sequence_break_bars_ago_lte: { field: "down_sequence_break_bars_ago", operator: "lte" },
 };
 
-function cleanNumber(value: unknown): number | undefined {
-  if (typeof value !== "number" || Number.isNaN(value)) return undefined;
-  return value;
+function cleanNumberish(value: unknown): number | undefined {
+  if (typeof value === "number") {
+    return Number.isNaN(value) ? undefined : value;
+  }
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number(value);
+    return Number.isNaN(parsed) ? undefined : parsed;
+  }
+  return undefined;
 }
 
 export function createRule(
@@ -188,12 +194,18 @@ export function normalizePayload(input: Partial<ScreenerPayload> | null | undefi
           const definition = RULE_DEFINITIONS.find((item) => item.field === rule.field);
           const timeframe: ScreenerTimeframe =
             rule.timeframe === "1W" || rule.timeframe === "1M" ? rule.timeframe : "1D";
+          const normalizedValue =
+            definition?.input === "number"
+              ? cleanNumberish(rule.value)
+              : definition?.input === "select"
+                ? (typeof rule.value === "string" ? rule.value : undefined)
+                : undefined;
           return {
             id: rule.id || createRule(rule.field, rule.timeframe).id,
             timeframe,
             field: rule.field,
             operator: definition?.operators.includes(rule.operator) ? rule.operator : (definition?.operators[0] as ScreenerRule["operator"]),
-            value: rule.value,
+            value: normalizedValue,
           };
         })
     : [];
@@ -203,8 +215,8 @@ export function normalizePayload(input: Partial<ScreenerPayload> | null | undefi
       input?.listing_market === "US" || input?.listing_market === "TA"
         ? input.listing_market
         : undefined,
-    market_cap_gte: cleanNumber(input?.market_cap_gte),
-    market_cap_lte: cleanNumber(input?.market_cap_lte),
+    market_cap_gte: cleanNumberish(input?.market_cap_gte),
+    market_cap_lte: cleanNumberish(input?.market_cap_lte),
     rules,
   };
 }
