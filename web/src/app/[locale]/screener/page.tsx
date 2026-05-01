@@ -33,6 +33,7 @@ export default function ScreenerPage() {
   const [favoriteSaving, setFavoriteSaving] = useState(false);
   const [favoriteStatus, setFavoriteStatus] = useState<string | null>(null);
   const [saveScanLoading, setSaveScanLoading] = useState(false);
+  const [filterPanelResetKey, setFilterPanelResetKey] = useState(0);
   const [results, setResults] = useState<ScreenerResultRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
@@ -265,6 +266,7 @@ export default function ScreenerPage() {
       return;
     }
 
+    setFilterPanelResetKey((current) => current + 1);
     setFilters(favoriteFilters);
     filtersRef.current = favoriteFilters;
     setFavoriteStatus(t("favorite.loaded"));
@@ -307,6 +309,7 @@ export default function ScreenerPage() {
       {!gate && (
         <>
           <FilterPanel
+            key={filterPanelResetKey}
             filters={filters}
             onChange={handleFiltersChange}
             onApply={handleApply}

@@ -147,19 +147,13 @@ export function FilterPanel({
 }: FilterPanelProps) {
   const t = useTranslations("screener");
   const definitions = useMemo(() => ruleDefinitionsByField(), []);
-  const [activeTimeframe, setActiveTimeframe] = useState<ScreenerTimeframe>("1D");
-  const [activeCategory, setActiveCategory] = useState<CategoryTab>("sequence");
-  const activeFilterCount = countActiveFilters(filters);
-  const fallbackTabState = firstActiveTabState(filters, definitions);
-  const currentTabHasRules = filters.rules.some(
-    (rule) =>
-      rule.timeframe === activeTimeframe &&
-      definitions[rule.field]?.category === activeCategory
+  const [activeTimeframe, setActiveTimeframe] = useState<ScreenerTimeframe>(
+    () => firstActiveTabState(filters, definitions)?.timeframe ?? "1D"
   );
-  const visibleTimeframe =
-    currentTabHasRules || !fallbackTabState ? activeTimeframe : fallbackTabState.timeframe;
-  const visibleCategory =
-    currentTabHasRules || !fallbackTabState ? activeCategory : fallbackTabState.category;
+  const [activeCategory, setActiveCategory] = useState<CategoryTab>(
+    () => firstActiveTabState(filters, definitions)?.category ?? "sequence"
+  );
+  const activeFilterCount = countActiveFilters(filters);
 
   function clearAll() {
     onChange({ version: 1, rules: [] });
@@ -249,7 +243,7 @@ export function FilterPanel({
   }
 
   const currentDefinitions = RULE_DEFINITIONS.filter(
-    (definition) => definition.category === visibleCategory
+    (definition) => definition.category === activeCategory
   );
 
   const activeRulePills = filters.rules.map((rule) => {
@@ -377,11 +371,11 @@ export function FilterPanel({
                 key={timeframe}
                 type="button"
                 role="tab"
-                aria-selected={visibleTimeframe === timeframe}
+                aria-selected={activeTimeframe === timeframe}
                 onClick={() => setActiveTimeframe(timeframe)}
                 className={clsx(
                   "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold transition-colors",
-                  visibleTimeframe === timeframe
+                  activeTimeframe === timeframe
                     ? "border-primary bg-primary text-white"
                     : "border-border bg-surface-alt text-text-secondary hover:text-text"
                 )}
@@ -390,7 +384,7 @@ export function FilterPanel({
                 {count > 0 ? (
                   <span className={clsx(
                     "inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-bold",
-                    visibleTimeframe === timeframe
+                    activeTimeframe === timeframe
                       ? "bg-white/20 text-white"
                       : "bg-primary/10 text-primary"
                   )}>
@@ -409,7 +403,7 @@ export function FilterPanel({
           {CATEGORY_TABS.map((category) => {
             const count = filters.rules.filter(
               (rule) =>
-                rule.timeframe === visibleTimeframe &&
+                rule.timeframe === activeTimeframe &&
                 definitions[rule.field].category === category
             ).length;
             return (
@@ -417,11 +411,11 @@ export function FilterPanel({
                 key={category}
                 type="button"
                 role="tab"
-                aria-selected={visibleCategory === category}
+                aria-selected={activeCategory === category}
                 onClick={() => setActiveCategory(category)}
                 className={clsx(
                   "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold uppercase tracking-wide transition-colors",
-                  visibleCategory === category
+                  activeCategory === category
                     ? "border-text bg-text text-white"
                     : "border-border bg-surface-alt text-text-muted hover:text-text"
                 )}
@@ -430,7 +424,7 @@ export function FilterPanel({
                 {count > 0 ? (
                   <span className={clsx(
                     "inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px]",
-                    visibleCategory === category
+                    activeCategory === category
                       ? "bg-white/20 text-white"
                       : "bg-primary/10 text-primary"
                   )}>
@@ -447,8 +441,8 @@ export function FilterPanel({
         <div>
           <h3 className="text-sm font-bold text-text">
             {t("blockTitle", {
-              timeframe: t(`timeframes.${visibleTimeframe}`),
-              category: t(`categories.${visibleCategory}`),
+              timeframe: t(`timeframes.${activeTimeframe}`),
+              category: t(`categories.${activeCategory}`),
             })}
           </h3>
           <p className="mt-1 text-xs text-text-muted">{t("blockSubtitle")}</p>
@@ -461,14 +455,14 @@ export function FilterPanel({
               const active = !!getRule(activeTimeframe, definition.field);
               return (
                 <ChipButton
-                  key={`${visibleTimeframe}-${definition.field}`}
+                  key={`${activeTimeframe}-${definition.field}`}
                   active={active}
                   label={t(definition.labelKey)}
                   tooltip={
                     definition.descriptionKey ? t(definition.descriptionKey) : undefined
                   }
                   onClick={() =>
-                    toggleBooleanRule(visibleTimeframe, definition.field)
+                    toggleBooleanRule(activeTimeframe, definition.field)
                   }
                 />
               );
@@ -479,10 +473,10 @@ export function FilterPanel({
           {currentDefinitions
             .filter((definition) => definition.input === "number")
             .map((definition) => {
-              const rule = getRule(visibleTimeframe, definition.field);
+              const rule = getRule(activeTimeframe, definition.field);
               const operator = definition.operators[0] as ScreenerRule["operator"];
               return (
-                <div key={`${visibleTimeframe}-${definition.field}`} className="rounded-xl border border-border bg-surface-alt p-4">
+                <div key={`${activeTimeframe}-${definition.field}`} className="rounded-xl border border-border bg-surface-alt p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-sm font-bold text-text">{t(definition.labelKey)}</p>
@@ -502,7 +496,7 @@ export function FilterPanel({
                       value={typeof rule?.value === "number" ? rule.value : ""}
                       onChange={(e) =>
                         setNumericRule(
-                          visibleTimeframe,
+                          activeTimeframe,
                           definition.field,
                           operator,
                           e.target.value
@@ -518,9 +512,9 @@ export function FilterPanel({
           {currentDefinitions
             .filter((definition) => definition.input === "select")
             .map((definition) => {
-              const rule = getRule(visibleTimeframe, definition.field);
+              const rule = getRule(activeTimeframe, definition.field);
               return (
-                <div key={`${visibleTimeframe}-${definition.field}`} className="rounded-xl border border-border bg-surface-alt p-4 md:col-span-2">
+                <div key={`${activeTimeframe}-${definition.field}`} className="rounded-xl border border-border bg-surface-alt p-4 md:col-span-2">
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-sm font-bold text-text">{t(definition.labelKey)}</p>
@@ -530,12 +524,12 @@ export function FilterPanel({
                   <div className="mt-3 flex flex-wrap gap-2">
                     {definition.valueOptions?.map((option) => (
                       <ChipButton
-                        key={`${visibleTimeframe}-${definition.field}-${option.value}`}
+                        key={`${activeTimeframe}-${definition.field}-${option.value}`}
                         active={rule?.value === option.value}
                         label={t(option.labelKey)}
                         onClick={() =>
                           setSelectRule(
-                            visibleTimeframe,
+                            activeTimeframe,
                             definition.field,
                             rule?.value === option.value ? "" : option.value
                           )
