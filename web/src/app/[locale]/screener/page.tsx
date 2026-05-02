@@ -6,6 +6,7 @@ import { Link } from "@/i18n/navigation";
 import { FilterPanel } from "@/components/screener/FilterPanel";
 import { ResultsTable } from "@/components/screener/ResultsTable";
 import { PremiumGate } from "@/components/billing/PremiumGate";
+import { Button } from "@/components/ui/Button";
 import type { ScreenerPayload, ScreenerResultRow } from "@/lib/screener-types";
 import {
   DEFAULT_SCREENER_PAYLOAD,
@@ -40,6 +41,7 @@ export default function ScreenerPage() {
   const [gate, setGate] = useState<Gate>(null);
   const [loggedIn, setLoggedIn] = useState(false);
   const [multiFilterGateOpen, setMultiFilterGateOpen] = useState(false);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
   const fetchResults = useCallback(async (nextFilters: ScreenerPayload = filtersRef.current) => {
@@ -284,6 +286,7 @@ export default function ScreenerPage() {
     setFilters(favoriteFilters);
     filtersRef.current = favoriteFilters;
     setFavoriteStatus(t("favorite.loaded"));
+    setMobileFiltersOpen(false);
     await fetchResults(favoriteFilters);
   }
 
@@ -293,6 +296,7 @@ export default function ScreenerPage() {
       return;
     }
 
+    setMobileFiltersOpen(false);
     await fetchResults();
   }
 
@@ -371,7 +375,7 @@ export default function ScreenerPage() {
 
         {!gate && (
           <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)] 2xl:grid-cols-[390px_minmax(0,1fr)]">
-            <div className="xl:sticky xl:top-20 xl:self-start">
+            <div className="hidden xl:sticky xl:top-20 xl:block xl:self-start">
               <FilterPanel
                 key={filterPanelResetKey}
                 filters={filters}
@@ -401,6 +405,15 @@ export default function ScreenerPage() {
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2 text-[11px] font-bold uppercase tracking-wide">
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setMobileFiltersOpen(true)}
+                      className="justify-center xl:hidden"
+                    >
+                      {t("mobile.openFilters", { count: activeFilterCount })}
+                    </Button>
                     <span className="rounded-full border border-border bg-surface px-3 py-1.5 text-text-secondary">
                       {t("terminalHeader.appliedRules", { count: appliedFilters.rules.length })}
                     </span>
@@ -430,6 +443,47 @@ export default function ScreenerPage() {
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {mobileFiltersOpen && !gate && (
+          <div className="fixed inset-0 z-50 xl:hidden">
+            <button
+              type="button"
+              className="absolute inset-0 bg-text/50 backdrop-blur-sm"
+              aria-label={t("mobile.closeFilters")}
+              onClick={() => setMobileFiltersOpen(false)}
+            />
+            <div className="absolute inset-x-0 bottom-0 top-12 overflow-y-auto rounded-t-[28px] border border-border-strong/70 bg-surface px-4 pb-6 pt-4 shadow-[0_-18px_50px_rgba(15,23,42,0.18)]">
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
+                    {t("mobile.filtersTitle")}
+                  </p>
+                  <p className="mt-1 text-sm text-text-secondary">
+                    {t("mobile.filtersBody")}
+                  </p>
+                </div>
+                <Button type="button" variant="ghost" size="sm" onClick={() => setMobileFiltersOpen(false)}>
+                  {t("mobile.closeFilters")}
+                </Button>
+              </div>
+              <FilterPanel
+                key={`mobile-${filterPanelResetKey}`}
+                filters={filters}
+                onChange={handleFiltersChange}
+                onApply={handleApply}
+                loading={loading}
+                onSaveScan={handleSaveScan}
+                saveScanLoading={saveScanLoading}
+                onSaveFavorite={handleSaveFavorite}
+                onLoadFavorite={handleLoadFavorite}
+                favoriteSaving={favoriteSaving}
+                favoriteLoading={favoriteLoading}
+                favoriteAvailable={hasFavorite}
+                favoriteStatus={favoriteStatus}
+              />
             </div>
           </div>
         )}

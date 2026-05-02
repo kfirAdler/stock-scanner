@@ -175,7 +175,77 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="grid gap-3 p-3 lg:hidden">
+        {sorted.map((row) => (
+          <article key={row.ticker} className="rounded-xl border border-border bg-surface p-4 shadow-sm">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <Link
+                  href={`/ticker/${row.ticker}${tickerQuery}`}
+                  className="text-base font-bold text-primary hover:underline decoration-primary/30 underline-offset-2"
+                >
+                  {row.ticker}
+                </Link>
+                <p className="mt-1 text-[11px] text-text-muted">{row.last_trade_date}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
+                  {t("table.close")}
+                </p>
+                <p className="mt-1 text-lg font-bold text-text">{fmt(row.close)}</p>
+              </div>
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              <SignalBadge row={row} />
+              {row.matched_timeframes?.map((timeframe) => (
+                <span
+                  key={`${row.ticker}-${timeframe}`}
+                  className="inline-flex rounded-full border border-primary/15 bg-primary/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-primary"
+                >
+                  {timeframe}
+                </span>
+              ))}
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+              <div className="rounded-lg border border-border bg-surface-alt/70 p-3">
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
+                  {t("table.atrPct")}
+                </p>
+                <p className="mt-1 font-bold text-text">{fmt(row.atr_percent)}</p>
+              </div>
+              <div className="rounded-lg border border-border bg-surface-alt/70 p-3">
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
+                  {t("table.bbLower")}
+                </p>
+                <p className="mt-1 font-bold text-text">{fmt(row.pct_to_bb_lower)}</p>
+              </div>
+            </div>
+
+            <div className="mt-4 grid grid-cols-4 gap-2">
+              <div className="rounded-lg border border-border bg-surface-alt/70 p-2 text-center">
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-text-muted">20</p>
+                <div className="mt-1"><SmaPill above={row.is_above_sma20} below={row.is_below_sma20} /></div>
+              </div>
+              <div className="rounded-lg border border-border bg-surface-alt/70 p-2 text-center">
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-text-muted">50</p>
+                <div className="mt-1"><SmaPill above={row.is_above_sma50} below={row.is_below_sma50} /></div>
+              </div>
+              <div className="rounded-lg border border-border bg-surface-alt/70 p-2 text-center">
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-text-muted">150</p>
+                <div className="mt-1"><SmaPill above={row.is_above_sma150} below={row.is_below_sma150} /></div>
+              </div>
+              <div className="rounded-lg border border-border bg-surface-alt/70 p-2 text-center">
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-text-muted">200</p>
+                <div className="mt-1"><SmaPill above={row.is_above_sma200} below={row.is_below_sma200} /></div>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <div className="hidden overflow-x-auto lg:block">
         <table className="min-w-full text-sm">
           <thead className="sticky top-0 z-10 bg-surface-alt">
             <tr className="border-b border-border text-start">

@@ -244,6 +244,12 @@
         "multi": "שבועי + חודשי"
       }
     },
+    "mobile": {
+      "openFilters": "מסננים ({count})",
+      "closeFilters": "סגור",
+      "filtersTitle": "מסנני מובייל",
+      "filtersBody": "כוון את הסריקה כאן ואז סגור את הפאנל כדי לעבור לכרטיסי התוצאות."
+    },
     "guestLimit": {
       "close": "סגור את חלון ההתחברות"
     },

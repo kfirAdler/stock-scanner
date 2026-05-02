@@ -244,6 +244,12 @@
         "multi": "Weekly + monthly"
       }
     },
+    "mobile": {
+      "openFilters": "Filters ({count})",
+      "closeFilters": "Close",
+      "filtersTitle": "Mobile Filters",
+      "filtersBody": "Tune the scan here, then close this panel to review the result cards."
+    },
     "guestLimit": {
       "close": "Close sign-in prompt"
     },
