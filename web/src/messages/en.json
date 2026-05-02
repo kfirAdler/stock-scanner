@@ -228,6 +228,22 @@
       "saveFailed": "Could not save favorite filter.",
       "signInRequired": "Sign in to save a favorite filter."
     },
+    "terminalHeader": {
+      "eyebrow": "Terminal Workspace",
+      "universeCount": "{count} rows in current view",
+      "ruleCount": "{count} active filters",
+      "resultHint": "Use the left terminal to stack daily, weekly, and monthly conditions, then scan the table like a trading workstation.",
+      "appliedRules": "{count} timeframe rules live",
+      "multiBlocks": "{count} higher-timeframe rules",
+      "emptyTitle": "Build the screen, then run it.",
+      "emptyBody": "Choose a universe, stack some daily/weekly/monthly conditions, and the result grid will populate here.",
+      "cards": {
+        "rows": "Rows",
+        "rules": "Rules",
+        "strong": "Strong signals",
+        "multi": "Weekly + monthly"
+      }
+    },
     "guestLimit": {
       "close": "Close sign-in prompt"
     },

@@ -2,6 +2,7 @@
 
 import logging
 from datetime import date, datetime
+from functools import lru_cache
 
 import pandas as pd
 from supabase import Client, create_client
@@ -12,7 +13,10 @@ from ..models.snapshot import IndicatorSnapshot
 logger = logging.getLogger(__name__)
 
 
+@lru_cache(maxsize=1)
 def _get_client() -> Client:
+    # Reuse a single Supabase/httpx client per process to avoid exhausting file
+    # descriptors during long backfill/recompute runs.
     return create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
 

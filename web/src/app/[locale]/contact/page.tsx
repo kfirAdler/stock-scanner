@@ -26,7 +26,7 @@ export default async function ContactPage({
         {email ? (
           <a
             href={`mailto:${email}`}
-            className="mt-3 inline-flex rounded-full border border-primary/20 bg-primary-soft px-4 py-2 text-sm font-bold text-primary hover:bg-primary hover:text-white"
+            className="mt-3 inline-flex rounded-full border border-primary/20 bg-primary-soft px-4 py-2 text-sm font-bold text-primary hover:bg-primary hover:text-on-primary"
           >
             {email}
           </a>

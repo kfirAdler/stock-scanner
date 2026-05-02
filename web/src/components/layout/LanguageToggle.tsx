@@ -31,7 +31,7 @@ export function LanguageToggle() {
         className={clsx(
           "rounded-full px-2.5 py-1 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50 sm:px-3",
           locale === "en"
-            ? "bg-primary text-white"
+            ? "bg-primary text-on-primary"
             : "text-text-secondary hover:bg-surface-alt hover:text-text"
         )}
         aria-pressed={locale === "en"}
@@ -45,7 +45,7 @@ export function LanguageToggle() {
         className={clsx(
           "rounded-full px-2.5 py-1 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50 sm:px-3",
           locale === "he"
-            ? "bg-primary text-white"
+            ? "bg-primary text-on-primary"
             : "text-text-secondary hover:bg-surface-alt hover:text-text"
         )}
         aria-pressed={locale === "he"}

@@ -171,6 +171,20 @@ export default function ScreenerPage() {
 
   const activeFilterCount = useMemo(() => countActiveFilters(filters), [filters]);
   const hasFavorite = !!favoriteFilters && countActiveFilters(favoriteFilters) > 0;
+  const resultSummary = useMemo(() => {
+    const strongSignals = results.filter(
+      (row) => row.strong_buy_signal || row.strong_sell_signal
+    ).length;
+    const higherTimeframeRules = filters.rules.filter(
+      (rule) => rule.timeframe === "1W" || rule.timeframe === "1M"
+    ).length;
+    return {
+      rows: results.length,
+      rules: activeFilterCount,
+      strongSignals,
+      higherTimeframeRules,
+    };
+  }, [activeFilterCount, filters.rules, results]);
   const formattedLastUpdated = useMemo(() => {
     if (!lastUpdated) return null;
     try {
@@ -283,18 +297,67 @@ export default function ScreenerPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-text">{t("title")}</h1>
-        <p className="text-sm text-text-muted max-w-2xl">{t("premiumSubtitle")}</p>
-        {formattedLastUpdated && (
-          <p className="text-xs font-medium text-text-muted">
-            {t("updatedAt", { date: formattedLastUpdated })}
-          </p>
-        )}
-      </div>
+    <div className="mx-auto max-w-[1600px] px-4 py-6">
+      <div className="space-y-6">
+        <section className="rounded-[28px] border border-border-strong/70 bg-surface-raised shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+          <div className="grid gap-6 px-5 py-5 xl:grid-cols-[minmax(0,1fr)_420px] xl:px-6">
+            <div className="space-y-3">
+              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-primary">
+                {t("terminalHeader.eyebrow")}
+              </p>
+              <div className="space-y-2">
+                <h1 className="text-2xl font-bold tracking-tight text-text sm:text-3xl">
+                  {t("title")}
+                </h1>
+                <p className="max-w-3xl text-sm leading-relaxed text-text-secondary">
+                  {t("premiumSubtitle")}
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium text-text-muted">
+                {formattedLastUpdated ? (
+                  <span className="rounded-full border border-border bg-surface px-3 py-1.5">
+                    {t("updatedAt", { date: formattedLastUpdated })}
+                  </span>
+                ) : null}
+                <span className="rounded-full border border-border bg-surface px-3 py-1.5">
+                  {t("terminalHeader.universeCount", { count: resultSummary.rows })}
+                </span>
+                <span className="rounded-full border border-border bg-surface px-3 py-1.5">
+                  {t("terminalHeader.ruleCount", { count: resultSummary.rules })}
+                </span>
+              </div>
+            </div>
 
-      <div className="rounded-2xl border border-warning/30 bg-warning-soft/40 px-5 py-4 text-sm text-text-secondary">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-2">
+              <div className="rounded-2xl border border-border bg-surface px-4 py-3">
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
+                  {t("terminalHeader.cards.rows")}
+                </p>
+                <p className="mt-2 text-2xl font-bold text-text">{resultSummary.rows}</p>
+              </div>
+              <div className="rounded-2xl border border-border bg-surface px-4 py-3">
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
+                  {t("terminalHeader.cards.rules")}
+                </p>
+                <p className="mt-2 text-2xl font-bold text-primary">{resultSummary.rules}</p>
+              </div>
+              <div className="rounded-2xl border border-border bg-surface px-4 py-3">
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
+                  {t("terminalHeader.cards.strong")}
+                </p>
+                <p className="mt-2 text-2xl font-bold text-success">{resultSummary.strongSignals}</p>
+              </div>
+              <div className="rounded-2xl border border-border bg-surface px-4 py-3">
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
+                  {t("terminalHeader.cards.multi")}
+                </p>
+                <p className="mt-2 text-2xl font-bold text-text">{resultSummary.higherTimeframeRules}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div className="rounded-2xl border border-warning/30 bg-warning-soft/40 px-5 py-4 text-sm text-text-secondary">
         <p className="font-bold text-text">{t("legalNotice.title")}</p>
         <p className="mt-1 leading-relaxed">
           {t("legalNotice.body")}{" "}
@@ -302,54 +365,93 @@ export default function ScreenerPage() {
             {t("legalNotice.link")}
           </Link>
         </p>
-      </div>
-
-      {gate && <PremiumGate kind={gate === "login" ? "login" : "subscribe"} />}
-
-      {!gate && (
-        <>
-          <FilterPanel
-            key={filterPanelResetKey}
-            filters={filters}
-            onChange={handleFiltersChange}
-            onApply={handleApply}
-            loading={loading}
-            onSaveScan={handleSaveScan}
-            saveScanLoading={saveScanLoading}
-            onSaveFavorite={handleSaveFavorite}
-            onLoadFavorite={handleLoadFavorite}
-            favoriteSaving={favoriteSaving}
-            favoriteLoading={favoriteLoading}
-            favoriteAvailable={hasFavorite}
-            favoriteStatus={favoriteStatus}
-          />
-          {hasSearched && (
-            <ResultsTable
-              rows={results}
-              loading={loading}
-              screenerFilters={appliedFilters}
-            />
-          )}
-        </>
-      )}
-
-      {multiFilterGateOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-text/45 px-4 backdrop-blur-sm">
-          <div className="relative w-full max-w-2xl">
-            <button
-              type="button"
-              onClick={() => setMultiFilterGateOpen(false)}
-              className="absolute end-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full bg-surface-raised/90 text-text-secondary shadow-sm ring-1 ring-border transition-colors hover:text-text"
-              aria-label={t("guestLimit.close")}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
-                <path fillRule="evenodd" d="M4.22 4.22a.75.75 0 011.06 0L10 8.94l4.72-4.72a.75.75 0 111.06 1.06L11.06 10l4.72 4.72a.75.75 0 11-1.06 1.06L10 11.06l-4.72 4.72a.75.75 0 11-1.06-1.06L8.94 10 4.22 5.28a.75.75 0 010-1.06z" clipRule="evenodd" />
-              </svg>
-            </button>
-            <PremiumGate kind="multiFilterLogin" />
-          </div>
         </div>
-      )}
+
+        {gate && <PremiumGate kind={gate === "login" ? "login" : "subscribe"} />}
+
+        {!gate && (
+          <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)] 2xl:grid-cols-[390px_minmax(0,1fr)]">
+            <div className="xl:sticky xl:top-20 xl:self-start">
+              <FilterPanel
+                key={filterPanelResetKey}
+                filters={filters}
+                onChange={handleFiltersChange}
+                onApply={handleApply}
+                loading={loading}
+                onSaveScan={handleSaveScan}
+                saveScanLoading={saveScanLoading}
+                onSaveFavorite={handleSaveFavorite}
+                onLoadFavorite={handleLoadFavorite}
+                favoriteSaving={favoriteSaving}
+                favoriteLoading={favoriteLoading}
+                favoriteAvailable={hasFavorite}
+                favoriteStatus={favoriteStatus}
+              />
+            </div>
+
+            <div className="space-y-4">
+              <div className="rounded-2xl border border-border bg-surface-alt/60 px-4 py-3">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
+                      {t("results")}
+                    </p>
+                    <p className="mt-1 text-sm text-text-secondary">
+                      {t("terminalHeader.resultHint")}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2 text-[11px] font-bold uppercase tracking-wide">
+                    <span className="rounded-full border border-border bg-surface px-3 py-1.5 text-text-secondary">
+                      {t("terminalHeader.appliedRules", { count: appliedFilters.rules.length })}
+                    </span>
+                    <span className="rounded-full border border-primary/20 bg-primary/5 px-3 py-1.5 text-primary">
+                      {t("terminalHeader.multiBlocks", { count: resultSummary.higherTimeframeRules })}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {hasSearched ? (
+                <ResultsTable
+                  rows={results}
+                  loading={loading}
+                  screenerFilters={appliedFilters}
+                />
+              ) : (
+                <div className="flex min-h-[520px] items-center justify-center rounded-2xl border border-dashed border-border-strong bg-surface-raised px-6 text-center">
+                  <div className="max-w-lg space-y-3">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
+                      {t("results")}
+                    </p>
+                    <h2 className="text-2xl font-bold text-text">{t("terminalHeader.emptyTitle")}</h2>
+                    <p className="text-sm leading-relaxed text-text-secondary">
+                      {t("terminalHeader.emptyBody")}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {multiFilterGateOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-text/45 px-4 backdrop-blur-sm">
+            <div className="relative w-full max-w-2xl">
+              <button
+                type="button"
+                onClick={() => setMultiFilterGateOpen(false)}
+                className="absolute end-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full bg-surface-raised/90 text-text-secondary shadow-sm ring-1 ring-border transition-colors hover:text-text"
+                aria-label={t("guestLimit.close")}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
+                  <path fillRule="evenodd" d="M4.22 4.22a.75.75 0 011.06 0L10 8.94l4.72-4.72a.75.75 0 111.06 1.06L11.06 10l4.72 4.72a.75.75 0 11-1.06 1.06L10 11.06l-4.72 4.72a.75.75 0 11-1.06-1.06L8.94 10 4.22 5.28a.75.75 0 010-1.06z" clipRule="evenodd" />
+                </svg>
+              </button>
+              <PremiumGate kind="multiFilterLogin" />
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
