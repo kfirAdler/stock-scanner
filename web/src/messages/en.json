@@ -424,6 +424,46 @@
       "signals": "Signals",
       "timeframes": "Matched TFs"
     },
+    "workspace": {
+      "resultBody": "Review daily rows with companion weekly and monthly context, then expand any row to see exactly why it matched.",
+      "showWhyMatched": "Why matched",
+      "hideWhyMatched": "Hide details",
+      "columns": {
+        "title": "Columns",
+        "close": "Close",
+        "sma20": "SMA 20",
+        "sma50": "SMA 50",
+        "sma150": "SMA 150",
+        "sma200": "SMA 200",
+        "atrPct": "ATR %",
+        "bbUpper": "BB upper",
+        "bbLower": "BB lower",
+        "signal": "Signal",
+        "matrix": "D/W/M matrix",
+        "whyMatched": "Why matched"
+      },
+      "density": {
+        "comfortable": "Comfortable",
+        "compact": "Compact"
+      },
+      "cards": {
+        "bullish": "Bullish",
+        "bearish": "Bearish",
+        "strong": "Strong"
+      },
+      "matrix": {
+        "missing": "No data",
+        "strongBullish": "Strong bull",
+        "bullish": "Bullish",
+        "strongBearish": "Strong bear",
+        "bearish": "Bearish",
+        "upSequence": "Up {count}",
+        "downSequence": "Down {count}",
+        "above50": "Above 50",
+        "below50": "Below 50",
+        "neutral": "Neutral"
+      }
+    },
     "symbols": "{count} symbols found"
   },
   "ticker": {

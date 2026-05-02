@@ -303,7 +303,7 @@ export default function ScreenerPage() {
   return (
     <div className="mx-auto max-w-[1600px] px-4 py-6">
       <div className="space-y-6">
-        <section className="rounded-[28px] border border-border-strong/70 bg-surface-raised shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+        <section className="rounded-[28px] border border-border-strong/70 bg-surface-raised shadow-[0_24px_70px_rgba(15,23,42,0.08)] dark:shadow-[0_28px_80px_rgba(2,6,23,0.55)]">
           <div className="grid gap-6 px-5 py-5 xl:grid-cols-[minmax(0,1fr)_420px] xl:px-6">
             <div className="space-y-3">
               <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-primary">
@@ -417,7 +417,7 @@ export default function ScreenerPage() {
                     <span className="rounded-full border border-border bg-surface px-3 py-1.5 text-text-secondary">
                       {t("terminalHeader.appliedRules", { count: appliedFilters.rules.length })}
                     </span>
-                    <span className="rounded-full border border-primary/20 bg-primary/5 px-3 py-1.5 text-primary">
+                    <span className="rounded-full border border-primary/25 bg-primary-soft/70 px-3 py-1.5 text-primary">
                       {t("terminalHeader.multiBlocks", { count: resultSummary.higherTimeframeRules })}
                     </span>
                   </div>
@@ -455,7 +455,7 @@ export default function ScreenerPage() {
               aria-label={t("mobile.closeFilters")}
               onClick={() => setMobileFiltersOpen(false)}
             />
-            <div className="absolute inset-x-0 bottom-0 top-12 overflow-y-auto rounded-t-[28px] border border-border-strong/70 bg-surface px-4 pb-6 pt-4 shadow-[0_-18px_50px_rgba(15,23,42,0.18)]">
+            <div className="absolute inset-x-0 bottom-0 top-12 overflow-y-auto rounded-t-[28px] border border-border-strong/70 bg-surface-raised px-4 pb-6 pt-4 shadow-[0_-18px_50px_rgba(15,23,42,0.18)] dark:shadow-[0_-20px_60px_rgba(2,6,23,0.6)]">
               <div className="mb-4 flex items-center justify-between">
                 <div>
                   <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">

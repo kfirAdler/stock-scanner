@@ -424,6 +424,46 @@
       "signals": "איתותים",
       "timeframes": "טווחי זמן"
     },
+    "workspace": {
+      "resultBody": "בחן שורות יומיות עם הקשר שבועי וחודשי, ואז פתח כל שורה כדי לראות בדיוק למה היא התאימה.",
+      "showWhyMatched": "למה זה התאים",
+      "hideWhyMatched": "הסתר פירוט",
+      "columns": {
+        "title": "עמודות",
+        "close": "סגירה",
+        "sma20": "SMA 20",
+        "sma50": "SMA 50",
+        "sma150": "SMA 150",
+        "sma200": "SMA 200",
+        "atrPct": "ATR %",
+        "bbUpper": "רצועה עליונה",
+        "bbLower": "רצועה תחתונה",
+        "signal": "איתות",
+        "matrix": "מטריצת י/ש/ח",
+        "whyMatched": "למה התאים"
+      },
+      "density": {
+        "comfortable": "רגיל",
+        "compact": "צפוף"
+      },
+      "cards": {
+        "bullish": "שורי",
+        "bearish": "דובי",
+        "strong": "חזק"
+      },
+      "matrix": {
+        "missing": "ללא נתון",
+        "strongBullish": "שורי חזק",
+        "bullish": "שורי",
+        "strongBearish": "דובי חזק",
+        "bearish": "דובי",
+        "upSequence": "עלייה {count}",
+        "downSequence": "ירידה {count}",
+        "above50": "מעל 50",
+        "below50": "מתחת 50",
+        "neutral": "נייטרלי"
+      }
+    },
     "symbols": "{count} מניות נמצאו"
   },
   "ticker": {

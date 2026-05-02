@@ -268,7 +268,7 @@ export function FilterPanel({
   }));
 
   return (
-    <aside className="rounded-2xl border border-border-strong/70 bg-surface-raised shadow-[0_14px_40px_rgba(15,23,42,0.08)]">
+    <aside className="rounded-2xl border border-border-strong/70 bg-surface-raised shadow-[0_14px_40px_rgba(15,23,42,0.08)] dark:shadow-[0_20px_50px_rgba(2,6,23,0.5)]">
       <div className="border-b border-border bg-surface-alt/80 px-4 py-4">
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -280,7 +280,7 @@ export function FilterPanel({
               {t("layoutHint")}
             </p>
           </div>
-          <div className="rounded-lg border border-primary/20 bg-primary/5 px-2.5 py-1 text-xs font-bold text-primary">
+          <div className="rounded-lg border border-primary/25 bg-primary-soft/70 px-2.5 py-1 text-xs font-bold text-primary">
             {activeFilterCount}
           </div>
         </div>
@@ -432,7 +432,7 @@ export function FilterPanel({
                     "inline-flex min-w-7 items-center justify-center rounded-full px-2 py-1 text-[10px] font-bold",
                     activeTimeframe === timeframe
                       ? "bg-black/10 text-on-primary"
-                      : "bg-primary/10 text-primary"
+                      : "bg-primary-soft/70 text-primary"
                   )}
                 >
                   {count}
@@ -478,7 +478,7 @@ export function FilterPanel({
                       "inline-flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 text-[10px]",
                       activeCategory === category
                         ? "bg-black/10 text-on-text"
-                        : "bg-primary/10 text-primary"
+                        : "bg-primary-soft/70 text-primary"
                     )}
                   >
                     {count}

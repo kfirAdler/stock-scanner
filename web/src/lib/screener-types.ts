@@ -155,4 +155,5 @@ export interface SnapshotRow {
 
 export interface ScreenerResultRow extends SnapshotRow {
   matched_timeframes?: ScreenerTimeframe[];
+  timeframe_snapshots?: Partial<Record<ScreenerTimeframe, SnapshotRow | null>>;
 }
