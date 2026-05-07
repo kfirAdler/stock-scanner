@@ -2,12 +2,26 @@
 
 import { useTheme } from "next-themes";
 import { useTranslations } from "next-intl";
+import { useSyncExternalStore } from "react";
+
+function useIsClient() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+}
 
 export function ThemeToggle() {
-  const { resolvedTheme, setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const t = useTranslations("settings");
+  const isClient = useIsClient();
 
-  const isDark = resolvedTheme === "dark";
+  if (!isClient) {
+    return <div className="h-8 w-8" aria-hidden="true" />;
+  }
+
+  const isDark = theme === "dark";
   const nextTheme = isDark ? "light" : "dark";
   const label = isDark ? t("themeLight") : t("themeDark");
 
