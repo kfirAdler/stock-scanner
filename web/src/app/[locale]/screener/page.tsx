@@ -42,6 +42,7 @@ export default function ScreenerPage() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [multiFilterGateOpen, setMultiFilterGateOpen] = useState(false);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [desktopFiltersOpen, setDesktopFiltersOpen] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
   const fetchResults = useCallback(async (nextFilters: ScreenerPayload = filtersRef.current) => {
@@ -172,7 +173,13 @@ export default function ScreenerPage() {
   }, []);
 
   const activeFilterCount = useMemo(() => countActiveFilters(filters), [filters]);
+  const appliedFilterCount = useMemo(() => countActiveFilters(appliedFilters), [appliedFilters]);
   const hasFavorite = !!favoriteFilters && countActiveFilters(favoriteFilters) > 0;
+  const hasPendingChanges = useMemo(() => {
+    const normalizedDraft = coerceStoredScreen(filters) ?? DEFAULT_SCREENER_PAYLOAD;
+    const normalizedApplied = coerceStoredScreen(appliedFilters) ?? DEFAULT_SCREENER_PAYLOAD;
+    return JSON.stringify(normalizedDraft) !== JSON.stringify(normalizedApplied);
+  }, [appliedFilters, filters]);
   const resultSummary = useMemo(() => {
     const strongSignals = results.filter(
       (row) => row.strong_buy_signal || row.strong_sell_signal
@@ -374,8 +381,13 @@ export default function ScreenerPage() {
         {gate && <PremiumGate kind={gate === "login" ? "login" : "subscribe"} />}
 
         {!gate && (
-          <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)] 2xl:grid-cols-[390px_minmax(0,1fr)]">
-            <div className="hidden xl:sticky xl:top-20 xl:block xl:self-start">
+          <div
+            className={desktopFiltersOpen
+              ? "grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)] 2xl:grid-cols-[390px_minmax(0,1fr)]"
+              : "grid gap-6"
+            }
+          >
+            <div className={desktopFiltersOpen ? "hidden xl:sticky xl:top-20 xl:block xl:self-start" : "hidden"}>
               <FilterPanel
                 key={filterPanelResetKey}
                 filters={filters}
@@ -390,10 +402,66 @@ export default function ScreenerPage() {
                 favoriteLoading={favoriteLoading}
                 favoriteAvailable={hasFavorite}
                 favoriteStatus={favoriteStatus}
+                onClose={() => setDesktopFiltersOpen(false)}
+                hasPendingChanges={hasPendingChanges}
+                appliedFilterCount={appliedFilterCount}
               />
             </div>
 
             <div className="space-y-4">
+              <div className="sticky top-20 z-20 rounded-2xl border border-border bg-surface-raised/92 px-4 py-3 shadow-sm backdrop-blur">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                  <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-wide">
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setDesktopFiltersOpen((current) => !current)}
+                      className="hidden xl:inline-flex"
+                    >
+                      {desktopFiltersOpen ? t("workspace.hideFilters") : t("workspace.openFilters")}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setMobileFiltersOpen(true)}
+                      className="justify-center xl:hidden"
+                    >
+                      {t("mobile.openFilters", { count: activeFilterCount })}
+                    </Button>
+                    <span className="rounded-full border border-border bg-surface px-3 py-1.5 text-text-secondary">
+                      {t("workspace.draftCount", { count: activeFilterCount })}
+                    </span>
+                    <span className="rounded-full border border-border bg-surface px-3 py-1.5 text-text-secondary">
+                      {t("workspace.appliedCount", { count: appliedFilterCount })}
+                    </span>
+                    <span
+                      className={hasPendingChanges
+                        ? "rounded-full border border-warning/40 bg-warning-soft/60 px-3 py-1.5 text-warning"
+                        : "rounded-full border border-success/30 bg-success-soft/70 px-3 py-1.5 text-success"
+                      }
+                    >
+                      {hasPendingChanges ? t("workspace.draftPending") : t("workspace.draftSynced")}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleFiltersChange(appliedFilters)}
+                      disabled={!hasPendingChanges}
+                    >
+                      {t("workspace.resetDraft")}
+                    </Button>
+                    <Button type="button" size="sm" onClick={handleApply} loading={loading}>
+                      {t("workspace.quickApply")}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
               <div className="rounded-2xl border border-border bg-surface-alt/60 px-4 py-3">
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                   <div>
@@ -405,15 +473,6 @@ export default function ScreenerPage() {
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2 text-[11px] font-bold uppercase tracking-wide">
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => setMobileFiltersOpen(true)}
-                      className="justify-center xl:hidden"
-                    >
-                      {t("mobile.openFilters", { count: activeFilterCount })}
-                    </Button>
                     <span className="rounded-full border border-border bg-surface px-3 py-1.5 text-text-secondary">
                       {t("terminalHeader.appliedRules", { count: appliedFilters.rules.length })}
                     </span>
@@ -483,6 +542,9 @@ export default function ScreenerPage() {
                 favoriteLoading={favoriteLoading}
                 favoriteAvailable={hasFavorite}
                 favoriteStatus={favoriteStatus}
+                onClose={() => setMobileFiltersOpen(false)}
+                hasPendingChanges={hasPendingChanges}
+                appliedFilterCount={appliedFilterCount}
               />
             </div>
           </div>
