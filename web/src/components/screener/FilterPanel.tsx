@@ -23,13 +23,7 @@ import type {
 type CategoryTab = "sequence" | "signals" | "trend" | "location" | "volatility";
 
 const TIMEFRAME_TABS: ScreenerTimeframe[] = ["1D", "1W", "1M"];
-const CATEGORY_TABS: CategoryTab[] = [
-  "sequence",
-  "signals",
-  "trend",
-  "location",
-  "volatility",
-];
+const CATEGORY_TABS: CategoryTab[] = ["sequence", "signals", "trend", "location", "volatility"];
 
 function firstActiveTabState(
   filters: ScreenerPayload,
@@ -122,7 +116,7 @@ function ActiveFilterPill({
     <button
       type="button"
       onClick={onRemove}
-      className="inline-flex items-center gap-2 rounded-full border border-border-strong bg-surface px-3 py-1.5 text-[11px] font-bold text-text-secondary transition-colors hover:border-primary/30 hover:text-text"
+      className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-[11px] font-bold text-text-secondary transition-colors hover:border-primary/30 hover:text-text"
     >
       <span>{label}</span>
       <span aria-hidden="true">×</span>
@@ -270,8 +264,8 @@ export function FilterPanel({
   }));
 
   return (
-    <aside className="rounded-2xl border border-border-strong/70 bg-surface-raised shadow-[0_14px_40px_rgba(15,23,42,0.08)] dark:shadow-[0_22px_55px_rgba(0,0,0,0.65)]">
-      <div className="border-b border-border bg-surface-alt/90 px-4 py-4">
+    <aside className="overflow-hidden rounded-2xl border border-border-strong/70 bg-surface-raised shadow-[0_14px_40px_rgba(15,23,42,0.08)] dark:border-[#183241] dark:bg-[linear-gradient(180deg,rgba(5,11,17,0.98),rgba(7,14,22,0.98))] dark:shadow-[0_22px_55px_rgba(0,0,0,0.72)]">
+      <div className="border-b border-border px-4 py-4 dark:border-[#183241]">
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
@@ -283,200 +277,170 @@ export function FilterPanel({
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <div className="rounded-lg border border-primary/25 bg-primary-soft px-2.5 py-1 text-xs font-bold text-primary">
+            <span className="rounded-lg border border-primary/25 bg-primary-soft px-2.5 py-1 text-xs font-bold text-primary">
               {activeFilterCount}
-            </div>
+            </span>
             {onClose ? (
               <button
                 type="button"
                 onClick={onClose}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-text-secondary transition-colors hover:border-border-strong hover:text-text"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-text-secondary transition-colors hover:border-border-strong hover:text-text dark:border-[#1a2d39] dark:bg-[#071019]"
                 aria-label={t("workspace.closeFilters")}
               >
-                <span aria-hidden="true">×</span>
+                ×
               </button>
             ) : null}
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          <div className="rounded-xl border border-border bg-surface px-3 py-2">
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
-              {t("workspace.draftLabel")}
-            </p>
-            <p className="mt-1 text-sm font-bold text-text">
-              {hasPendingChanges ? t("workspace.draftPending") : t("workspace.draftSynced")}
-            </p>
-          </div>
-          <div className="rounded-xl border border-border bg-surface px-3 py-2">
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
-              {t("workspace.appliedLabel")}
-            </p>
-            <p className="mt-1 text-sm font-bold text-text">
-              {t("workspace.appliedCount", { count: appliedFilterCount })}
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-4 grid gap-2">
-          <Button size="sm" onClick={onApply} loading={loading} className="w-full justify-center">
-            {t("workspace.quickApply")}
-          </Button>
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={onSaveScan}
-              loading={saveScanLoading}
-              disabled={activeFilterCount === 0}
-              className="w-full justify-center"
-            >
-              {t("saveScan")}
-            </Button>
-            <Button
-              type="button"
-              variant={favoriteAvailable ? "secondary" : "ghost"}
-              size="sm"
-              onClick={onSaveFavorite}
-              loading={favoriteSaving}
-              disabled={activeFilterCount === 0}
-              className={clsx(
-                "w-full justify-center",
-                favoriteAvailable &&
-                  "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:border-amber-900/60 dark:bg-amber-950/50 dark:text-amber-300"
-              )}
-            >
-              <StarIcon filled={!!favoriteAvailable} />
-              <span>{favoriteAvailable ? t("favorite.update") : t("favorite.save")}</span>
-            </Button>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={onLoadFavorite}
-              loading={favoriteLoading}
-              disabled={!favoriteAvailable}
-              className="w-full justify-center"
-            >
-              {t("favorite.load")}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearAll}
-              disabled={activeFilterCount === 0}
-              className="w-full justify-center"
-            >
-              {t("clearFilters")}
-            </Button>
-          </div>
+        <div className="mt-4 flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-wide">
+          <span className="rounded-full border border-border bg-surface px-3 py-1.5 text-text-secondary dark:border-[#1a2d39] dark:bg-[#071019]">
+            {hasPendingChanges ? t("workspace.draftPending") : t("workspace.draftSynced")}
+          </span>
+          <span className="rounded-full border border-border bg-surface px-3 py-1.5 text-text-secondary dark:border-[#1a2d39] dark:bg-[#071019]">
+            {t("workspace.appliedCount", { count: appliedFilterCount })}
+          </span>
+          {favoriteStatus ? (
+            <span className="rounded-full border border-border bg-surface px-3 py-1.5 text-text-secondary dark:border-[#1a2d39] dark:bg-[#071019]">
+              {favoriteStatus}
+            </span>
+          ) : null}
         </div>
       </div>
 
-      {favoriteStatus ? (
-        <div className="border-b border-border bg-surface px-4 py-2 text-xs font-medium text-text-secondary" aria-live="polite">
-          {favoriteStatus}
-        </div>
-      ) : null}
-
-      <div className="space-y-4 p-4">
-        <section className="rounded-xl border border-border bg-surface p-3">
-          <div className="mb-3 flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
+      <div className="border-b border-border px-4 py-3 dark:border-[#183241]">
+        <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_132px_132px]">
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="sm:col-span-1">
+              <label
+                htmlFor="screener-listing-market"
+                className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted"
+              >
                 {t("workspace.sections.universe")}
-              </p>
-              <p className="mt-1 text-xs text-text-secondary">{t("workspace.sections.universeHint")}</p>
+              </label>
+              <select
+                id="screener-listing-market"
+                className="mt-2 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-text shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30 dark:border-[#1a2d39] dark:bg-[#09131c]"
+                value={filters.listing_market ?? ""}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  onChange({
+                    ...filters,
+                    listing_market: value === "" ? undefined : (value as "US" | "TA"),
+                  });
+                }}
+              >
+                <option value="">{t("listingMarket.all")}</option>
+                <option value="US">{t("listingMarket.us")}</option>
+                <option value="TA">{t("listingMarket.ta")}</option>
+              </select>
             </div>
-            <Tooltip content={t("workspace.help.marketMeta")} />
-          </div>
-
-          <div className="grid gap-3">
-            <select
-              id="screener-listing-market"
-              className="w-full rounded-lg border border-border bg-surface-alt px-3 py-2 text-sm font-medium text-text shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-              value={filters.listing_market ?? ""}
-              onChange={(e) => {
-                const value = e.target.value;
+            <Input
+              label={t("marketCap.gte")}
+              type="number"
+              step="1"
+              value={filters.market_cap_gte ?? ""}
+              onChange={(e) =>
                 onChange({
                   ...filters,
-                  listing_market: value === "" ? undefined : (value as "US" | "TA"),
-                });
-              }}
-            >
-              <option value="">{t("listingMarket.all")}</option>
-              <option value="US">{t("listingMarket.us")}</option>
-              <option value="TA">{t("listingMarket.ta")}</option>
-            </select>
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-              <Input
-                label={t("marketCap.gte")}
-                type="number"
-                step="1"
-                value={filters.market_cap_gte ?? ""}
-                onChange={(e) =>
-                  onChange({
-                    ...filters,
-                    market_cap_gte: e.target.value === "" ? undefined : Number(e.target.value),
-                  })
-                }
-                placeholder="1000000000"
-              />
-              <Input
-                label={t("marketCap.lte")}
-                type="number"
-                step="1"
-                value={filters.market_cap_lte ?? ""}
-                onChange={(e) =>
-                  onChange({
-                    ...filters,
-                    market_cap_lte: e.target.value === "" ? undefined : Number(e.target.value),
-                  })
-                }
-                placeholder="50000000000"
-              />
-            </div>
-          </div>
-        </section>
-
-        <section className="rounded-xl border border-border bg-surface p-3">
-          <div className="mb-3 flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
-                {t("workspace.sections.builder")}
-              </p>
-              <p className="mt-1 text-xs text-text-secondary">{t("workspace.sections.builderHint")}</p>
-            </div>
-            <Tooltip content={t("workspace.help.timeframeMeta")} />
+                  market_cap_gte: e.target.value === "" ? undefined : Number(e.target.value),
+                })
+              }
+              placeholder="1000000000"
+            />
+            <Input
+              label={t("marketCap.lte")}
+              type="number"
+              step="1"
+              value={filters.market_cap_lte ?? ""}
+              onChange={(e) =>
+                onChange({
+                  ...filters,
+                  market_cap_lte: e.target.value === "" ? undefined : Number(e.target.value),
+                })
+              }
+              placeholder="50000000000"
+            />
           </div>
 
-          <div className="grid grid-cols-[52px_minmax(0,1fr)] gap-3">
-            <div className="flex flex-col gap-2">
-              {timeframeSummary.map(({ timeframe, count }) => (
-                <button
-                  key={timeframe}
-                  type="button"
-                  onClick={() => setActiveTimeframe(timeframe)}
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={onSaveScan}
+            loading={saveScanLoading}
+            disabled={activeFilterCount === 0}
+            className="h-full justify-center"
+          >
+            {t("saveScan")}
+          </Button>
+          <Button
+            type="button"
+            variant={favoriteAvailable ? "secondary" : "ghost"}
+            size="sm"
+            onClick={onSaveFavorite}
+            loading={favoriteSaving}
+            disabled={activeFilterCount === 0}
+            className={clsx(
+              "h-full justify-center",
+              favoriteAvailable &&
+                "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:border-amber-900/60 dark:bg-amber-950/50 dark:text-amber-300"
+            )}
+          >
+            <StarIcon filled={!!favoriteAvailable} />
+            <span>{favoriteAvailable ? t("favorite.update") : t("favorite.save")}</span>
+          </Button>
+        </div>
+      </div>
+
+      <div className="px-4 py-4">
+        <div className="grid grid-cols-[48px_minmax(0,1fr)] gap-4">
+          <div className="flex flex-col gap-2">
+            {timeframeSummary.map(({ timeframe, count }) => (
+              <button
+                key={timeframe}
+                type="button"
+                onClick={() => setActiveTimeframe(timeframe)}
+                className={clsx(
+                  "flex min-h-12 flex-col items-center justify-center rounded-xl border text-xs font-black uppercase tracking-[0.18em] transition-colors",
+                  activeTimeframe === timeframe
+                    ? "border-primary bg-primary text-on-primary shadow-[0_0_20px_rgba(45,212,191,0.22)]"
+                    : "border-border bg-surface text-text-secondary hover:border-border-strong hover:text-text dark:border-[#1a2d39] dark:bg-[#081018]"
+                )}
+              >
+                <span>{timeframe.slice(1)}</span>
+                <span
                   className={clsx(
-                    "flex min-h-11 flex-col items-center justify-center rounded-xl border text-xs font-black uppercase tracking-[0.18em] transition-colors",
-                    activeTimeframe === timeframe
-                      ? "border-primary bg-primary text-on-primary shadow-[0_0_20px_rgba(45,212,191,0.22)]"
-                      : "border-border bg-surface-alt text-text-secondary hover:border-border-strong hover:text-text"
+                    "mt-1 text-[10px]",
+                    activeTimeframe === timeframe ? "text-on-primary/80" : "text-text-muted"
                   )}
                 >
-                  <span>{timeframe.slice(1)}</span>
-                  <span className={clsx("mt-1 text-[10px]", activeTimeframe === timeframe ? "text-on-primary/80" : "text-text-muted")}>
-                    {count}
-                  </span>
-                </button>
-              ))}
+                  {count}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          <div className="min-w-0">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
+                  {t("workspace.currentTimeframe", {
+                    timeframe: t(`timeframes.${activeTimeframe}`),
+                  })}
+                </p>
+                <p className="mt-1 text-xs text-text-secondary">
+                  {t("workspace.timeframeHint")}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Tooltip content={t("workspace.help.timeframeMeta")} />
+                <Tooltip content={t("workspace.help.maMeta")} />
+              </div>
             </div>
 
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-2">
+            <div className="mt-4 border-b border-border">
+              <div className="flex flex-wrap gap-2">
                 {CATEGORY_TABS.map((category) => {
                   const count = filters.rules.filter(
                     (rule) =>
@@ -489,10 +453,10 @@ export function FilterPanel({
                       type="button"
                       onClick={() => setActiveCategory(category)}
                       className={clsx(
-                        "flex items-center justify-between rounded-lg border px-3 py-2 text-[11px] font-bold uppercase tracking-wide transition-colors",
+                        "inline-flex items-center gap-2 rounded-t-lg border border-b-0 px-3 py-2 text-[11px] font-bold uppercase tracking-wide transition-colors",
                         activeCategory === category
-                          ? "border-text bg-text text-on-text"
-                          : "border-border bg-surface-alt text-text-secondary hover:border-border-strong hover:text-text"
+                          ? "border-border-strong bg-surface text-text dark:border-[#1e3b4b] dark:bg-[#081018]"
+                          : "border-transparent bg-transparent text-text-muted hover:text-text"
                       )}
                     >
                       <span>{t(`categories.${category}`)}</span>
@@ -500,8 +464,8 @@ export function FilterPanel({
                         className={clsx(
                           "inline-flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 text-[10px]",
                           activeCategory === category
-                            ? "bg-black/10 text-on-text"
-                            : "bg-primary-soft text-primary"
+                            ? "bg-primary-soft text-primary"
+                            : "bg-surface-alt text-text-muted dark:bg-[#0d1821]"
                         )}
                       >
                         {count}
@@ -510,132 +474,121 @@ export function FilterPanel({
                   );
                 })}
               </div>
+            </div>
 
-              <div className="rounded-xl border border-border bg-surface-alt/60 p-3">
-                <div className="mb-3 flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-bold text-text">{t("workspace.currentTimeframe", { timeframe: t(`timeframes.${activeTimeframe}`) })}</p>
-                    <p className="mt-1 text-[11px] text-text-muted">{t("workspace.timeframeHint")}</p>
-                  </div>
-                  <Tooltip content={t("workspace.help.maMeta")} />
-                </div>
+            <div className="space-y-4 pt-4">
+              <div className="flex flex-wrap gap-2">
+                {currentDefinitions
+                  .filter((definition) => definition.input === "none")
+                  .map((definition) => {
+                    const active = !!getRule(activeTimeframe, definition.field);
+                    return (
+                      <FilterChip
+                        key={`${activeTimeframe}-${definition.field}`}
+                        active={active}
+                        label={t(definition.labelKey)}
+                        tooltip={
+                          definition.descriptionKey ? t(definition.descriptionKey) : undefined
+                        }
+                        onClick={() => toggleBooleanRule(activeTimeframe, definition.field)}
+                      />
+                    );
+                  })}
+              </div>
 
-                <div className="space-y-4">
-                  <div className="flex flex-wrap gap-2">
-                    {currentDefinitions
-                      .filter((definition) => definition.input === "none")
-                      .map((definition) => {
-                        const active = !!getRule(activeTimeframe, definition.field);
-                        return (
-                          <FilterChip
-                            key={`${activeTimeframe}-${definition.field}`}
-                            active={active}
-                            label={t(definition.labelKey)}
-                            tooltip={definition.descriptionKey ? t(definition.descriptionKey) : undefined}
-                            onClick={() => toggleBooleanRule(activeTimeframe, definition.field)}
+              {currentDefinitions.some((definition) => definition.input === "number") ? (
+                <div className="grid gap-3">
+                  {currentDefinitions
+                    .filter((definition) => definition.input === "number")
+                    .map((definition) => {
+                      const rule = getRule(activeTimeframe, definition.field);
+                      const operator = definition.operators[0] as ScreenerRule["operator"];
+                      return (
+                        <div
+                          key={`${activeTimeframe}-${definition.field}`}
+                          className="grid gap-2 border-t border-border pt-3 sm:grid-cols-[minmax(0,1fr)_180px]"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="text-sm font-bold text-text">{t(definition.labelKey)}</p>
+                              <p className="mt-1 text-[11px] text-text-muted">
+                                {t(`operators.${operator}`)}
+                              </p>
+                            </div>
+                            {definition.descriptionKey ? (
+                              <Tooltip content={t(definition.descriptionKey)} />
+                            ) : null}
+                          </div>
+                          <Input
+                            label={t("valueLabel")}
+                            type="number"
+                            step="0.1"
+                            value={typeof rule?.value === "number" ? rule.value : ""}
+                            onChange={(e) =>
+                              setNumericRule(
+                                activeTimeframe,
+                                definition.field,
+                                operator,
+                                e.target.value
+                              )
+                            }
+                            placeholder={t("valuePlaceholder")}
                           />
-                        );
-                      })}
-                  </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              ) : null}
 
-                  {currentDefinitions.some((definition) => definition.input === "number") ? (
-                    <div className="grid gap-2">
-                      {currentDefinitions
-                        .filter((definition) => definition.input === "number")
-                        .map((definition) => {
-                          const rule = getRule(activeTimeframe, definition.field);
-                          const operator = definition.operators[0] as ScreenerRule["operator"];
-                          return (
-                            <div
-                              key={`${activeTimeframe}-${definition.field}`}
-                              className="rounded-lg border border-border bg-surface px-3 py-3"
-                            >
-                              <div className="mb-2 flex items-start justify-between gap-3">
-                                <div>
-                                  <p className="text-sm font-bold text-text">{t(definition.labelKey)}</p>
-                                  <p className="text-[11px] text-text-muted">{t(`operators.${operator}`)}</p>
-                                </div>
-                                {definition.descriptionKey ? (
-                                  <Tooltip content={t(definition.descriptionKey)} />
-                                ) : null}
-                              </div>
-                              <Input
-                                label={t("valueLabel")}
-                                type="number"
-                                step="0.1"
-                                value={typeof rule?.value === "number" ? rule.value : ""}
-                                onChange={(e) =>
-                                  setNumericRule(
+              {currentDefinitions.some((definition) => definition.input === "select") ? (
+                <div className="border-t border-border pt-3">
+                  {currentDefinitions
+                    .filter((definition) => definition.input === "select")
+                    .map((definition) => {
+                      const rule = getRule(activeTimeframe, definition.field);
+                      return (
+                        <div key={`${activeTimeframe}-${definition.field}`}>
+                          <div className="mb-2 flex items-center justify-between gap-3">
+                            <p className="text-sm font-bold text-text">{t(definition.labelKey)}</p>
+                            {definition.descriptionKey ? (
+                              <Tooltip content={t(definition.descriptionKey)} />
+                            ) : null}
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {definition.valueOptions?.map((option) => (
+                              <FilterChip
+                                key={`${activeTimeframe}-${definition.field}-${option.value}`}
+                                active={rule?.value === option.value}
+                                label={t(option.labelKey)}
+                                onClick={() =>
+                                  setSelectRule(
                                     activeTimeframe,
                                     definition.field,
-                                    operator,
-                                    e.target.value
+                                    rule?.value === option.value ? "" : option.value
                                   )
                                 }
-                                placeholder={t("valuePlaceholder")}
                               />
-                            </div>
-                          );
-                        })}
-                    </div>
-                  ) : null}
-
-                  {currentDefinitions.some((definition) => definition.input === "select") ? (
-                    <div className="space-y-2 rounded-lg border border-border bg-surface px-3 py-3">
-                      {currentDefinitions
-                        .filter((definition) => definition.input === "select")
-                        .map((definition) => {
-                          const rule = getRule(activeTimeframe, definition.field);
-                          return (
-                            <div key={`${activeTimeframe}-${definition.field}`}>
-                              <p className="mb-2 text-sm font-bold text-text">{t(definition.labelKey)}</p>
-                              <div className="flex flex-wrap gap-2">
-                                {definition.valueOptions?.map((option) => (
-                                  <FilterChip
-                                    key={`${activeTimeframe}-${definition.field}-${option.value}`}
-                                    active={rule?.value === option.value}
-                                    label={t(option.labelKey)}
-                                    onClick={() =>
-                                      setSelectRule(
-                                        activeTimeframe,
-                                        definition.field,
-                                        rule?.value === option.value ? "" : option.value
-                                      )
-                                    }
-                                  />
-                                ))}
-                              </div>
-                            </div>
-                          );
-                        })}
-                    </div>
-                  ) : null}
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
                 </div>
-              </div>
+              ) : null}
             </div>
           </div>
-        </section>
+        </div>
+      </div>
 
-        <section className="rounded-xl border border-border bg-surface p-3">
-          <div className="mb-3 flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
-                {t("workspace.sections.active")}
-              </p>
-              <p className="mt-1 text-xs text-text-secondary">{t("workspace.sections.activeHint")}</p>
-            </div>
-            <span className="rounded-full border border-border bg-surface-alt px-2 py-0.5 text-[11px] font-bold text-text-secondary">
-              {activeFilterCount}
-            </span>
-          </div>
-
+      <div className="border-t border-border px-4 py-3 dark:border-[#183241]">
+        <div className="flex flex-wrap gap-2">
           {activeRulePills.length === 0 &&
           !filters.listing_market &&
           filters.market_cap_gte === undefined &&
           filters.market_cap_lte === undefined ? (
             <p className="text-sm text-text-muted">{t("activeFiltersEmpty")}</p>
           ) : (
-            <div className="flex flex-wrap gap-2">
+            <>
               {filters.listing_market ? (
                 <ActiveFilterPill
                   label={`${t("listingMarket.label")} · ${t(`listingMarket.${filters.listing_market.toLowerCase()}`)}`}
@@ -657,12 +610,12 @@ export function FilterPanel({
               {activeRulePills.map((pill) => (
                 <ActiveFilterPill key={pill.key} label={pill.label} onRemove={pill.remove} />
               ))}
-            </div>
+            </>
           )}
-        </section>
+        </div>
       </div>
 
-      <div className="sticky bottom-0 border-t border-border bg-surface-raised/95 px-4 py-3 backdrop-blur">
+      <div className="sticky bottom-0 border-t border-border bg-surface-raised/95 px-4 py-3 backdrop-blur dark:border-[#183241] dark:bg-[#071019f0]">
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
@@ -674,11 +627,16 @@ export function FilterPanel({
           </div>
           <div className="flex items-center gap-2">
             <Button
+              type="button"
               variant="ghost"
               size="sm"
-              onClick={clearAll}
-              disabled={activeFilterCount === 0}
+              onClick={onLoadFavorite}
+              loading={favoriteLoading}
+              disabled={!favoriteAvailable}
             >
+              {t("favorite.load")}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={clearAll} disabled={activeFilterCount === 0}>
               {t("clearFilters")}
             </Button>
             <Button size="sm" onClick={onApply} loading={loading}>

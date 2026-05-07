@@ -68,11 +68,6 @@ export function Header() {
   }, []);
 
   useEffect(() => {
-    setMenuOpen(false);
-    setMobileNavOpen(false);
-  }, [user]);
-
-  useEffect(() => {
     fetch("/api/me/entitlement")
       .then((r) => r.json())
       .then((d) => {
@@ -123,7 +118,7 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border-strong/40 bg-surface/85 backdrop-blur-xl shadow-sm">
+    <header className="sticky top-0 z-40 border-b border-border-strong/40 bg-surface/85 backdrop-blur-xl shadow-sm dark:border-[#18242f] dark:bg-[#04080fe6]">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6">
         <div className="flex items-center gap-3 sm:gap-8">
           <Link href="/" className="flex items-center gap-2 group" onClick={closeMenus}>

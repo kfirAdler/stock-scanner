@@ -45,13 +45,13 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale} dir={dir} className={`${assistant.variable} h-full`} suppressHydrationWarning>
-      <body className="min-h-full flex flex-col font-sans antialiased bg-surface text-text">
+      <body className="min-h-full flex flex-col font-sans antialiased bg-surface text-text dark:bg-[#02050a] dark:text-[#ecfdf5]">
         <Providers>
           <NextIntlClientProvider locale={locale} messages={messages}>
             <TermsAcceptanceGate />
             <Header />
             <main className="flex-1">{children}</main>
-            <footer className="border-t border-border-strong/40 bg-surface">
+            <footer className="border-t border-border-strong/40 bg-surface dark:border-[#18242f] dark:bg-[#050a11]">
               <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
                 <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                   <div className="max-w-2xl space-y-2">

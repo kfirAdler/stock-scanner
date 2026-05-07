@@ -250,8 +250,8 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
   }
 
   return (
-    <section className="rounded-2xl border border-border-strong/70 bg-surface-raised shadow-[0_14px_40px_rgba(15,23,42,0.08)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.65)]">
-      <div className="border-b border-border bg-surface-alt/80 px-4 py-4">
+    <section className="rounded-2xl border border-border-strong/70 bg-surface-raised shadow-[0_14px_40px_rgba(15,23,42,0.08)] dark:border-[#183241] dark:bg-[linear-gradient(180deg,rgba(6,12,18,0.98),rgba(7,14,22,0.98))] dark:shadow-[0_20px_50px_rgba(0,0,0,0.72)]">
+      <div className="border-b border-border bg-surface-alt/80 px-4 py-4 dark:border-[#183241] dark:bg-[#0a141d]">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div className="min-w-0 flex-1">
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
@@ -260,7 +260,7 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
             <h2 className="mt-1 text-lg font-bold text-text">{t("symbols", { count: rows.length })}</h2>
             <p className="mt-1 text-xs text-text-secondary">{t("workspace.resultBody")}</p>
 
-            <div className="mt-4 rounded-xl border border-border bg-surface-raised px-3 py-3">
+            <div className="mt-4 rounded-xl border border-border bg-surface-raised px-3 py-3 dark:border-[#1a2d39] dark:bg-[#071019]">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
@@ -268,7 +268,7 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
                   </p>
                   <p className="mt-1 text-xs text-text-secondary">{t("workspace.activeScanHint")}</p>
                 </div>
-                <div className="inline-flex items-center rounded-xl border border-border bg-surface p-1">
+                <div className="inline-flex items-center rounded-xl border border-border bg-surface p-1 dark:border-[#1a2d39] dark:bg-[#081018]">
                   <button
                     type="button"
                     onClick={() => setDensity("comfortable")}
@@ -294,7 +294,7 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
 
               <div className="mt-3 grid gap-3 lg:grid-cols-3">
                 {(["1D", "1W", "1M"] as ScreenerTimeframe[]).map((timeframe) => (
-                  <div key={timeframe} className="rounded-lg border border-border bg-surface px-3 py-3">
+                  <div key={timeframe} className="rounded-lg border border-border bg-surface px-3 py-3 dark:border-[#1a2d39] dark:bg-[#081018]">
                     <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
                       {t(`timeframes.${timeframe}`)}
                     </p>
@@ -314,19 +314,19 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
           </div>
 
           <div className="grid grid-cols-3 gap-2 xl:min-w-[300px]">
-            <div className="rounded-xl border border-border bg-surface-alt/70 px-3 py-2">
+            <div className="rounded-xl border border-border bg-surface-alt/70 px-3 py-2 dark:border-[#1a2d39] dark:bg-[#071019]">
               <p className="text-[10px] font-bold uppercase tracking-wide text-text-muted">
                 {t("workspace.cards.bullish")}
               </p>
               <p className="mt-1 text-lg font-bold text-success">{resultSummary.bullish}</p>
             </div>
-            <div className="rounded-xl border border-border bg-surface-alt/70 px-3 py-2">
+            <div className="rounded-xl border border-border bg-surface-alt/70 px-3 py-2 dark:border-[#1a2d39] dark:bg-[#071019]">
               <p className="text-[10px] font-bold uppercase tracking-wide text-text-muted">
                 {t("workspace.cards.bearish")}
               </p>
               <p className="mt-1 text-lg font-bold text-danger">{resultSummary.bearish}</p>
             </div>
-            <div className="rounded-xl border border-border bg-surface-alt/70 px-3 py-2">
+            <div className="rounded-xl border border-border bg-surface-alt/70 px-3 py-2 dark:border-[#1a2d39] dark:bg-[#071019]">
               <p className="text-[10px] font-bold uppercase tracking-wide text-text-muted">
                 {t("workspace.cards.strong")}
               </p>
@@ -340,7 +340,7 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
         {sorted.map((row) => {
           const expanded = !!expandedTickers[row.ticker];
           return (
-            <div key={row.ticker} className="bg-surface-raised">
+            <div key={row.ticker} className="bg-surface-raised dark:bg-[#071019]">
               <button
                 type="button"
                 onClick={() => toggleExpanded(row.ticker)}
@@ -356,15 +356,15 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
               </button>
 
               {expanded ? (
-                <div className="space-y-3 border-t border-border bg-surface-alt/60 px-4 py-4">
+                <div className="space-y-3 border-t border-border bg-surface-alt/60 px-4 py-4 dark:border-[#183241] dark:bg-[#0a141d]">
                   <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div className="rounded-lg border border-border bg-surface px-3 py-3">
+                    <div className="rounded-lg border border-border bg-surface px-3 py-3 dark:border-[#1a2d39] dark:bg-[#071019]">
                       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
                         {t("table.close")}
                       </p>
                       <p className="mt-1 font-bold text-text">{fmt(row.close)}</p>
                     </div>
-                    <div className="rounded-lg border border-border bg-surface px-3 py-3">
+                    <div className="rounded-lg border border-border bg-surface px-3 py-3 dark:border-[#1a2d39] dark:bg-[#071019]">
                       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
                         {t("table.atrPct")}
                       </p>
@@ -379,19 +379,19 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
                   </div>
 
                   <div className="grid grid-cols-4 gap-2">
-                    <div className="rounded-lg border border-border bg-surface px-3 py-2 text-center">
+                    <div className="rounded-lg border border-border bg-surface px-3 py-2 text-center dark:border-[#1a2d39] dark:bg-[#071019]">
                       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">20</p>
                       <div className="mt-1"><SmaPill above={row.is_above_sma20} below={row.is_below_sma20} /></div>
                     </div>
-                    <div className="rounded-lg border border-border bg-surface px-3 py-2 text-center">
+                    <div className="rounded-lg border border-border bg-surface px-3 py-2 text-center dark:border-[#1a2d39] dark:bg-[#071019]">
                       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">50</p>
                       <div className="mt-1"><SmaPill above={row.is_above_sma50} below={row.is_below_sma50} /></div>
                     </div>
-                    <div className="rounded-lg border border-border bg-surface px-3 py-2 text-center">
+                    <div className="rounded-lg border border-border bg-surface px-3 py-2 text-center dark:border-[#1a2d39] dark:bg-[#071019]">
                       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">150</p>
                       <div className="mt-1"><SmaPill above={row.is_above_sma150} below={row.is_below_sma150} /></div>
                     </div>
-                    <div className="rounded-lg border border-border bg-surface px-3 py-2 text-center">
+                    <div className="rounded-lg border border-border bg-surface px-3 py-2 text-center dark:border-[#1a2d39] dark:bg-[#071019]">
                       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">200</p>
                       <div className="mt-1"><SmaPill above={row.is_above_sma200} below={row.is_below_sma200} /></div>
                     </div>
@@ -412,7 +412,7 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
 
       <div className="hidden overflow-x-auto lg:block">
         <table className="min-w-full text-sm">
-          <thead className="sticky top-0 z-10 bg-surface-alt">
+          <thead className="sticky top-0 z-10 bg-surface-alt dark:bg-[#0a141d]">
             <tr className="border-b border-border text-start">
               <th scope="col" className="px-4 py-3 text-start text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
                 <button onClick={() => handleSort("ticker")} className="inline-flex items-center gap-1 transition-colors hover:text-text">

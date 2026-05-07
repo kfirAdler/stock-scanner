@@ -312,7 +312,7 @@ export default function ScreenerPage() {
   return (
     <div className="mx-auto max-w-[1600px] px-4 py-6">
       <div className="space-y-6">
-        <section className="rounded-[28px] border border-border-strong/70 bg-surface-raised shadow-[0_24px_70px_rgba(15,23,42,0.08)] dark:shadow-[0_28px_80px_rgba(2,6,23,0.55)]">
+        <section className="rounded-[28px] border border-border-strong/70 bg-surface-raised shadow-[0_24px_70px_rgba(15,23,42,0.08)] dark:border-[#183241] dark:bg-[linear-gradient(180deg,rgba(6,12,18,0.98),rgba(8,16,24,0.98))] dark:shadow-[0_28px_80px_rgba(0,0,0,0.72)]">
           <div className="grid gap-6 px-5 py-5 xl:grid-cols-[minmax(0,1fr)_420px] xl:px-6">
             <div className="space-y-3">
               <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-primary">
@@ -342,25 +342,25 @@ export default function ScreenerPage() {
             </div>
 
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-2">
-              <div className="rounded-2xl border border-border bg-surface px-4 py-3">
+              <div className="rounded-2xl border border-border bg-surface px-4 py-3 dark:border-[#163340] dark:bg-[#071019]">
                 <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
                   {t("terminalHeader.cards.rows")}
                 </p>
                 <p className="mt-2 text-2xl font-bold text-text">{resultSummary.rows}</p>
               </div>
-              <div className="rounded-2xl border border-border bg-surface px-4 py-3">
+              <div className="rounded-2xl border border-border bg-surface px-4 py-3 dark:border-[#163340] dark:bg-[#071019]">
                 <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
                   {t("terminalHeader.cards.rules")}
                 </p>
                 <p className="mt-2 text-2xl font-bold text-primary">{resultSummary.rules}</p>
               </div>
-              <div className="rounded-2xl border border-border bg-surface px-4 py-3">
+              <div className="rounded-2xl border border-border bg-surface px-4 py-3 dark:border-[#163340] dark:bg-[#071019]">
                 <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
                   {t("terminalHeader.cards.strong")}
                 </p>
                 <p className="mt-2 text-2xl font-bold text-success">{resultSummary.strongSignals}</p>
               </div>
-              <div className="rounded-2xl border border-border bg-surface px-4 py-3">
+              <div className="rounded-2xl border border-border bg-surface px-4 py-3 dark:border-[#163340] dark:bg-[#071019]">
                 <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
                   {t("terminalHeader.cards.multi")}
                 </p>
@@ -370,7 +370,7 @@ export default function ScreenerPage() {
           </div>
         </section>
 
-        <div className="rounded-2xl border border-warning/30 bg-warning-soft/40 px-5 py-4 text-sm text-text-secondary">
+        <div className="rounded-2xl border border-warning/30 bg-warning-soft/40 px-5 py-4 text-sm text-text-secondary dark:border-[#3a300d] dark:bg-[#151106] dark:text-[#d1c389]">
         <p className="font-bold text-text">{t("legalNotice.title")}</p>
         <p className="mt-1 leading-relaxed">
           {t("legalNotice.body")}{" "}
@@ -417,7 +417,7 @@ export default function ScreenerPage() {
             </div>
 
             <div className="space-y-4">
-              <div className="sticky top-20 z-20 rounded-2xl border border-border bg-surface-raised/92 px-4 py-3 shadow-sm backdrop-blur">
+              <div className="sticky top-20 z-20 rounded-2xl border border-border bg-surface-raised/92 px-4 py-3 shadow-sm backdrop-blur dark:border-[#183241] dark:bg-[#061019f0]">
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                   <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-wide">
                     <Button
@@ -478,7 +478,7 @@ export default function ScreenerPage() {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-border bg-surface-alt/60 px-4 py-3">
+              <div className="rounded-2xl border border-border bg-surface-alt/60 px-4 py-3 dark:border-[#183241] dark:bg-[#0a141d]">
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                   <div>
                     <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
@@ -506,7 +506,7 @@ export default function ScreenerPage() {
                   screenerFilters={appliedFilters}
                 />
               ) : (
-                <div className="flex min-h-[520px] items-center justify-center rounded-2xl border border-dashed border-border-strong bg-surface-raised px-6 text-center">
+                <div className="flex min-h-[520px] items-center justify-center rounded-2xl border border-dashed border-border-strong bg-surface-raised px-6 text-center dark:border-[#183241] dark:bg-[#061019]">
                   <div className="max-w-lg space-y-3">
                     <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
                       {t("results")}
@@ -530,7 +530,7 @@ export default function ScreenerPage() {
               aria-label={t("mobile.closeFilters")}
               onClick={() => setMobileFiltersOpen(false)}
             />
-            <div className="absolute inset-x-0 bottom-0 top-12 overflow-y-auto rounded-t-[28px] border border-border-strong/70 bg-surface-raised px-4 pb-6 pt-4 shadow-[0_-18px_50px_rgba(15,23,42,0.18)] dark:shadow-[0_-20px_60px_rgba(2,6,23,0.6)]">
+            <div className="absolute inset-x-0 bottom-0 top-12 overflow-y-auto rounded-t-[28px] border border-border-strong/70 bg-surface-raised px-4 pb-6 pt-4 shadow-[0_-18px_50px_rgba(15,23,42,0.18)] dark:border-[#183241] dark:bg-[#061019] dark:shadow-[0_-20px_60px_rgba(0,0,0,0.72)]">
               <div className="mb-4 flex items-center justify-between">
                 <div>
                   <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
