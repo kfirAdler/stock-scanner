@@ -309,7 +309,7 @@ export function FilterPanel({
       </div>
 
       <div className="border-b border-border px-4 py-3 dark:border-[#183241]">
-        <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_132px_132px]">
+        <div className="grid gap-3">
           <div className="grid gap-3 sm:grid-cols-3">
             <div className="sm:col-span-1">
               <label
@@ -359,37 +359,38 @@ export function FilterPanel({
                   market_cap_lte: e.target.value === "" ? undefined : Number(e.target.value),
                 })
               }
-              placeholder="50000000000"
-            />
+                placeholder="50000000000"
+              />
+            </div>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={onSaveScan}
+              loading={saveScanLoading}
+              disabled={activeFilterCount === 0}
+              className="justify-center"
+            >
+              {t("saveScan")}
+            </Button>
+            <Button
+              type="button"
+              variant={favoriteAvailable ? "secondary" : "ghost"}
+              size="sm"
+              onClick={onSaveFavorite}
+              loading={favoriteSaving}
+              disabled={activeFilterCount === 0}
+              className={clsx(
+                "justify-center",
+                favoriteAvailable &&
+                  "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:border-amber-900/60 dark:bg-amber-950/50 dark:text-amber-300"
+              )}
+            >
+              <StarIcon filled={!!favoriteAvailable} />
+              <span>{favoriteAvailable ? t("favorite.update") : t("favorite.save")}</span>
+            </Button>
           </div>
-
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={onSaveScan}
-            loading={saveScanLoading}
-            disabled={activeFilterCount === 0}
-            className="h-full justify-center"
-          >
-            {t("saveScan")}
-          </Button>
-          <Button
-            type="button"
-            variant={favoriteAvailable ? "secondary" : "ghost"}
-            size="sm"
-            onClick={onSaveFavorite}
-            loading={favoriteSaving}
-            disabled={activeFilterCount === 0}
-            className={clsx(
-              "h-full justify-center",
-              favoriteAvailable &&
-                "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:border-amber-900/60 dark:bg-amber-950/50 dark:text-amber-300"
-            )}
-          >
-            <StarIcon filled={!!favoriteAvailable} />
-            <span>{favoriteAvailable ? t("favorite.update") : t("favorite.save")}</span>
-          </Button>
         </div>
       </div>
 
