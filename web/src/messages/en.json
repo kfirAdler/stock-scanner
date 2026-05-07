@@ -425,7 +425,7 @@
       "timeframes": "Matched TFs"
     },
     "workspace": {
-      "resultBody": "Review daily rows with companion weekly and monthly context, then expand any row to see exactly why it matched.",
+      "resultBody": "Scan the symbol list first, then open any symbol to inspect the daily, weekly, and monthly context.",
       "showWhyMatched": "Why matched",
       "hideWhyMatched": "Hide details",
       "openFilters": "Open filters",
@@ -434,11 +434,20 @@
       "quickApply": "Apply",
       "resetDraft": "Reset draft",
       "draftLabel": "Filter draft",
+      "appliedLabel": "Applied scan",
       "draftCount": "Draft filters {count}",
       "appliedCount": "Applied {count}",
       "draftPending": "Draft changes ready",
       "draftSynced": "Results are in sync",
       "quickActions": "Quick actions",
+      "compactTitle": "Compact scanner",
+      "compactHint": "Choose a timeframe, then flip through categories without scrolling the whole page.",
+      "currentTimeframe": "{timeframe} filters",
+      "timeframeHint": "SMA 20 / 50 / 150 / 200 use the timeframe that is currently selected.",
+      "activeScan": "Active scan",
+      "activeScanHint": "These are the rules applied to every symbol in the current result list.",
+      "noRulesForTimeframe": "No active rules in this timeframe.",
+      "openTicker": "Open symbol page",
       "bottomHintDirty": "Apply when you're ready. Your result set is still showing the previous scan.",
       "bottomHintReady": "You are looking at the latest applied scan.",
       "sections": {
@@ -450,6 +459,36 @@
         "builderHint": "Pick a category, then toggle or fill the filters you want",
         "active": "Active filters",
         "activeHint": "Remove anything here with one tap"
+      },
+      "help": {
+        "open": "Open scanner guide",
+        "close": "Close scanner guide",
+        "eyebrow": "Scanner guide",
+        "title": "How to read this scanner",
+        "body": "This guide mirrors the screener layout so users can understand what each block means before they start scanning.",
+        "marketMeta": "Universe filters apply to the entire scan, not to just one timeframe.",
+        "timeframeMeta": "D, W, and M switch the entire rule builder between Daily, Weekly, and Monthly logic.",
+        "maMeta": "MA 20 / 50 / 150 / 200 always use the selected timeframe. They are fixed presets in this version.",
+        "meaningTitle": "What the labels mean",
+        "flowTitle": "Best way to work",
+        "meanings": {
+          "up5": "\"Up 5\" means the active bullish sequence has counted 5 bars on that timeframe.",
+          "up13": "\"Up 13\" means that same sequence has reached 13 bars on that timeframe.",
+          "ma": "MA 20 / 50 / 150 / 200 are calculated from the timeframe you are currently on: daily, weekly, or monthly.",
+          "customize": "Moving-average periods are not customizable yet. The scanner currently uses the built-in 20 / 50 / 150 / 200 set."
+        },
+        "flow": {
+          "one": "Pick D, W, or M first so you always know which timeframe you are editing.",
+          "two": "Choose a category like Sequence or Trend, then turn on only the chips you need.",
+          "three": "Apply the scan and review the symbol list before opening any one stock.",
+          "four": "Open a symbol to inspect details. The main scan definition is shared by every result."
+        },
+        "mock": {
+          "categories": "Categories",
+          "summary": "Summary",
+          "results": "Results",
+          "symbols": "Symbol list"
+        }
       },
       "columns": {
         "title": "Columns",
@@ -472,7 +511,11 @@
       "cards": {
         "bullish": "Bullish",
         "bearish": "Bearish",
-        "strong": "Strong"
+        "strong": "Strong",
+        "strongBullish": "Strong bullish",
+        "strongBearish": "Strong bearish",
+        "bullishBreak": "Bullish break",
+        "bearishBreak": "Bearish break"
       },
       "matrix": {
         "missing": "No data",

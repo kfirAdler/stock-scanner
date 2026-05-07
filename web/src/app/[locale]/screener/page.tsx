@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { FilterPanel } from "@/components/screener/FilterPanel";
 import { ResultsTable } from "@/components/screener/ResultsTable";
+import { ScreenerHelpModal } from "@/components/screener/ScreenerHelpModal";
 import { PremiumGate } from "@/components/billing/PremiumGate";
 import { Button } from "@/components/ui/Button";
 import type { ScreenerPayload, ScreenerResultRow } from "@/lib/screener-types";
@@ -43,6 +44,7 @@ export default function ScreenerPage() {
   const [multiFilterGateOpen, setMultiFilterGateOpen] = useState(false);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [desktopFiltersOpen, setDesktopFiltersOpen] = useState(true);
+  const [helpOpen, setHelpOpen] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
   const fetchResults = useCallback(async (nextFilters: ScreenerPayload = filtersRef.current) => {
@@ -452,6 +454,14 @@ export default function ScreenerPage() {
                     </span>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setHelpOpen(true)}
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface text-sm font-black text-text transition-colors hover:border-border-strong hover:text-primary"
+                      aria-label={t("workspace.help.open")}
+                    >
+                      ?
+                    </button>
                     <Button
                       type="button"
                       variant="ghost"
@@ -573,6 +583,8 @@ export default function ScreenerPage() {
             </div>
           </div>
         )}
+
+        <ScreenerHelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
       </div>
     </div>
   );

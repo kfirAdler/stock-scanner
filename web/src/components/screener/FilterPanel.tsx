@@ -21,7 +21,6 @@ import type {
 } from "@/lib/screener-types";
 
 type CategoryTab = "sequence" | "signals" | "trend" | "location" | "volatility";
-type SectionKey = "universe" | "timeframes" | "builder" | "active";
 
 const TIMEFRAME_TABS: ScreenerTimeframe[] = ["1D", "1W", "1M"];
 const CATEGORY_TABS: CategoryTab[] = [
@@ -82,46 +81,7 @@ function StarIcon({ filled }: { filled: boolean }) {
   );
 }
 
-function SectionToggle({
-  title,
-  hint,
-  open,
-  onToggle,
-  meta,
-}: {
-  title: string;
-  hint: string;
-  open: boolean;
-  onToggle: () => void;
-  meta?: string | number;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onToggle}
-      className="flex w-full items-center justify-between px-4 py-3 text-left"
-    >
-      <div>
-        <h3 className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
-          {title}
-        </h3>
-        <p className="mt-1 text-xs text-text-secondary">{hint}</p>
-      </div>
-      <div className="flex items-center gap-2">
-        {meta !== undefined ? (
-          <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-[11px] font-bold text-text-secondary">
-            {meta}
-          </span>
-        ) : null}
-        <span className="text-lg leading-none text-text-muted" aria-hidden="true">
-          {open ? "−" : "+"}
-        </span>
-      </div>
-    </button>
-  );
-}
-
-function TerminalChip({
+function FilterChip({
   active,
   label,
   onClick,
@@ -133,24 +93,20 @@ function TerminalChip({
   tooltip?: string;
 }) {
   return (
-    <div className="inline-flex items-center gap-2">
+    <div className="inline-flex items-center gap-1.5">
       <button
         type="button"
         onClick={onClick}
         className={clsx(
-          "inline-flex min-h-9 items-center rounded-md border px-3 py-2 text-xs font-bold uppercase tracking-wide transition-colors",
+          "inline-flex min-h-8 items-center rounded-md border px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-wide transition-colors",
           active
-            ? "border-primary bg-primary text-on-primary shadow-sm"
+            ? "border-primary bg-primary text-on-primary shadow-[0_0_18px_rgba(45,212,191,0.18)]"
             : "border-border bg-surface text-text-secondary hover:border-border-strong hover:text-text"
         )}
       >
         {label}
       </button>
-      {tooltip ? (
-        <span className={active ? "text-on-primary" : ""}>
-          <Tooltip content={tooltip} />
-        </span>
-      ) : null}
+      {tooltip ? <Tooltip content={tooltip} /> : null}
     </div>
   );
 }
@@ -199,20 +155,7 @@ export function FilterPanel({
   const [activeCategory, setActiveCategory] = useState<CategoryTab>(
     () => firstActiveTabState(filters, definitions)?.category ?? "sequence"
   );
-  const [openSections, setOpenSections] = useState<Record<SectionKey, boolean>>({
-    universe: true,
-    timeframes: true,
-    builder: true,
-    active: true,
-  });
   const activeFilterCount = countActiveFilters(filters);
-
-  function toggleSection(section: SectionKey) {
-    setOpenSections((current) => ({
-      ...current,
-      [section]: !current[section],
-    }));
-  }
 
   function clearAll() {
     onChange({ version: 1, rules: [] });
@@ -327,20 +270,20 @@ export function FilterPanel({
   }));
 
   return (
-    <aside className="rounded-2xl border border-border-strong/70 bg-surface-raised shadow-[0_14px_40px_rgba(15,23,42,0.08)] dark:shadow-[0_20px_50px_rgba(2,6,23,0.5)]">
-      <div className="border-b border-border bg-surface-alt/80 px-4 py-4">
+    <aside className="rounded-2xl border border-border-strong/70 bg-surface-raised shadow-[0_14px_40px_rgba(15,23,42,0.08)] dark:shadow-[0_22px_55px_rgba(0,0,0,0.65)]">
+      <div className="border-b border-border bg-surface-alt/90 px-4 py-4">
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
               {t("filters")}
             </p>
-            <h2 className="mt-1 text-lg font-bold text-text">{t("title")}</h2>
+            <h2 className="mt-1 text-lg font-bold text-text">{t("workspace.compactTitle")}</h2>
             <p className="mt-1 text-xs leading-relaxed text-text-secondary">
-              {t("layoutHint")}
+              {t("workspace.compactHint")}
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <div className="rounded-lg border border-primary/25 bg-primary-soft/70 px-2.5 py-1 text-xs font-bold text-primary">
+            <div className="rounded-lg border border-primary/25 bg-primary-soft px-2.5 py-1 text-xs font-bold text-primary">
               {activeFilterCount}
             </div>
             {onClose ? (
@@ -356,25 +299,28 @@ export function FilterPanel({
           </div>
         </div>
 
-        <div className="mt-4 rounded-xl border border-border bg-surface-raised px-3 py-3">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
-                {t("workspace.draftLabel")}
-              </p>
-              <p className="mt-1 text-sm font-bold text-text">
-                {hasPendingChanges ? t("workspace.draftPending") : t("workspace.draftSynced")}
-              </p>
-            </div>
-            <span className="rounded-full border border-border bg-surface px-2.5 py-1 text-[11px] font-bold text-text-secondary">
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <div className="rounded-xl border border-border bg-surface px-3 py-2">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
+              {t("workspace.draftLabel")}
+            </p>
+            <p className="mt-1 text-sm font-bold text-text">
+              {hasPendingChanges ? t("workspace.draftPending") : t("workspace.draftSynced")}
+            </p>
+          </div>
+          <div className="rounded-xl border border-border bg-surface px-3 py-2">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
+              {t("workspace.appliedLabel")}
+            </p>
+            <p className="mt-1 text-sm font-bold text-text">
               {t("workspace.appliedCount", { count: appliedFilterCount })}
-            </span>
+            </p>
           </div>
         </div>
 
         <div className="mt-4 grid gap-2">
           <Button size="sm" onClick={onApply} loading={loading} className="w-full justify-center">
-            {t("applyFilters")}
+            {t("workspace.quickApply")}
           </Button>
           <div className="grid grid-cols-2 gap-2">
             <Button
@@ -400,7 +346,6 @@ export function FilterPanel({
                 favoriteAvailable &&
                   "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:border-amber-900/60 dark:bg-amber-950/50 dark:text-amber-300"
               )}
-              aria-label={favoriteAvailable ? t("favorite.update") : t("favorite.save")}
             >
               <StarIcon filled={!!favoriteAvailable} />
               <span>{favoriteAvailable ? t("favorite.update") : t("favorite.save")}</span>
@@ -432,133 +377,105 @@ export function FilterPanel({
       </div>
 
       {favoriteStatus ? (
-        <div
-          className="border-b border-border bg-surface px-4 py-2 text-xs font-medium text-text-secondary"
-          aria-live="polite"
-        >
+        <div className="border-b border-border bg-surface px-4 py-2 text-xs font-medium text-text-secondary" aria-live="polite">
           {favoriteStatus}
         </div>
       ) : null}
 
-      <div className="space-y-5 p-4">
-        <section className="rounded-xl border border-border bg-surface-raised">
-          <SectionToggle
-            title={t("workspace.sections.universe")}
-            hint={t("workspace.sections.universeHint")}
-            open={openSections.universe}
-            onToggle={() => toggleSection("universe")}
-          />
-          {openSections.universe ? (
-            <div className="space-y-3 border-t border-border px-4 py-4">
-              <select
-                id="screener-listing-market"
-                className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-text shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                value={filters.listing_market ?? ""}
-                onChange={(e) => {
-                  const value = e.target.value;
+      <div className="space-y-4 p-4">
+        <section className="rounded-xl border border-border bg-surface p-3">
+          <div className="mb-3 flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
+                {t("workspace.sections.universe")}
+              </p>
+              <p className="mt-1 text-xs text-text-secondary">{t("workspace.sections.universeHint")}</p>
+            </div>
+            <Tooltip content={t("workspace.help.marketMeta")} />
+          </div>
+
+          <div className="grid gap-3">
+            <select
+              id="screener-listing-market"
+              className="w-full rounded-lg border border-border bg-surface-alt px-3 py-2 text-sm font-medium text-text shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+              value={filters.listing_market ?? ""}
+              onChange={(e) => {
+                const value = e.target.value;
+                onChange({
+                  ...filters,
+                  listing_market: value === "" ? undefined : (value as "US" | "TA"),
+                });
+              }}
+            >
+              <option value="">{t("listingMarket.all")}</option>
+              <option value="US">{t("listingMarket.us")}</option>
+              <option value="TA">{t("listingMarket.ta")}</option>
+            </select>
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+              <Input
+                label={t("marketCap.gte")}
+                type="number"
+                step="1"
+                value={filters.market_cap_gte ?? ""}
+                onChange={(e) =>
                   onChange({
                     ...filters,
-                    listing_market: value === "" ? undefined : (value as "US" | "TA"),
-                  });
-                }}
-              >
-                <option value="">{t("listingMarket.all")}</option>
-                <option value="US">{t("listingMarket.us")}</option>
-                <option value="TA">{t("listingMarket.ta")}</option>
-              </select>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-                <Input
-                  label={t("marketCap.gte")}
-                  type="number"
-                  step="1"
-                  value={filters.market_cap_gte ?? ""}
-                  onChange={(e) =>
-                    onChange({
-                      ...filters,
-                      market_cap_gte: e.target.value === "" ? undefined : Number(e.target.value),
-                    })
-                  }
-                  placeholder="1000000000"
-                />
-                <Input
-                  label={t("marketCap.lte")}
-                  type="number"
-                  step="1"
-                  value={filters.market_cap_lte ?? ""}
-                  onChange={(e) =>
-                    onChange({
-                      ...filters,
-                      market_cap_lte: e.target.value === "" ? undefined : Number(e.target.value),
-                    })
-                  }
-                  placeholder="50000000000"
-                />
-              </div>
+                    market_cap_gte: e.target.value === "" ? undefined : Number(e.target.value),
+                  })
+                }
+                placeholder="1000000000"
+              />
+              <Input
+                label={t("marketCap.lte")}
+                type="number"
+                step="1"
+                value={filters.market_cap_lte ?? ""}
+                onChange={(e) =>
+                  onChange({
+                    ...filters,
+                    market_cap_lte: e.target.value === "" ? undefined : Number(e.target.value),
+                  })
+                }
+                placeholder="50000000000"
+              />
             </div>
-          ) : null}
+          </div>
         </section>
 
-        <section className="rounded-xl border border-border bg-surface-raised">
-          <SectionToggle
-            title={t("workspace.sections.timeframes")}
-            hint={t("workspace.sections.timeframesHint")}
-            open={openSections.timeframes}
-            onToggle={() => toggleSection("timeframes")}
-          />
-          {openSections.timeframes ? (
-            <div className="grid gap-2 border-t border-border px-4 py-4">
+        <section className="rounded-xl border border-border bg-surface p-3">
+          <div className="mb-3 flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
+                {t("workspace.sections.builder")}
+              </p>
+              <p className="mt-1 text-xs text-text-secondary">{t("workspace.sections.builderHint")}</p>
+            </div>
+            <Tooltip content={t("workspace.help.timeframeMeta")} />
+          </div>
+
+          <div className="grid grid-cols-[52px_minmax(0,1fr)] gap-3">
+            <div className="flex flex-col gap-2">
               {timeframeSummary.map(({ timeframe, count }) => (
                 <button
                   key={timeframe}
                   type="button"
                   onClick={() => setActiveTimeframe(timeframe)}
                   className={clsx(
-                    "flex items-center justify-between rounded-lg border px-3 py-2.5 text-left transition-colors",
+                    "flex min-h-11 flex-col items-center justify-center rounded-xl border text-xs font-black uppercase tracking-[0.18em] transition-colors",
                     activeTimeframe === timeframe
-                      ? "border-primary bg-primary text-on-primary"
-                      : "border-border bg-surface text-text-secondary hover:border-border-strong hover:text-text"
+                      ? "border-primary bg-primary text-on-primary shadow-[0_0_20px_rgba(45,212,191,0.22)]"
+                      : "border-border bg-surface-alt text-text-secondary hover:border-border-strong hover:text-text"
                   )}
                 >
-                  <div>
-                    <p className="text-sm font-bold">{t(`timeframes.${timeframe}`)}</p>
-                    <p
-                      className={clsx(
-                        "text-[11px]",
-                        activeTimeframe === timeframe ? "text-on-primary/80" : "text-text-muted"
-                      )}
-                    >
-                      {t("blockSubtitle")}
-                    </p>
-                  </div>
-                  <span
-                    className={clsx(
-                      "inline-flex min-w-7 items-center justify-center rounded-full px-2 py-1 text-[10px] font-bold",
-                      activeTimeframe === timeframe
-                        ? "bg-black/10 text-on-primary"
-                        : "bg-primary-soft/70 text-primary"
-                    )}
-                  >
+                  <span>{timeframe.slice(1)}</span>
+                  <span className={clsx("mt-1 text-[10px]", activeTimeframe === timeframe ? "text-on-primary/80" : "text-text-muted")}>
                     {count}
                   </span>
                 </button>
               ))}
             </div>
-          ) : null}
-        </section>
 
-        <section className="rounded-xl border border-border bg-surface-raised">
-          <SectionToggle
-            title={t("blockTitle", {
-              timeframe: t(`timeframes.${activeTimeframe}`),
-              category: t(`categories.${activeCategory}`),
-            })}
-            hint={t("workspace.sections.builderHint")}
-            open={openSections.builder}
-            onToggle={() => toggleSection("builder")}
-            meta={currentDefinitions.length}
-          />
-          {openSections.builder ? (
-            <div className="space-y-3 border-t border-border px-4 py-4">
+            <div className="space-y-3">
               <div className="grid grid-cols-2 gap-2">
                 {CATEGORY_TABS.map((category) => {
                   const count = filters.rules.filter(
@@ -572,10 +489,10 @@ export function FilterPanel({
                       type="button"
                       onClick={() => setActiveCategory(category)}
                       className={clsx(
-                        "flex items-center justify-between rounded-md border px-3 py-2 text-xs font-bold uppercase tracking-wide transition-colors",
+                        "flex items-center justify-between rounded-lg border px-3 py-2 text-[11px] font-bold uppercase tracking-wide transition-colors",
                         activeCategory === category
                           ? "border-text bg-text text-on-text"
-                          : "border-border bg-surface text-text-muted hover:text-text"
+                          : "border-border bg-surface-alt text-text-secondary hover:border-border-strong hover:text-text"
                       )}
                     >
                       <span>{t(`categories.${category}`)}</span>
@@ -584,7 +501,7 @@ export function FilterPanel({
                           "inline-flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 text-[10px]",
                           activeCategory === category
                             ? "bg-black/10 text-on-text"
-                            : "bg-primary-soft/70 text-primary"
+                            : "bg-primary-soft text-primary"
                         )}
                       >
                         {count}
@@ -594,10 +511,13 @@ export function FilterPanel({
                 })}
               </div>
 
-              <div className="rounded-xl border border-border bg-surface p-3">
+              <div className="rounded-xl border border-border bg-surface-alt/60 p-3">
                 <div className="mb-3 flex items-center justify-between">
-                  <p className="text-xs font-bold text-text">{t("blockSubtitle")}</p>
-                  <p className="text-[11px] text-text-muted">{t("selectHint")}</p>
+                  <div>
+                    <p className="text-xs font-bold text-text">{t("workspace.currentTimeframe", { timeframe: t(`timeframes.${activeTimeframe}`) })}</p>
+                    <p className="mt-1 text-[11px] text-text-muted">{t("workspace.timeframeHint")}</p>
+                  </div>
+                  <Tooltip content={t("workspace.help.maMeta")} />
                 </div>
 
                 <div className="space-y-4">
@@ -607,13 +527,11 @@ export function FilterPanel({
                       .map((definition) => {
                         const active = !!getRule(activeTimeframe, definition.field);
                         return (
-                          <TerminalChip
+                          <FilterChip
                             key={`${activeTimeframe}-${definition.field}`}
                             active={active}
                             label={t(definition.labelKey)}
-                            tooltip={
-                              definition.descriptionKey ? t(definition.descriptionKey) : undefined
-                            }
+                            tooltip={definition.descriptionKey ? t(definition.descriptionKey) : undefined}
                             onClick={() => toggleBooleanRule(activeTimeframe, definition.field)}
                           />
                         );
@@ -621,7 +539,7 @@ export function FilterPanel({
                   </div>
 
                   {currentDefinitions.some((definition) => definition.input === "number") ? (
-                    <div className="grid gap-3">
+                    <div className="grid gap-2">
                       {currentDefinitions
                         .filter((definition) => definition.input === "number")
                         .map((definition) => {
@@ -630,16 +548,12 @@ export function FilterPanel({
                           return (
                             <div
                               key={`${activeTimeframe}-${definition.field}`}
-                              className="rounded-lg border border-border bg-surface-alt/70 p-3"
+                              className="rounded-lg border border-border bg-surface px-3 py-3"
                             >
                               <div className="mb-2 flex items-start justify-between gap-3">
                                 <div>
-                                  <p className="text-sm font-bold text-text">
-                                    {t(definition.labelKey)}
-                                  </p>
-                                  <p className="text-[11px] text-text-muted">
-                                    {t(`operators.${operator}`)}
-                                  </p>
+                                  <p className="text-sm font-bold text-text">{t(definition.labelKey)}</p>
+                                  <p className="text-[11px] text-text-muted">{t(`operators.${operator}`)}</p>
                                 </div>
                                 {definition.descriptionKey ? (
                                   <Tooltip content={t(definition.descriptionKey)} />
@@ -667,19 +581,17 @@ export function FilterPanel({
                   ) : null}
 
                   {currentDefinitions.some((definition) => definition.input === "select") ? (
-                    <div className="space-y-2 rounded-lg border border-border bg-surface-alt/70 p-3">
+                    <div className="space-y-2 rounded-lg border border-border bg-surface px-3 py-3">
                       {currentDefinitions
                         .filter((definition) => definition.input === "select")
                         .map((definition) => {
                           const rule = getRule(activeTimeframe, definition.field);
                           return (
                             <div key={`${activeTimeframe}-${definition.field}`}>
-                              <p className="mb-2 text-sm font-bold text-text">
-                                {t(definition.labelKey)}
-                              </p>
+                              <p className="mb-2 text-sm font-bold text-text">{t(definition.labelKey)}</p>
                               <div className="flex flex-wrap gap-2">
                                 {definition.valueOptions?.map((option) => (
-                                  <TerminalChip
+                                  <FilterChip
                                     key={`${activeTimeframe}-${definition.field}-${option.value}`}
                                     active={rule?.value === option.value}
                                     label={t(option.labelKey)}
@@ -701,52 +613,53 @@ export function FilterPanel({
                 </div>
               </div>
             </div>
-          ) : null}
-        </section>
-      </div>
-
-      <div className="border-t border-border bg-surface-alt/50">
-        <SectionToggle
-          title={t("workspace.sections.active")}
-          hint={t("workspace.sections.activeHint")}
-          open={openSections.active}
-          onToggle={() => toggleSection("active")}
-          meta={activeFilterCount}
-        />
-        {openSections.active ? (
-          <div className="border-t border-border px-4 py-4">
-            {activeRulePills.length === 0 &&
-            !filters.listing_market &&
-            filters.market_cap_gte === undefined &&
-            filters.market_cap_lte === undefined ? (
-              <p className="text-sm text-text-muted">{t("activeFiltersEmpty")}</p>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {filters.listing_market ? (
-                  <ActiveFilterPill
-                    label={`${t("listingMarket.label")} · ${t(`listingMarket.${filters.listing_market.toLowerCase()}`)}`}
-                    onRemove={() => onChange({ ...filters, listing_market: undefined })}
-                  />
-                ) : null}
-                {filters.market_cap_gte !== undefined ? (
-                  <ActiveFilterPill
-                    label={`${t("marketCap.gte")} ${filters.market_cap_gte}`}
-                    onRemove={() => onChange({ ...filters, market_cap_gte: undefined })}
-                  />
-                ) : null}
-                {filters.market_cap_lte !== undefined ? (
-                  <ActiveFilterPill
-                    label={`${t("marketCap.lte")} ${filters.market_cap_lte}`}
-                    onRemove={() => onChange({ ...filters, market_cap_lte: undefined })}
-                  />
-                ) : null}
-                {activeRulePills.map((pill) => (
-                  <ActiveFilterPill key={pill.key} label={pill.label} onRemove={pill.remove} />
-                ))}
-              </div>
-            )}
           </div>
-        ) : null}
+        </section>
+
+        <section className="rounded-xl border border-border bg-surface p-3">
+          <div className="mb-3 flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
+                {t("workspace.sections.active")}
+              </p>
+              <p className="mt-1 text-xs text-text-secondary">{t("workspace.sections.activeHint")}</p>
+            </div>
+            <span className="rounded-full border border-border bg-surface-alt px-2 py-0.5 text-[11px] font-bold text-text-secondary">
+              {activeFilterCount}
+            </span>
+          </div>
+
+          {activeRulePills.length === 0 &&
+          !filters.listing_market &&
+          filters.market_cap_gte === undefined &&
+          filters.market_cap_lte === undefined ? (
+            <p className="text-sm text-text-muted">{t("activeFiltersEmpty")}</p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {filters.listing_market ? (
+                <ActiveFilterPill
+                  label={`${t("listingMarket.label")} · ${t(`listingMarket.${filters.listing_market.toLowerCase()}`)}`}
+                  onRemove={() => onChange({ ...filters, listing_market: undefined })}
+                />
+              ) : null}
+              {filters.market_cap_gte !== undefined ? (
+                <ActiveFilterPill
+                  label={`${t("marketCap.gte")} ${filters.market_cap_gte}`}
+                  onRemove={() => onChange({ ...filters, market_cap_gte: undefined })}
+                />
+              ) : null}
+              {filters.market_cap_lte !== undefined ? (
+                <ActiveFilterPill
+                  label={`${t("marketCap.lte")} ${filters.market_cap_lte}`}
+                  onRemove={() => onChange({ ...filters, market_cap_lte: undefined })}
+                />
+              ) : null}
+              {activeRulePills.map((pill) => (
+                <ActiveFilterPill key={pill.key} label={pill.label} onRemove={pill.remove} />
+              ))}
+            </div>
+          )}
+        </section>
       </div>
 
       <div className="sticky bottom-0 border-t border-border bg-surface-raised/95 px-4 py-3 backdrop-blur">
@@ -769,7 +682,7 @@ export function FilterPanel({
               {t("clearFilters")}
             </Button>
             <Button size="sm" onClick={onApply} loading={loading}>
-              {t("applyFilters")}
+              {t("workspace.quickApply")}
             </Button>
           </div>
         </div>

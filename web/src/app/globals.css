@@ -32,31 +32,31 @@
 }
 
 .dark {
-  --color-primary: #60a5fa;
-  --color-primary-hover: #93bbfd;
-  --color-primary-soft: #1e3a5f;
-  --color-on-primary: #08101d;
-  --color-ambient-glow: rgba(96, 165, 250, 0.06);
-  --color-surface: #070b14;
-  --color-surface-alt: #0f172a;
-  --color-surface-raised: #111c2e;
-  --color-border: #1e293b;
-  --color-border-strong: #334155;
-  --color-text: #f1f5f9;
-  --color-text-secondary: #b6c4d4;
-  --color-text-muted: #94a3b8;
-  --color-success: #4ade80;
-  --color-success-soft: #14532d;
-  --color-danger: #f87171;
-  --color-danger-soft: #450a0a;
-  --color-on-danger: #2b0c0c;
-  --color-warning: #fbbf24;
-  --color-warning-soft: #451a03;
-  --color-accent: #a78bfa;
-  --color-accent-soft: #2e1065;
-  --color-on-text: #08101d;
-  --color-chart-up: #4ade80;
-  --color-chart-down: #f87171;
+  --color-primary: #2dd4bf;
+  --color-primary-hover: #5eead4;
+  --color-primary-soft: #052a27;
+  --color-on-primary: #031311;
+  --color-ambient-glow: rgba(45, 212, 191, 0.08);
+  --color-surface: #02050a;
+  --color-surface-alt: #070d14;
+  --color-surface-raised: #0a1119;
+  --color-border: #15212d;
+  --color-border-strong: #213243;
+  --color-text: #ecfdf5;
+  --color-text-secondary: #b4d0cb;
+  --color-text-muted: #6c8a92;
+  --color-success: #4dff88;
+  --color-success-soft: #072515;
+  --color-danger: #ff6b81;
+  --color-danger-soft: #2d0a12;
+  --color-on-danger: #18060a;
+  --color-warning: #facc15;
+  --color-warning-soft: #2b2105;
+  --color-accent: #67e8f9;
+  --color-accent-soft: #08252b;
+  --color-on-text: #02050a;
+  --color-chart-up: #4dff88;
+  --color-chart-down: #ff6b81;
 }
 
 html {
@@ -73,7 +73,8 @@ body {
 
 html.dark body {
   background-image:
-    radial-gradient(1000px 480px at 85% -15%, rgba(96, 165, 250, 0.08), transparent 55%),
+    radial-gradient(1000px 480px at 85% -15%, rgba(45, 212, 191, 0.1), transparent 55%),
+    radial-gradient(900px 420px at 10% 0%, rgba(77, 255, 136, 0.06), transparent 45%),
     radial-gradient(800px 360px at 0% 0%, var(--color-ambient-glow), transparent 50%);
 }
 
