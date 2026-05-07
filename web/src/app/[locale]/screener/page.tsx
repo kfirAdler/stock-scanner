@@ -387,7 +387,13 @@ export default function ScreenerPage() {
               : "grid gap-6"
             }
           >
-            <div className={desktopFiltersOpen ? "hidden xl:sticky xl:top-20 xl:block xl:self-start" : "hidden"}>
+            <div
+              className={
+                desktopFiltersOpen
+                  ? "hidden xl:sticky xl:top-20 xl:block xl:max-h-[calc(100vh-6rem)] xl:self-start xl:overflow-y-auto xl:overscroll-contain xl:pr-1"
+                  : "hidden"
+              }
+            >
               <FilterPanel
                 key={filterPanelResetKey}
                 filters={filters}
