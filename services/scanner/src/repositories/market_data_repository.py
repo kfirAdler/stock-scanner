@@ -22,25 +22,31 @@ def _get_client() -> Client:
 
 def get_all_tickers() -> list[str]:
     client = _get_client()
-    tickers: set[str] = set()
     page_size = 1000
-    offset = 0
-    while True:
-        result = (
-            client.table("market_raw_data")
-            .select("ticker")
-            .order("ticker")
-            .range(offset, offset + page_size - 1)
-            .execute()
-        )
-        if not result.data:
-            break
-        for row in result.data:
-            tickers.add(row["ticker"])
-        if len(result.data) < page_size:
-            break
-        offset += page_size
-    return sorted(tickers)
+
+    def _fetch_tickers(table: str, *, timeframe: str | None = None) -> list[str]:
+        tickers: set[str] = set()
+        offset = 0
+        while True:
+            query = client.table(table).select("ticker").order("ticker")
+            if timeframe is not None:
+                query = query.eq("timeframe", timeframe)
+            result = query.range(offset, offset + page_size - 1).execute()
+            if not result.data:
+                break
+            for row in result.data:
+                ticker = row.get("ticker")
+                if isinstance(ticker, str) and ticker.strip():
+                    tickers.add(ticker)
+            if len(result.data) < page_size:
+                break
+            offset += page_size
+        return sorted(tickers)
+
+    tickers = _fetch_tickers("symbol_metadata")
+    if tickers:
+        return tickers
+    return _fetch_tickers("symbol_indicator_snapshot", timeframe="1D")
 
 
 def get_ticker_history(ticker: str) -> pd.DataFrame:
@@ -51,7 +57,7 @@ def get_ticker_history(ticker: str) -> pd.DataFrame:
     while True:
         result = (
             client.table("market_raw_data")
-            .select("*")
+            .select("trade_date,open,high,low,close,volume")
             .eq("ticker", ticker)
             .order("trade_date", desc=False)
             .range(offset, offset + page_size - 1)
@@ -66,6 +72,51 @@ def get_ticker_history(ticker: str) -> pd.DataFrame:
     if not all_rows:
         return pd.DataFrame()
     df = pd.DataFrame(all_rows)
+    df["trade_date"] = pd.to_datetime(df["trade_date"]).dt.date
+    for col in ["open", "high", "low", "close", "volume"]:
+        df[col] = pd.to_numeric(df[col], errors="coerce")
+    return df
+
+
+def get_ticker_history_for_timeframe(ticker: str, timeframe: str) -> pd.DataFrame:
+    if timeframe == "1D":
+        return get_ticker_history(ticker)
+
+    if timeframe == "1W":
+        table = "market_weekly_data"
+        date_column = "last_trade_date"
+    elif timeframe == "1M":
+        table = "market_monthly_data"
+        date_column = "last_trade_date"
+    else:
+        raise ValueError(f"Unsupported timeframe: {timeframe}")
+
+    client = _get_client()
+    all_rows: list[dict] = []
+    page_size = 1000
+    offset = 0
+    select_columns = f"{date_column},open,high,low,close,volume"
+
+    while True:
+        result = (
+            client.table(table)
+            .select(select_columns)
+            .eq("ticker", ticker)
+            .order(date_column, desc=False)
+            .range(offset, offset + page_size - 1)
+            .execute()
+        )
+        if not result.data:
+            break
+        all_rows.extend(result.data)
+        if len(result.data) < page_size:
+            break
+        offset += page_size
+
+    if not all_rows:
+        return pd.DataFrame()
+
+    df = pd.DataFrame(all_rows).rename(columns={date_column: "trade_date"})
     df["trade_date"] = pd.to_datetime(df["trade_date"]).dt.date
     for col in ["open", "high", "low", "close", "volume"]:
         df[col] = pd.to_numeric(df[col], errors="coerce")

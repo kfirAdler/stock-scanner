@@ -18,14 +18,13 @@ from src.indicators.compute import compute_snapshot
 from src.repositories.market_data_repository import (
     _get_client,
     enforce_retention,
-    get_ticker_history,
+    get_ticker_history_for_timeframe,
     upsert_bars,
     upsert_snapshot,
     upsert_symbol_metadata,
 )
 from src.utils.market_data_fetcher import fetch_bars
 from src.utils.symbol_metadata import fetch_symbol_metadata_yfinance
-from src.utils.timeframe_aggregation import aggregate_bars
 
 logging.basicConfig(
     level=logging.INFO,
@@ -94,17 +93,21 @@ def get_symbol_metadata_row(ticker: str) -> dict | None:
 
 
 def recompute_ticker(ticker: str, market: str) -> bool:
-    history = get_ticker_history(ticker)
-    if history.empty:
+    daily_history = get_ticker_history_for_timeframe(ticker, "1D")
+    if daily_history.empty:
         logger.warning("%s: no history after backfill, skipping snapshot recompute", ticker)
         return False
 
     wrote_any = False
     for timeframe in SNAPSHOT_TIMEFRAMES:
-        aggregated = aggregate_bars(history, timeframe, market=market)
+        history = (
+            daily_history
+            if timeframe == "1D"
+            else get_ticker_history_for_timeframe(ticker, timeframe)
+        )
         snapshot = compute_snapshot(
             ticker,
-            aggregated,
+            history,
             market=market,
             timeframe=timeframe,
         )

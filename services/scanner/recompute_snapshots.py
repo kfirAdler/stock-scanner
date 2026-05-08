@@ -32,13 +32,12 @@ def main():
 
     from src.repositories.market_data_repository import (
         get_all_tickers,
-        get_ticker_history,
+        get_ticker_history_for_timeframe,
         upsert_snapshot,
         upsert_symbol_metadata,
     )
     from src.indicators.compute import compute_snapshot
     from src.config.settings import SNAPSHOT_TIMEFRAMES
-    from src.utils.timeframe_aggregation import aggregate_bars
 
     if args.tickers:
         tickers = [t.upper() for t in args.tickers]
@@ -53,18 +52,22 @@ def main():
 
     for i, ticker in enumerate(tickers):
         try:
-            history = get_ticker_history(ticker)
-            if history.empty:
+            daily_history = get_ticker_history_for_timeframe(ticker, "1D")
+            if daily_history.empty:
                 logger.warning("[%d/%d] %s: no history, skipping", i + 1, total, ticker)
                 continue
 
             mk = "TA" if ticker.upper().endswith(".TA") else "US"
             wrote_any = False
             for timeframe in SNAPSHOT_TIMEFRAMES:
-                aggregated = aggregate_bars(history, timeframe, market=mk)
+                history = (
+                    daily_history
+                    if timeframe == "1D"
+                    else get_ticker_history_for_timeframe(ticker, timeframe)
+                )
                 snapshot = compute_snapshot(
                     ticker,
-                    aggregated,
+                    history,
                     market=mk,
                     timeframe=timeframe,
                 )
@@ -78,7 +81,7 @@ def main():
                     i + 1,
                     total,
                     ticker,
-                    len(history),
+                    len(daily_history),
                 )
                 continue
             upsert_symbol_metadata(
