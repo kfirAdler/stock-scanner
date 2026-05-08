@@ -38,6 +38,7 @@ interface FilterPanelProps {
   filters: ScreenerPayload;
   onChange: (filters: ScreenerPayload) => void;
   onApply: () => void;
+  onResetDraft?: () => void;
   loading?: boolean;
   onSaveScan: () => void;
   saveScanLoading?: boolean;
@@ -58,6 +59,7 @@ export function FilterPanel({
   filters,
   onChange,
   onApply,
+  onResetDraft,
   loading,
   onSaveScan,
   saveScanLoading,
@@ -221,7 +223,6 @@ export function FilterPanel({
   return (
     <ScannerSidebar
       title={t("workspace.compactTitle")}
-      subtitle={t("workspace.compactHint")}
       filterCount={activeFilterCount}
       onClose={onClose}
       statusBar={
@@ -238,38 +239,21 @@ export function FilterPanel({
       }
       footer={
         <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-text-muted">
-              {t("workspace.quickActions")}
-            </p>
-            <p className="mt-1 text-xs text-text-secondary">
-              {hasPendingChanges ? t("workspace.bottomHintDirty") : t("workspace.bottomHintReady")}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => onChange(filters)}
-              disabled
-              className="hidden"
-            >
-              noop
-            </Button>
+          <div className="flex flex-wrap items-center gap-2">
             <Button type="button" variant="ghost" size="sm" onClick={clearAll} disabled={activeFilterCount === 0}>
               {t("clearFilters")}
             </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => onChange(filters)}
-              disabled={!hasPendingChanges}
-              className="hidden"
-            >
-              noop
-            </Button>
+            {onResetDraft ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={onResetDraft}
+                disabled={!hasPendingChanges}
+              >
+                {t("workspace.resetDraft")}
+              </Button>
+            ) : null}
             <Button
               type="button"
               variant="secondary"
@@ -280,6 +264,8 @@ export function FilterPanel({
             >
               {t("favorite.load")}
             </Button>
+          </div>
+          <div className="flex items-center gap-2">
             <Button size="sm" onClick={onApply} loading={loading}>
               {t("workspace.quickApply")}
             </Button>
@@ -287,26 +273,18 @@ export function FilterPanel({
         </div>
       }
     >
-      <section className="space-y-3">
+      <section className="space-y-2.5">
         <div className="flex items-center justify-between gap-3">
+          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-text-muted">
+            {t("workspace.sections.timeframes")}
+          </p>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-text-muted">
-              {t("workspace.sections.timeframes")}
-            </p>
-            <p className="mt-1 text-xs text-text-secondary">{t("workspace.timeframeHint")}</p>
-          </div>
-          <div className="text-right">
-            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-text-muted">
-              {t("workspace.density")}
-            </p>
-            <div className="mt-1">
-              <DensityToggle
-                value={density}
-                onChange={setDensity}
-                compactLabel={t("workspace.densityCompact")}
-                comfortableLabel={t("workspace.densityComfortable")}
-              />
-            </div>
+            <DensityToggle
+              value={density}
+              onChange={setDensity}
+              compactLabel={t("workspace.densityCompact")}
+              comfortableLabel={t("workspace.densityComfortable")}
+            />
           </div>
         </div>
         <TimeframeSegmentedControl
@@ -317,14 +295,7 @@ export function FilterPanel({
         />
       </section>
 
-      <section className="space-y-3">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-text-muted">
-            {t("workspace.sections.builder")}
-          </p>
-          <p className="mt-1 text-xs text-text-secondary">{t("workspace.sections.builderHint")}</p>
-        </div>
-
+      <section className="space-y-2.5">
         <FilterCategoryTabs
           tabs={categorySummary}
           activeTab={activeCategory}
@@ -366,10 +337,9 @@ export function FilterPanel({
         open={advancedOpen}
         onToggle={() => setAdvancedOpen((current) => !current)}
         title={t("workspace.advanced")}
-        hint={t("workspace.advancedHint")}
       >
-        <div className="space-y-5">
-          <div className="space-y-3">
+        <div className="space-y-4">
+          <div className="space-y-2.5">
             <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-text-muted">
               {t("workspace.sections.universe")}
             </p>
@@ -515,7 +485,7 @@ export function FilterPanel({
             </div>
           ) : null}
 
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-text-muted">
               {t("workspace.quickActions")}
             </p>
@@ -559,13 +529,10 @@ export function FilterPanel({
         </div>
       </AdvancedFiltersPanel>
 
-      <section className="space-y-3">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-text-muted">
-            {t("workspace.sections.active")}
-          </p>
-          <p className="mt-1 text-xs text-text-secondary">{t("workspace.sections.activeHint")}</p>
-        </div>
+      <section className="space-y-2.5">
+        <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-text-muted">
+          {t("workspace.sections.active")}
+        </p>
         <div className={clsx("flex flex-wrap", density === "compact" ? "gap-2" : "gap-2.5")}>
           {activeRulePills.length === 0 &&
           !filters.listing_market &&

@@ -256,6 +256,7 @@
     "legalNotice": {
       "title": "הודעה משפטית חשובה",
       "body": "הסורק מיועד למידע בלבד ואינו מספק ייעוץ השקעות. האחריות הבלעדית לכל החלטה או פעולה שתתבצע באמצעות הפלטפורמה היא שלך. קרא את",
+      "inlineShort": "לשימוש לימודי בלבד.",
       "link": "תנאי השימוש המלאים"
     },
     "listingMarket": {
@@ -447,6 +448,7 @@
       "densityComfortable": "נוח",
       "statusFilters": "פילטרים פעילים",
       "statusMatches": "התאמות",
+      "statusUpdated": "עודכן",
       "thresholds": "ספים",
       "selectors": "בחירות",
       "compactTitle": "סורק קומפקטי",

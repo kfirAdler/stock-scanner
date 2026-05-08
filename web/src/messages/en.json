@@ -256,6 +256,7 @@
     "legalNotice": {
       "title": "Important legal notice",
       "body": "This screener is for informational use only and does not provide investment advice. You are solely responsible for any decisions or trades made using this platform. Read the full",
+      "inlineShort": "Educational use only.",
       "link": "Terms of Use"
     },
     "listingMarket": {
@@ -447,6 +448,7 @@
       "densityComfortable": "Comfortable",
       "statusFilters": "filters active",
       "statusMatches": "matches",
+      "statusUpdated": "Updated",
       "thresholds": "Thresholds",
       "selectors": "Selectors",
       "compactTitle": "Compact scanner",

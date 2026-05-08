@@ -5,7 +5,6 @@ import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { FilterPanel } from "@/components/screener/FilterPanel";
 import { ResultsTable } from "@/components/screener/ResultsTable";
-import { ScreenerHelpModal } from "@/components/screener/ScreenerHelpModal";
 import { PremiumGate } from "@/components/billing/PremiumGate";
 import { Button } from "@/components/ui/Button";
 import type { ScreenerPayload, ScreenerResultRow } from "@/lib/screener-types";
@@ -44,8 +43,8 @@ export default function ScreenerPage() {
   const [multiFilterGateOpen, setMultiFilterGateOpen] = useState(false);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [desktopFiltersOpen, setDesktopFiltersOpen] = useState(true);
-  const [helpOpen, setHelpOpen] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const [refreshTicker, setRefreshTicker] = useState(() => Date.now());
 
   const fetchResults = useCallback(async (nextFilters: ScreenerPayload = filtersRef.current) => {
     const normalizedFilters = coerceStoredScreen(nextFilters) ?? DEFAULT_SCREENER_PAYLOAD;
@@ -151,6 +150,13 @@ export default function ScreenerPage() {
   }, [fetchResults]);
 
   useEffect(() => {
+    const interval = window.setInterval(() => {
+      setRefreshTicker(Date.now());
+    }, 15000);
+    return () => window.clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
 
     async function loadUserState() {
@@ -207,6 +213,22 @@ export default function ScreenerPage() {
       return null;
     }
   }, [lastUpdated, locale]);
+  const relativeLastUpdated = useMemo(() => {
+    if (!lastUpdated) return null;
+    try {
+      const deltaMs = new Date(lastUpdated).getTime() - refreshTicker;
+      const deltaSeconds = Math.round(deltaMs / 1000);
+      const absSeconds = Math.abs(deltaSeconds);
+      const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
+      if (absSeconds < 60) return rtf.format(deltaSeconds, "second");
+      const deltaMinutes = Math.round(deltaSeconds / 60);
+      if (Math.abs(deltaMinutes) < 60) return rtf.format(deltaMinutes, "minute");
+      const deltaHours = Math.round(deltaMinutes / 60);
+      return rtf.format(deltaHours, "hour");
+    } catch {
+      return formattedLastUpdated;
+    }
+  }, [formattedLastUpdated, lastUpdated, locale, refreshTicker]);
 
   function handleFiltersChange(nextFilters: ScreenerPayload) {
     filtersRef.current = nextFilters;
@@ -309,75 +331,80 @@ export default function ScreenerPage() {
     await fetchResults();
   }
 
-  return (
-    <div className="mx-auto max-w-[1600px] px-4 py-6">
-      <div className="space-y-6">
-        <section className="rounded-[28px] border border-border-strong/70 bg-surface-raised shadow-[0_24px_70px_rgba(15,23,42,0.08)] dark:border-[#183241] dark:bg-[linear-gradient(180deg,rgba(6,12,18,0.98),rgba(8,16,24,0.98))] dark:shadow-[0_28px_80px_rgba(0,0,0,0.72)]">
-          <div className="grid gap-6 px-5 py-5 xl:grid-cols-[minmax(0,1fr)_420px] xl:px-6">
-            <div className="space-y-3">
-              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-primary">
-                {t("terminalHeader.eyebrow")}
-              </p>
-              <div className="space-y-2">
-                <h1 className="text-2xl font-bold tracking-tight text-text sm:text-3xl">
-                  {t("title")}
-                </h1>
-                <p className="max-w-3xl text-sm leading-relaxed text-text-secondary">
-                  {t("premiumSubtitle")}
-                </p>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium text-text-muted">
-                {formattedLastUpdated ? (
-                  <span className="rounded-full border border-border bg-surface px-3 py-1.5">
-                    {t("updatedAt", { date: formattedLastUpdated })}
-                  </span>
-                ) : null}
-                <span className="rounded-full border border-border bg-surface px-3 py-1.5">
-                  {t("terminalHeader.universeCount", { count: resultSummary.rows })}
-                </span>
-                <span className="rounded-full border border-border bg-surface px-3 py-1.5">
-                  {t("terminalHeader.ruleCount", { count: resultSummary.rules })}
-                </span>
-              </div>
-            </div>
+  function handleResetDraft() {
+    handleFiltersChange(appliedFilters);
+  }
 
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-2">
-              <div className="rounded-2xl border border-border bg-surface px-4 py-3 dark:border-[#163340] dark:bg-[#071019]">
-                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
-                  {t("terminalHeader.cards.rows")}
-                </p>
-                <p className="mt-2 text-2xl font-bold text-text">{resultSummary.rows}</p>
-              </div>
-              <div className="rounded-2xl border border-border bg-surface px-4 py-3 dark:border-[#163340] dark:bg-[#071019]">
-                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
-                  {t("terminalHeader.cards.rules")}
-                </p>
-                <p className="mt-2 text-2xl font-bold text-primary">{resultSummary.rules}</p>
-              </div>
-              <div className="rounded-2xl border border-border bg-surface px-4 py-3 dark:border-[#163340] dark:bg-[#071019]">
-                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
-                  {t("terminalHeader.cards.strong")}
-                </p>
-                <p className="mt-2 text-2xl font-bold text-success">{resultSummary.strongSignals}</p>
-              </div>
-              <div className="rounded-2xl border border-border bg-surface px-4 py-3 dark:border-[#163340] dark:bg-[#071019]">
-                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
-                  {t("terminalHeader.cards.multi")}
-                </p>
-                <p className="mt-2 text-2xl font-bold text-text">{resultSummary.higherTimeframeRules}</p>
-              </div>
+  return (
+    <div className="mx-auto max-w-[1580px] px-4 py-4">
+      <div className="space-y-3">
+        <section className="sticky top-3 z-30 rounded-[20px] border border-border/80 bg-surface-raised/94 px-4 py-3 shadow-[0_12px_30px_rgba(15,23,42,0.06)] backdrop-blur dark:border-[#183241] dark:bg-[#061019eb]">
+          <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h1 className="text-[17px] font-bold tracking-tight text-text">{t("title")}</h1>
+              <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-text-secondary ring-1 ring-border">
+                {resultSummary.rows} {t("workspace.statusMatches")}
+              </span>
+              <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-text-secondary ring-1 ring-border">
+                {activeFilterCount} {t("workspace.statusFilters")}
+              </span>
+              <span
+                className={hasPendingChanges
+                  ? "rounded-full bg-warning-soft px-2.5 py-1 text-[11px] font-semibold text-warning ring-1 ring-warning/15"
+                  : "rounded-full bg-success-soft px-2.5 py-1 text-[11px] font-semibold text-success ring-1 ring-success/15"
+                }
+              >
+                {hasPendingChanges ? t("workspace.draftPending") : t("workspace.draftSynced")}
+              </span>
+              {relativeLastUpdated ? (
+                <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-text-muted ring-1 ring-border">
+                  {t("workspace.statusUpdated")} {relativeLastUpdated}
+                </span>
+              ) : null}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => setDesktopFiltersOpen((current) => !current)}
+                className="hidden xl:inline-flex"
+              >
+                {desktopFiltersOpen ? t("workspace.hideFilters") : t("workspace.openFilters")}
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => setMobileFiltersOpen(true)}
+                className="justify-center xl:hidden"
+              >
+                {t("mobile.openFilters", { count: activeFilterCount })}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleResetDraft}
+                disabled={!hasPendingChanges}
+              >
+                {t("workspace.resetDraft")}
+              </Button>
+              <Button type="button" size="sm" onClick={handleApply} loading={loading}>
+                {t("workspace.quickApply")}
+              </Button>
             </div>
           </div>
         </section>
 
-        <div className="rounded-2xl border border-warning/30 bg-warning-soft/40 px-5 py-4 text-sm text-text-secondary dark:border-[#3a300d] dark:bg-[#151106] dark:text-[#d1c389]">
-        <p className="font-bold text-text">{t("legalNotice.title")}</p>
-        <p className="mt-1 leading-relaxed">
-          {t("legalNotice.body")}{" "}
-          <Link href="/terms" className="font-bold text-primary hover:underline">
+        <div className="flex items-center gap-2 rounded-2xl bg-surface-alt/75 px-3 py-2 text-[11px] text-text-muted ring-1 ring-border/70 dark:bg-[#0a141d] dark:ring-[#183241]">
+          <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-warning-soft text-[10px] text-warning">
+            i
+          </span>
+          <span>{t("legalNotice.inlineShort")}</span>
+          <Link href="/terms" className="font-semibold text-primary hover:underline">
             {t("legalNotice.link")}
           </Link>
-        </p>
         </div>
 
         {gate && <PremiumGate kind={gate === "login" ? "login" : "subscribe"} />}
@@ -385,14 +412,14 @@ export default function ScreenerPage() {
         {!gate && (
           <div
             className={desktopFiltersOpen
-              ? "grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)] 2xl:grid-cols-[390px_minmax(0,1fr)]"
-              : "grid gap-6"
+              ? "grid gap-4 xl:grid-cols-[340px_minmax(0,1fr)] 2xl:grid-cols-[360px_minmax(0,1fr)]"
+              : "grid gap-4"
             }
           >
             <div
               className={
                 desktopFiltersOpen
-                  ? "hidden xl:sticky xl:top-20 xl:block xl:max-h-[calc(100vh-6rem)] xl:self-start xl:overflow-y-auto xl:overscroll-contain xl:pr-1"
+                  ? "hidden xl:sticky xl:top-[5.5rem] xl:block xl:max-h-[calc(100vh-6.5rem)] xl:self-start xl:overflow-y-auto xl:overscroll-contain xl:pr-1"
                   : "hidden"
               }
             >
@@ -415,90 +442,28 @@ export default function ScreenerPage() {
                 appliedFilterCount={appliedFilterCount}
                 resultCount={resultSummary.rows}
                 lastUpdatedLabel={formattedLastUpdated}
+                onResetDraft={handleResetDraft}
               />
             </div>
 
-            <div className="space-y-4">
-              <div className="sticky top-20 z-20 rounded-2xl border border-border bg-surface-raised/92 px-4 py-3 shadow-sm backdrop-blur dark:border-[#183241] dark:bg-[#061019f0]">
-                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                  <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-wide">
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => setDesktopFiltersOpen((current) => !current)}
-                      className="hidden xl:inline-flex"
-                    >
-                      {desktopFiltersOpen ? t("workspace.hideFilters") : t("workspace.openFilters")}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => setMobileFiltersOpen(true)}
-                      className="justify-center xl:hidden"
-                    >
-                      {t("mobile.openFilters", { count: activeFilterCount })}
-                    </Button>
-                    <span className="rounded-full border border-border bg-surface px-3 py-1.5 text-text-secondary">
-                      {t("workspace.draftCount", { count: activeFilterCount })}
-                    </span>
-                    <span className="rounded-full border border-border bg-surface px-3 py-1.5 text-text-secondary">
-                      {t("workspace.appliedCount", { count: appliedFilterCount })}
-                    </span>
-                    <span
-                      className={hasPendingChanges
-                        ? "rounded-full border border-warning/40 bg-warning-soft/60 px-3 py-1.5 text-warning"
-                        : "rounded-full border border-success/30 bg-success-soft/70 px-3 py-1.5 text-success"
-                      }
-                    >
-                      {hasPendingChanges ? t("workspace.draftPending") : t("workspace.draftSynced")}
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setHelpOpen(true)}
-                      className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface text-sm font-black text-text transition-colors hover:border-border-strong hover:text-primary"
-                      aria-label={t("workspace.help.open")}
-                    >
-                      ?
-                    </button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleFiltersChange(appliedFilters)}
-                      disabled={!hasPendingChanges}
-                    >
-                      {t("workspace.resetDraft")}
-                    </Button>
-                    <Button type="button" size="sm" onClick={handleApply} loading={loading}>
-                      {t("workspace.quickApply")}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-border bg-surface-alt/60 px-4 py-3 dark:border-[#183241] dark:bg-[#0a141d]">
-                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                  <div>
-                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
-                      {t("results")}
-                    </p>
-                    <p className="mt-1 text-sm text-text-secondary">
-                      {t("terminalHeader.resultHint")}
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap gap-2 text-[11px] font-bold uppercase tracking-wide">
-                    <span className="rounded-full border border-border bg-surface px-3 py-1.5 text-text-secondary">
-                      {t("terminalHeader.appliedRules", { count: appliedFilters.rules.length })}
-                    </span>
-                    <span className="rounded-full border border-primary/25 bg-primary-soft/70 px-3 py-1.5 text-primary">
-                      {t("terminalHeader.multiBlocks", { count: resultSummary.higherTimeframeRules })}
-                    </span>
-                  </div>
-                </div>
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-surface-alt/70 px-3.5 py-2.5 ring-1 ring-border/70 dark:bg-[#0a141d] dark:ring-[#183241]">
+                <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-text-secondary ring-1 ring-border">
+                  {t("workspace.appliedCount", { count: appliedFilterCount })}
+                </span>
+                <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-text-secondary ring-1 ring-border">
+                  {t("terminalHeader.appliedRules", { count: appliedFilters.rules.length })}
+                </span>
+                {resultSummary.strongSignals > 0 ? (
+                  <span className="rounded-full bg-success-soft px-2.5 py-1 text-[11px] font-semibold text-success ring-1 ring-success/15">
+                    {resultSummary.strongSignals} {t("terminalHeader.cards.strong")}
+                  </span>
+                ) : null}
+                {resultSummary.higherTimeframeRules > 0 ? (
+                  <span className="rounded-full bg-primary-soft px-2.5 py-1 text-[11px] font-semibold text-primary ring-1 ring-primary/10">
+                    {t("terminalHeader.multiBlocks", { count: resultSummary.higherTimeframeRules })}
+                  </span>
+                ) : null}
               </div>
 
               {hasSearched ? (
@@ -508,11 +473,8 @@ export default function ScreenerPage() {
                   screenerFilters={appliedFilters}
                 />
               ) : (
-                <div className="flex min-h-[520px] items-center justify-center rounded-2xl border border-dashed border-border-strong bg-surface-raised px-6 text-center dark:border-[#183241] dark:bg-[#061019]">
-                  <div className="max-w-lg space-y-3">
-                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
-                      {t("results")}
-                    </p>
+                <div className="flex min-h-[520px] items-center justify-center rounded-2xl border border-dashed border-border bg-surface-raised px-6 text-center dark:border-[#183241] dark:bg-[#061019]">
+                  <div className="max-w-lg space-y-2">
                     <h2 className="text-2xl font-bold text-text">{t("terminalHeader.emptyTitle")}</h2>
                     <p className="text-sm leading-relaxed text-text-secondary">
                       {t("terminalHeader.emptyBody")}
@@ -565,6 +527,7 @@ export default function ScreenerPage() {
                 appliedFilterCount={appliedFilterCount}
                 resultCount={resultSummary.rows}
                 lastUpdatedLabel={formattedLastUpdated}
+                onResetDraft={handleResetDraft}
               />
             </div>
           </div>
@@ -588,7 +551,6 @@ export default function ScreenerPage() {
           </div>
         )}
 
-        <ScreenerHelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
       </div>
     </div>
   );
