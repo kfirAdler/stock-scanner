@@ -439,7 +439,6 @@ export default function ScreenerPage() {
                 favoriteStatus={favoriteStatus}
                 onClose={() => setDesktopFiltersOpen(false)}
                 hasPendingChanges={hasPendingChanges}
-                appliedFilterCount={appliedFilterCount}
                 resultCount={resultSummary.rows}
                 lastUpdatedLabel={formattedLastUpdated}
                 onResetDraft={handleResetDraft}
@@ -524,7 +523,6 @@ export default function ScreenerPage() {
                 favoriteStatus={favoriteStatus}
                 onClose={() => setMobileFiltersOpen(false)}
                 hasPendingChanges={hasPendingChanges}
-                appliedFilterCount={appliedFilterCount}
                 resultCount={resultSummary.rows}
                 lastUpdatedLabel={formattedLastUpdated}
                 onResetDraft={handleResetDraft}

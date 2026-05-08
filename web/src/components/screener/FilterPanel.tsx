@@ -50,7 +50,6 @@ interface FilterPanelProps {
   favoriteStatus?: string | null;
   onClose?: () => void;
   hasPendingChanges?: boolean;
-  appliedFilterCount?: number;
   resultCount?: number;
   lastUpdatedLabel?: string | null;
 }

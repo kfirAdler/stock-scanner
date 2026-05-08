@@ -55,28 +55,28 @@ function SignalBadge({ row }: { row: ScreenerResultRow }) {
 
   if (row.strong_buy_signal) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-success/35 bg-success-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-success">
+      <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-success ring-1 ring-success/15">
         ▲▲ {t("workspace.cards.strongBullish")}
       </span>
     );
   }
   if (row.buy_signal) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-success/35 bg-success-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-success">
+      <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-success ring-1 ring-success/15">
         ▲ {t("workspace.cards.bullishBreak")}
       </span>
     );
   }
   if (row.strong_sell_signal) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-danger/35 bg-danger-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-danger">
+      <span className="inline-flex items-center gap-1 rounded-full bg-danger-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-danger ring-1 ring-danger/15">
         ▼▼ {t("workspace.cards.strongBearish")}
       </span>
     );
   }
   if (row.sell_signal) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-danger/35 bg-danger-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-danger">
+      <span className="inline-flex items-center gap-1 rounded-full bg-danger-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-danger ring-1 ring-danger/15">
         ▼ {t("workspace.cards.bearishBreak")}
       </span>
     );
@@ -224,8 +224,8 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
     return initial;
   }, [screenerFilters]);
 
-  const densityRowClass = density === "compact" ? "px-3 py-2.5" : "px-3 py-3.5";
-  const densityTickerClass = density === "compact" ? "px-4 py-2.5" : "px-4 py-3.5";
+  const densityRowClass = density === "compact" ? "px-3 py-2" : "px-3 py-3";
+  const densityTickerClass = density === "compact" ? "px-4 py-2" : "px-4 py-3";
 
   if (loading) {
     return (
@@ -249,93 +249,70 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
     );
   }
 
+  const activeScanSummary = (["1D", "1W", "1M"] as ScreenerTimeframe[])
+    .map((timeframe) => {
+      const rules = groupedRules[timeframe];
+      if (rules.length === 0) return null;
+      return {
+        timeframe,
+        labels: rules.map((rule) => describeRule(rule, t)),
+      };
+    })
+    .filter(Boolean) as { timeframe: ScreenerTimeframe; labels: string[] }[];
+
   return (
-    <section className="rounded-2xl border border-border-strong/70 bg-surface-raised shadow-[0_14px_40px_rgba(15,23,42,0.08)] dark:border-[#183241] dark:bg-[linear-gradient(180deg,rgba(6,12,18,0.98),rgba(7,14,22,0.98))] dark:shadow-[0_20px_50px_rgba(0,0,0,0.72)]">
-      <div className="border-b border-border bg-surface-alt/80 px-4 py-4 dark:border-[#183241] dark:bg-[#0a141d]">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
-              {t("results")}
-            </p>
-            <h2 className="mt-1 text-lg font-bold text-text">{t("symbols", { count: rows.length })}</h2>
-            <p className="mt-1 text-xs text-text-secondary">{t("workspace.resultBody")}</p>
-
-            <div className="mt-4 rounded-xl border border-border bg-surface-raised px-3 py-3 dark:border-[#1a2d39] dark:bg-[#071019]">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
-                    {t("workspace.activeScan")}
-                  </p>
-                  <p className="mt-1 text-xs text-text-secondary">{t("workspace.activeScanHint")}</p>
-                </div>
-                <div className="inline-flex items-center rounded-xl border border-border bg-surface p-1 dark:border-[#1a2d39] dark:bg-[#081018]">
-                  <button
-                    type="button"
-                    onClick={() => setDensity("comfortable")}
-                    className={clsx(
-                      "rounded-lg px-3 py-1.5 text-xs font-bold uppercase tracking-wide transition-colors",
-                      density === "comfortable" ? "bg-primary text-on-primary" : "text-text-secondary hover:text-text"
-                    )}
-                  >
-                    {t("workspace.density.comfortable")}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDensity("compact")}
-                    className={clsx(
-                      "rounded-lg px-3 py-1.5 text-xs font-bold uppercase tracking-wide transition-colors",
-                      density === "compact" ? "bg-primary text-on-primary" : "text-text-secondary hover:text-text"
-                    )}
-                  >
-                    {t("workspace.density.compact")}
-                  </button>
-                </div>
-              </div>
-
-              <div className="mt-3 grid gap-3 lg:grid-cols-3">
-                {(["1D", "1W", "1M"] as ScreenerTimeframe[]).map((timeframe) => (
-                  <div key={timeframe} className="rounded-lg border border-border bg-surface px-3 py-3 dark:border-[#1a2d39] dark:bg-[#081018]">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
-                      {t(`timeframes.${timeframe}`)}
-                    </p>
-                    {groupedRules[timeframe].length > 0 ? (
-                      <ul className="mt-2 space-y-1 text-sm text-text-secondary">
-                        {groupedRules[timeframe].map((rule) => (
-                          <li key={rule.id}>{describeRule(rule, t)}</li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="mt-2 text-sm text-text-muted">{t("workspace.noRulesForTimeframe")}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
+    <section className="space-y-3">
+      <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-[15px] font-bold text-text">{t("symbols", { count: rows.length })}</h2>
+            {activeScanSummary.map((block) => (
+              <span
+                key={block.timeframe}
+                className="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-1 text-[11px] text-text-secondary ring-1 ring-border"
+              >
+                <span className="font-semibold text-text">{t(`timeframes.${block.timeframe}`)}</span>
+                <span className="truncate">{block.labels.join(" · ")}</span>
+              </span>
+            ))}
           </div>
-
-          <div className="grid grid-cols-3 gap-2 xl:min-w-[300px]">
-            <div className="rounded-xl border border-border bg-surface-alt/70 px-3 py-2 dark:border-[#1a2d39] dark:bg-[#071019]">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-text-muted">
-                {t("workspace.cards.bullish")}
-              </p>
-              <p className="mt-1 text-lg font-bold text-success">{resultSummary.bullish}</p>
-            </div>
-            <div className="rounded-xl border border-border bg-surface-alt/70 px-3 py-2 dark:border-[#1a2d39] dark:bg-[#071019]">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-text-muted">
-                {t("workspace.cards.bearish")}
-              </p>
-              <p className="mt-1 text-lg font-bold text-danger">{resultSummary.bearish}</p>
-            </div>
-            <div className="rounded-xl border border-border bg-surface-alt/70 px-3 py-2 dark:border-[#1a2d39] dark:bg-[#071019]">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-text-muted">
-                {t("workspace.cards.strong")}
-              </p>
-              <p className="mt-1 text-lg font-bold text-primary">{resultSummary.strong}</p>
-            </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-full bg-success-soft px-2.5 py-1 text-[11px] font-semibold text-success ring-1 ring-success/15">
+            {resultSummary.bullish} {t("workspace.cards.bullish")}
+          </span>
+          <span className="rounded-full bg-danger-soft px-2.5 py-1 text-[11px] font-semibold text-danger ring-1 ring-danger/15">
+            {resultSummary.bearish} {t("workspace.cards.bearish")}
+          </span>
+          <span className="rounded-full bg-primary-soft px-2.5 py-1 text-[11px] font-semibold text-primary ring-1 ring-primary/10">
+            {resultSummary.strong} {t("workspace.cards.strong")}
+          </span>
+          <div className="inline-flex items-center rounded-full bg-surface-alt p-1 ring-1 ring-border">
+            <button
+              type="button"
+              onClick={() => setDensity("comfortable")}
+              className={clsx(
+                "rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors",
+                density === "comfortable" ? "bg-surface-raised text-text shadow-sm ring-1 ring-border" : "text-text-muted hover:text-text"
+              )}
+            >
+              {t("workspace.density.comfortable")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setDensity("compact")}
+              className={clsx(
+                "rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors",
+                density === "compact" ? "bg-surface-raised text-text shadow-sm ring-1 ring-border" : "text-text-muted hover:text-text"
+              )}
+            >
+              {t("workspace.density.compact")}
+            </button>
           </div>
         </div>
       </div>
 
+      <div className="overflow-hidden rounded-[20px] bg-surface-raised shadow-[0_10px_34px_rgba(15,23,42,0.06)] ring-1 ring-border dark:bg-[linear-gradient(180deg,rgba(6,12,18,0.98),rgba(7,14,22,0.98))] dark:ring-[#183241]">
       <div className="divide-y divide-border lg:hidden">
         {sorted.map((row) => {
           const expanded = !!expandedTickers[row.ticker];
@@ -344,10 +321,10 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
               <button
                 type="button"
                 onClick={() => toggleExpanded(row.ticker)}
-                className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-surface-alt/50"
+                className="flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left transition-colors hover:bg-surface-alt/55"
               >
                 <div className="min-w-0">
-                  <p className="text-sm font-bold text-primary">{row.ticker}</p>
+                  <p className="text-sm font-bold tracking-[0.01em] text-text">{row.ticker}</p>
                   <p className="mt-1 text-[11px] text-text-muted">{row.last_trade_date}</p>
                 </div>
                 <div className="text-right">
@@ -356,15 +333,15 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
               </button>
 
               {expanded ? (
-                <div className="space-y-3 border-t border-border bg-surface-alt/60 px-4 py-4 dark:border-[#183241] dark:bg-[#0a141d]">
+                <div className="space-y-3 border-t border-border bg-surface-alt/45 px-4 py-3.5 dark:border-[#183241] dark:bg-[#0a141d]">
                   <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div className="rounded-lg border border-border bg-surface px-3 py-3 dark:border-[#1a2d39] dark:bg-[#071019]">
+                    <div className="rounded-lg bg-surface px-3 py-2.5 ring-1 ring-border dark:bg-[#071019] dark:ring-[#1a2d39]">
                       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
                         {t("table.close")}
                       </p>
                       <p className="mt-1 font-bold text-text">{fmt(row.close)}</p>
                     </div>
-                    <div className="rounded-lg border border-border bg-surface px-3 py-3 dark:border-[#1a2d39] dark:bg-[#071019]">
+                    <div className="rounded-lg bg-surface px-3 py-2.5 ring-1 ring-border dark:bg-[#071019] dark:ring-[#1a2d39]">
                       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
                         {t("table.atrPct")}
                       </p>
@@ -379,19 +356,19 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
                   </div>
 
                   <div className="grid grid-cols-4 gap-2">
-                    <div className="rounded-lg border border-border bg-surface px-3 py-2 text-center dark:border-[#1a2d39] dark:bg-[#071019]">
+                    <div className="rounded-lg bg-surface px-3 py-2 text-center ring-1 ring-border dark:bg-[#071019] dark:ring-[#1a2d39]">
                       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">20</p>
                       <div className="mt-1"><SmaPill above={row.is_above_sma20} below={row.is_below_sma20} /></div>
                     </div>
-                    <div className="rounded-lg border border-border bg-surface px-3 py-2 text-center dark:border-[#1a2d39] dark:bg-[#071019]">
+                    <div className="rounded-lg bg-surface px-3 py-2 text-center ring-1 ring-border dark:bg-[#071019] dark:ring-[#1a2d39]">
                       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">50</p>
                       <div className="mt-1"><SmaPill above={row.is_above_sma50} below={row.is_below_sma50} /></div>
                     </div>
-                    <div className="rounded-lg border border-border bg-surface px-3 py-2 text-center dark:border-[#1a2d39] dark:bg-[#071019]">
+                    <div className="rounded-lg bg-surface px-3 py-2 text-center ring-1 ring-border dark:bg-[#071019] dark:ring-[#1a2d39]">
                       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">150</p>
                       <div className="mt-1"><SmaPill above={row.is_above_sma150} below={row.is_below_sma150} /></div>
                     </div>
-                    <div className="rounded-lg border border-border bg-surface px-3 py-2 text-center dark:border-[#1a2d39] dark:bg-[#071019]">
+                    <div className="rounded-lg bg-surface px-3 py-2 text-center ring-1 ring-border dark:bg-[#071019] dark:ring-[#1a2d39]">
                       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">200</p>
                       <div className="mt-1"><SmaPill above={row.is_above_sma200} below={row.is_below_sma200} /></div>
                     </div>
@@ -399,7 +376,7 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
 
                   <Link
                     href={`/ticker/${row.ticker}${tickerQuery}`}
-                    className="inline-flex items-center rounded-lg border border-border bg-surface px-3 py-2 text-xs font-bold uppercase tracking-wide text-text-secondary transition-colors hover:border-border-strong hover:text-text"
+                    className="inline-flex items-center rounded-lg bg-surface px-3 py-2 text-xs font-bold uppercase tracking-wide text-text-secondary ring-1 ring-border transition-colors hover:text-text hover:ring-border-strong"
                   >
                     {t("workspace.openTicker")}
                   </Link>
@@ -412,51 +389,51 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
 
       <div className="hidden overflow-x-auto lg:block">
         <table className="min-w-full text-sm">
-          <thead className="sticky top-0 z-10 bg-surface-alt dark:bg-[#0a141d]">
-            <tr className="border-b border-border text-start">
-              <th scope="col" className="px-4 py-3 text-start text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
+          <thead className="sticky top-0 z-10 bg-surface-alt/92 backdrop-blur dark:bg-[#0a141df2]">
+            <tr className="border-b border-border/80 text-start">
+              <th scope="col" className="px-4 py-2.5 text-start text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">
                 <button onClick={() => handleSort("ticker")} className="inline-flex items-center gap-1 transition-colors hover:text-text">
                   {t("table.ticker")}
                 </button>
               </th>
-              <th scope="col" className="px-3 py-3 text-end text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
+              <th scope="col" className="px-3 py-2.5 text-end text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">
                 <button onClick={() => handleSort("close")} className="inline-flex items-center gap-1 transition-colors hover:text-text">
                   {t("table.close")}
                 </button>
               </th>
-              <th scope="col" className="px-2 py-3 text-center text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("table.sma20")}</th>
-              <th scope="col" className="px-2 py-3 text-center text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("table.sma50")}</th>
-              <th scope="col" className="px-2 py-3 text-center text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("table.sma150")}</th>
-              <th scope="col" className="px-2 py-3 text-center text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("table.sma200")}</th>
-              <th scope="col" className="px-3 py-3 text-end text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
+              <th scope="col" className="px-2 py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">{t("table.sma20")}</th>
+              <th scope="col" className="px-2 py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">{t("table.sma50")}</th>
+              <th scope="col" className="px-2 py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">{t("table.sma150")}</th>
+              <th scope="col" className="px-2 py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">{t("table.sma200")}</th>
+              <th scope="col" className="px-3 py-2.5 text-end text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">
                 <button onClick={() => handleSort("atr_percent")} className="inline-flex items-center gap-1 transition-colors hover:text-text">
                   {t("table.atrPct")}
                 </button>
               </th>
-              <th scope="col" className="px-3 py-3 text-start text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("table.seqState")}</th>
-              <th scope="col" className="px-3 py-3 text-start text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.columns.matrix")}</th>
+              <th scope="col" className="px-3 py-2.5 text-start text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">{t("table.seqState")}</th>
+              <th scope="col" className="px-3 py-2.5 text-start text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">{t("workspace.columns.matrix")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {sorted.map((row) => (
-              <tr key={row.ticker} className="align-top transition-colors hover:bg-surface-alt/50">
+              <tr key={row.ticker} className="align-top transition-colors hover:bg-surface-alt/40 focus-within:bg-surface-alt/55">
                 <td className={densityTickerClass}>
                   <div className="flex flex-col gap-1">
                     <Link
                       href={`/ticker/${row.ticker}${tickerQuery}`}
-                      className="font-bold text-primary hover:underline decoration-primary/30 underline-offset-2"
+                      className="font-bold tracking-[0.01em] text-text hover:text-primary hover:underline decoration-primary/30 underline-offset-2"
                     >
                       {row.ticker}
                     </Link>
-                    <span className="text-[11px] text-text-muted">{row.last_trade_date}</span>
+                    <span className="text-[10px] text-text-muted">{row.last_trade_date}</span>
                   </div>
                 </td>
-                <td className={clsx(densityRowClass, "text-end tabular-nums font-bold text-text")}>{fmt(row.close)}</td>
+                <td className={clsx(densityRowClass, "text-end tabular-nums font-semibold text-text")}>{fmt(row.close)}</td>
                 <td className={clsx(densityRowClass, "text-center")}><SmaPill above={row.is_above_sma20} below={row.is_below_sma20} /></td>
                 <td className={clsx(densityRowClass, "text-center")}><SmaPill above={row.is_above_sma50} below={row.is_below_sma50} /></td>
                 <td className={clsx(densityRowClass, "text-center")}><SmaPill above={row.is_above_sma150} below={row.is_below_sma150} /></td>
                 <td className={clsx(densityRowClass, "text-center")}><SmaPill above={row.is_above_sma200} below={row.is_below_sma200} /></td>
-                <td className={clsx(densityRowClass, "text-end tabular-nums text-text-secondary")}>{fmt(row.atr_percent)}</td>
+                <td className={clsx(densityRowClass, "text-end tabular-nums text-[12px] text-text-secondary")}>{fmt(row.atr_percent)}</td>
                 <td className={densityRowClass}>
                   <SignalBadge row={row} />
                 </td>
@@ -471,6 +448,7 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
             ))}
           </tbody>
         </table>
+      </div>
       </div>
     </section>
   );
