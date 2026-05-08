@@ -413,6 +413,8 @@ export default function ScreenerPage() {
                 onClose={() => setDesktopFiltersOpen(false)}
                 hasPendingChanges={hasPendingChanges}
                 appliedFilterCount={appliedFilterCount}
+                resultCount={resultSummary.rows}
+                lastUpdatedLabel={formattedLastUpdated}
               />
             </div>
 
@@ -561,6 +563,8 @@ export default function ScreenerPage() {
                 onClose={() => setMobileFiltersOpen(false)}
                 hasPendingChanges={hasPendingChanges}
                 appliedFilterCount={appliedFilterCount}
+                resultCount={resultSummary.rows}
+                lastUpdatedLabel={formattedLastUpdated}
               />
             </div>
           </div>
