@@ -30,6 +30,12 @@ function toneClass(tone: TrendTone | "accent") {
   return "bg-surface text-text-secondary ring-border";
 }
 
+function sparklineToneClass(tone: TrendTone) {
+  if (tone === "bullish") return "text-[#22c55e]";
+  if (tone === "bearish") return "text-[#f87171]";
+  return "text-[#818cf8]";
+}
+
 export function StockLookupHeader({
   coverage,
   sparklinePoints,
@@ -125,25 +131,25 @@ export function StockLookupHeader({
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-[22px] bg-[radial-gradient(circle_at_top,rgba(56,88,215,0.12),transparent_55%),linear-gradient(180deg,rgba(255,255,255,0.88),rgba(247,249,252,0.98))] px-4 py-4 ring-1 ring-border dark:bg-[radial-gradient(circle_at_top,rgba(56,88,215,0.16),transparent_55%),linear-gradient(180deg,rgba(7,14,22,0.98),rgba(6,12,18,0.98))]">
+          <div className="rounded-[22px] bg-surface-alt px-4 py-4 ring-1 ring-border dark:bg-[#172033] dark:ring-white/[0.06]">
             <div className="flex items-center justify-between">
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.priceStructure")}</p>
-              <span className="text-[11px] text-text-muted">{t("workspace.last60Bars")}</span>
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted dark:text-[#94a3b8]">{t("workspace.priceStructure")}</p>
+              <span className="text-[11px] text-text-muted dark:text-[#94a3b8]">{t("workspace.last60Bars")}</span>
             </div>
             <svg viewBox="0 0 100 36" className="mt-3 h-24 w-full overflow-visible">
               <defs>
                 <linearGradient id="lookupSparkline" x1="0%" x2="100%" y1="0%" y2="0%">
-                  <stop offset="0%" stopColor="currentColor" stopOpacity="0.25" />
-                  <stop offset="100%" stopColor="currentColor" stopOpacity="0.95" />
+                  <stop offset="0%" stopColor="currentColor" stopOpacity="0.42" />
+                  <stop offset="100%" stopColor="currentColor" stopOpacity="0.96" />
                 </linearGradient>
               </defs>
               <polyline
                 fill="none"
                 stroke="url(#lookupSparkline)"
-                strokeWidth="2.4"
+                strokeWidth="2.8"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className={overallTone === "bearish" ? "text-danger" : "text-primary"}
+                className={sparklineToneClass(overallTone)}
                 points={sparklinePoints}
               />
             </svg>

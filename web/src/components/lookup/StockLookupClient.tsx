@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useMessages, useTranslations } from "next-intl";
-import { Link, useRouter } from "@/i18n/navigation";
+import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { PremiumGate } from "@/components/billing/PremiumGate";
@@ -237,8 +238,11 @@ export function StockLookupClient() {
   const lookupMsg = messages.lookup;
   const listId = useId();
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const wrapRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const requestedTickerRef = useRef<string | null>(null);
 
   const [q, setQ] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -253,6 +257,13 @@ export function StockLookupClient() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [accessGate, setAccessGate] = useState<AccessGate>(null);
+
+  const syncTickerUrl = useCallback((ticker: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("ticker", ticker);
+    const next = `${pathname}?${params.toString()}`;
+    router.replace(next, { scroll: false });
+  }, [pathname, router, searchParams]);
 
   const runSearch = useCallback(async (prefix: string) => {
     const trimmed = prefix.trim();
@@ -367,7 +378,11 @@ export function StockLookupClient() {
     return formatReason(template, entry.reasonParams) || null;
   }, [lookupMsg.reason]);
 
-  async function loadSimilar(variant: SimilarVariant, payload: ScreenerPayload, currentCoverage: LookupCoveragePayload) {
+  const loadSimilar = useCallback(async (
+    variant: SimilarVariant,
+    payload: ScreenerPayload,
+    currentCoverage: LookupCoveragePayload
+  ) => {
     setActiveVariant(variant);
     setLoadingSimilar(true);
     setAccessGate(null);
@@ -401,16 +416,20 @@ export function StockLookupClient() {
     } finally {
       setLoadingSimilar(false);
     }
-  }
+  }, [t]);
 
-  async function loadCoverage(ticker: string) {
+  const loadCoverage = useCallback(async (ticker: string) => {
+    const normalizedTicker = ticker.trim().toUpperCase();
+    if (!normalizedTicker) return;
+    requestedTickerRef.current = normalizedTicker;
+    setQ(normalizedTicker);
     setLoadingCoverage(true);
     setLoadingSimilar(true);
     setError("");
     setAccessGate(null);
     setSuggestOpen(false);
     try {
-      const res = await fetch(`/api/tickers/${encodeURIComponent(ticker)}/coverage`);
+      const res = await fetch(`/api/tickers/${encodeURIComponent(normalizedTicker)}/coverage`);
       if (res.status === 401) {
         setAccessGate("login");
         setCoverage(null);
@@ -431,6 +450,7 @@ export function StockLookupClient() {
       }
       const data = (await res.json()) as LookupCoveragePayload;
       setCoverage(data);
+      syncTickerUrl(data.ticker);
       setSimilarRows([]);
       void loadSimilar("exact", buildQuickExactPayload(data), data);
     } catch {
@@ -440,7 +460,16 @@ export function StockLookupClient() {
       setLoadingCoverage(false);
       setLoadingSimilar(false);
     }
-  }
+  }, [loadSimilar, syncTickerUrl, t]);
+
+  useEffect(() => {
+    const tickerFromUrl = searchParams.get("ticker")?.trim().toUpperCase();
+    if (!tickerFromUrl) return;
+    if (coverage?.ticker === tickerFromUrl || requestedTickerRef.current === tickerFromUrl) {
+      return;
+    }
+    void loadCoverage(tickerFromUrl);
+  }, [coverage?.ticker, loadCoverage, searchParams]);
 
   const dailyChangePct = useMemo(() => (coverage ? computeDailyMovePct(coverage.recentBars) : null), [coverage]);
   const sparklinePoints = useMemo(() => (coverage ? makeSparklinePoints(coverage.recentBars) : ""), [coverage]);
