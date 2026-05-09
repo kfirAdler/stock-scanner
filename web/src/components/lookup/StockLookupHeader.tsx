@@ -1,6 +1,7 @@
 "use client";
 
 import { clsx } from "clsx";
+import { useId } from "react";
 import type { LookupCondition, LookupCoveragePayload, TrendTone } from "./types";
 
 type HeaderBadge = {
@@ -30,10 +31,32 @@ function toneClass(tone: TrendTone | "accent") {
   return "bg-surface text-text-secondary ring-border";
 }
 
-function sparklineToneClass(changePct: number | null) {
-  if (changePct != null && changePct > 0) return "text-[#16a34a]";
-  if (changePct != null && changePct < 0) return "text-[#dc2626]";
-  return "text-[#818cf8]";
+function sparklineTone(changePct: number | null) {
+  if (changePct != null && changePct > 0) {
+    return {
+      strokeFrom: "#86efac",
+      strokeTo: "#16a34a",
+      fillFrom: "rgba(34,197,94,0.18)",
+      fillTo: "rgba(34,197,94,0.02)",
+      dot: "#16a34a",
+    };
+  }
+  if (changePct != null && changePct < 0) {
+    return {
+      strokeFrom: "#fca5a5",
+      strokeTo: "#dc2626",
+      fillFrom: "rgba(239,68,68,0.16)",
+      fillTo: "rgba(239,68,68,0.02)",
+      dot: "#dc2626",
+    };
+  }
+  return {
+    strokeFrom: "#a5b4fc",
+    strokeTo: "#6366f1",
+    fillFrom: "rgba(99,102,241,0.16)",
+    fillTo: "rgba(99,102,241,0.02)",
+    dot: "#6366f1",
+  };
 }
 
 function sparklineAreaPath(points: string) {
@@ -70,9 +93,11 @@ export function StockLookupHeader({
   formatMarketCap,
   t,
 }: StockLookupHeaderProps) {
+  const chartId = useId().replace(/:/g, "");
   const meta = coverage.metadata;
   const areaPath = sparklineAreaPath(sparklinePoints);
   const lastPoint = sparklineLastPoint(sparklinePoints);
+  const sparklineColors = sparklineTone(dailyChangePct);
   return (
     <section className="overflow-hidden rounded-[24px] bg-surface-raised shadow-[0_12px_34px_rgba(15,23,42,0.06)] ring-1 ring-border dark:ring-[#183241]">
       <div className="grid gap-5 px-5 py-5 lg:grid-cols-[minmax(0,1.5fr)_280px] lg:px-6">
@@ -161,30 +186,28 @@ export function StockLookupHeader({
             </div>
             <svg viewBox="0 0 100 36" className="mt-3 h-24 w-full overflow-visible">
               <defs>
-                <linearGradient id="lookupSparklineStroke" x1="0%" x2="100%" y1="0%" y2="0%">
-                  <stop offset="0%" stopColor="currentColor" stopOpacity="0.48" />
-                  <stop offset="100%" stopColor="currentColor" stopOpacity="1" />
+                <linearGradient id={`lookupSparklineStroke-${chartId}`} x1="0%" x2="100%" y1="0%" y2="0%">
+                  <stop offset="0%" stopColor={sparklineColors.strokeFrom} />
+                  <stop offset="100%" stopColor={sparklineColors.strokeTo} />
                 </linearGradient>
-                <linearGradient id="lookupSparklineFill" x1="0%" x2="0%" y1="0%" y2="100%">
-                  <stop offset="0%" stopColor="currentColor" stopOpacity="0.2" />
-                  <stop offset="100%" stopColor="currentColor" stopOpacity="0.02" />
+                <linearGradient id={`lookupSparklineFill-${chartId}`} x1="0%" x2="0%" y1="0%" y2="100%">
+                  <stop offset="0%" stopColor={sparklineColors.fillFrom} />
+                  <stop offset="100%" stopColor={sparklineColors.fillTo} />
                 </linearGradient>
               </defs>
               <path d="M 0 35.5 L 100 35.5" className="text-border dark:text-white/[0.08]" stroke="currentColor" strokeWidth="0.6" />
               {areaPath ? (
                 <path
                   d={areaPath}
-                  fill="url(#lookupSparklineFill)"
-                  className={sparklineToneClass(dailyChangePct)}
+                  fill={`url(#lookupSparklineFill-${chartId})`}
                 />
               ) : null}
               <polyline
                 fill="none"
-                stroke="url(#lookupSparklineStroke)"
+                stroke={`url(#lookupSparklineStroke-${chartId})`}
                 strokeWidth="2.8"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className={sparklineToneClass(dailyChangePct)}
                 points={sparklinePoints}
               />
               {lastPoint ? (
@@ -192,8 +215,7 @@ export function StockLookupHeader({
                   cx={lastPoint.x}
                   cy={lastPoint.y}
                   r="1.7"
-                  className={sparklineToneClass(dailyChangePct)}
-                  fill="currentColor"
+                  fill={sparklineColors.dot}
                   stroke="rgba(255,255,255,0.85)"
                   strokeWidth="0.9"
                 />
