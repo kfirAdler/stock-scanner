@@ -28,7 +28,7 @@ function StatusBadge({
         tone === "success" && "bg-success-soft text-success ring-1 ring-success/10",
         tone === "warning" && "bg-warning-soft text-warning ring-1 ring-warning/10",
         tone === "default" && "bg-surface-raised text-text-secondary ring-1 ring-border dark:bg-[#172033] dark:ring-white/[0.05]",
-        tone === "primary" && "dark:bg-[rgba(79,110,247,0.14)] dark:text-[#c7d2fe] dark:ring-[rgba(99,102,241,0.18)]",
+        tone === "primary" && "dark:bg-[rgba(79,110,247,0.14)] dark:text-[#f8fafc] dark:ring-[rgba(99,102,241,0.18)]",
         tone === "success" && "dark:bg-[rgba(34,197,94,0.11)] dark:text-success dark:ring-[rgba(34,197,94,0.14)]",
         tone === "warning" && "dark:bg-[rgba(245,158,11,0.11)] dark:text-warning dark:ring-[rgba(245,158,11,0.14)]"
       )}

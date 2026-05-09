@@ -35,7 +35,7 @@ export function TimeframeSegmentedControl({
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-alt",
             density === "compact" ? "px-3 py-2" : "px-3.5 py-2.5",
             value === item.id
-              ? "bg-primary-soft text-primary shadow-sm ring-1 ring-primary/10 dark:text-[#c7d2fe] dark:ring-[rgba(99,102,241,0.18)]"
+              ? "bg-primary-soft text-primary shadow-sm ring-1 ring-primary/10 dark:text-[#f8fafc] dark:ring-[rgba(99,102,241,0.18)]"
               : "text-text-secondary hover:bg-surface-raised/75 hover:text-text dark:hover:bg-[#1e293b]"
           )}
         >

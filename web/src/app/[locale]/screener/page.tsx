@@ -342,10 +342,10 @@ export default function ScreenerPage() {
           <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
             <div className="flex flex-wrap items-center gap-2.5">
               <h1 className="text-[17px] font-bold tracking-tight text-text">{t("title")}</h1>
-              <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-text-secondary ring-1 ring-border">
+              <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-text-secondary ring-1 ring-border dark:bg-[#172033] dark:ring-white/[0.05]">
                 {resultSummary.rows} {t("workspace.statusMatches")}
               </span>
-              <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-text-secondary ring-1 ring-border">
+              <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-text-secondary ring-1 ring-border dark:bg-[#172033] dark:ring-white/[0.05]">
                 {activeFilterCount} {t("workspace.statusFilters")}
               </span>
               <span
@@ -357,7 +357,7 @@ export default function ScreenerPage() {
                 {hasPendingChanges ? t("workspace.draftPending") : t("workspace.draftSynced")}
               </span>
               {relativeLastUpdated ? (
-                <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-text-muted ring-1 ring-border">
+                <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-text-muted ring-1 ring-border dark:bg-[#172033] dark:ring-white/[0.05]">
                   {t("workspace.statusUpdated")} {relativeLastUpdated}
                 </span>
               ) : null}
@@ -447,10 +447,10 @@ export default function ScreenerPage() {
 
             <div className="space-y-3">
               <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-surface-alt/70 px-3.5 py-2.5 ring-1 ring-border/70 dark:bg-[#172033] dark:ring-white/[0.05]">
-                <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-text-secondary ring-1 ring-border">
+                <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-text-secondary ring-1 ring-border dark:bg-[#111827] dark:ring-white/[0.05]">
                   {t("workspace.appliedCount", { count: appliedFilterCount })}
                 </span>
-                <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-text-secondary ring-1 ring-border">
+                <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-text-secondary ring-1 ring-border dark:bg-[#111827] dark:ring-white/[0.05]">
                   {t("terminalHeader.appliedRules", { count: appliedFilters.rules.length })}
                 </span>
                 {resultSummary.strongSignals > 0 ? (
@@ -459,7 +459,7 @@ export default function ScreenerPage() {
                   </span>
                 ) : null}
                 {resultSummary.higherTimeframeRules > 0 ? (
-                  <span className="rounded-full bg-primary-soft px-2.5 py-1 text-[11px] font-semibold text-primary ring-1 ring-primary/10">
+                  <span className="rounded-full bg-primary-soft px-2.5 py-1 text-[11px] font-semibold text-primary ring-1 ring-primary/10 dark:text-[#f8fafc] dark:ring-[rgba(99,102,241,0.18)]">
                     {t("terminalHeader.multiBlocks", { count: resultSummary.higherTimeframeRules })}
                   </span>
                 ) : null}
@@ -537,7 +537,7 @@ export default function ScreenerPage() {
               <button
                 type="button"
                 onClick={() => setMultiFilterGateOpen(false)}
-                className="absolute end-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full bg-surface-raised/90 text-text-secondary shadow-sm ring-1 ring-border transition-colors hover:text-text"
+                className="absolute end-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full bg-surface-raised/90 text-text-secondary shadow-sm ring-1 ring-border transition-colors hover:text-text dark:bg-[#172033] dark:ring-white/[0.05] dark:hover:bg-[#1e293b]"
                 aria-label={t("guestLimit.close")}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">

@@ -46,7 +46,7 @@ export function FilterCategoryTabs({
                 className={clsx(
                   "rounded-full px-1.5 py-0.5 text-[10px] font-bold",
                   active
-                    ? "bg-primary-soft text-primary"
+                    ? "bg-primary-soft text-primary dark:text-[#f8fafc]"
                     : "bg-surface-raised text-text-muted ring-1 ring-border dark:bg-[#172033] dark:ring-white/[0.05]"
                 )}
               >

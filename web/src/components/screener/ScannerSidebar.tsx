@@ -35,7 +35,7 @@ export function ScannerSidebar({
             ) : null}
           </div>
           <div className="flex items-center gap-2">
-            <span className="inline-flex min-w-8 items-center justify-center rounded-full bg-primary-soft px-2 py-1 text-[11px] font-bold text-primary ring-1 ring-primary/10">
+            <span className="inline-flex min-w-8 items-center justify-center rounded-full bg-primary-soft px-2 py-1 text-[11px] font-bold text-primary ring-1 ring-primary/10 dark:text-[#f8fafc] dark:ring-[rgba(99,102,241,0.18)]">
               {filterCount}
             </span>
             {onClose ? (
