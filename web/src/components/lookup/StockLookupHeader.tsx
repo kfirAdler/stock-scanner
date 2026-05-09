@@ -30,10 +30,31 @@ function toneClass(tone: TrendTone | "accent") {
   return "bg-surface text-text-secondary ring-border";
 }
 
-function sparklineToneClass(tone: TrendTone) {
-  if (tone === "bullish") return "text-[#22c55e]";
-  if (tone === "bearish") return "text-[#f87171]";
+function sparklineToneClass(changePct: number | null) {
+  if (changePct != null && changePct > 0) return "text-[#16a34a]";
+  if (changePct != null && changePct < 0) return "text-[#dc2626]";
   return "text-[#818cf8]";
+}
+
+function sparklineAreaPath(points: string) {
+  const entries = points
+    .split(" ")
+    .map((pair) => pair.split(",").map(Number))
+    .filter((pair): pair is [number, number] => pair.length === 2 && pair.every(Number.isFinite));
+  if (entries.length === 0) return "";
+  const first = entries[0];
+  const last = entries[entries.length - 1];
+  return `M ${first[0]} 36 L ${first[0]} ${first[1]} ${entries
+    .map(([x, y]) => `L ${x} ${y}`)
+    .join(" ")} L ${last[0]} 36 Z`;
+}
+
+function sparklineLastPoint(points: string) {
+  const last = points.trim().split(" ").pop();
+  if (!last) return null;
+  const [x, y] = last.split(",").map(Number);
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+  return { x, y };
 }
 
 export function StockLookupHeader({
@@ -50,6 +71,8 @@ export function StockLookupHeader({
   t,
 }: StockLookupHeaderProps) {
   const meta = coverage.metadata;
+  const areaPath = sparklineAreaPath(sparklinePoints);
+  const lastPoint = sparklineLastPoint(sparklinePoints);
   return (
     <section className="overflow-hidden rounded-[24px] bg-surface-raised shadow-[0_12px_34px_rgba(15,23,42,0.06)] ring-1 ring-border dark:ring-[#183241]">
       <div className="grid gap-5 px-5 py-5 lg:grid-cols-[minmax(0,1.5fr)_280px] lg:px-6">
@@ -138,20 +161,43 @@ export function StockLookupHeader({
             </div>
             <svg viewBox="0 0 100 36" className="mt-3 h-24 w-full overflow-visible">
               <defs>
-                <linearGradient id="lookupSparkline" x1="0%" x2="100%" y1="0%" y2="0%">
-                  <stop offset="0%" stopColor="currentColor" stopOpacity="0.42" />
-                  <stop offset="100%" stopColor="currentColor" stopOpacity="0.96" />
+                <linearGradient id="lookupSparklineStroke" x1="0%" x2="100%" y1="0%" y2="0%">
+                  <stop offset="0%" stopColor="currentColor" stopOpacity="0.48" />
+                  <stop offset="100%" stopColor="currentColor" stopOpacity="1" />
+                </linearGradient>
+                <linearGradient id="lookupSparklineFill" x1="0%" x2="0%" y1="0%" y2="100%">
+                  <stop offset="0%" stopColor="currentColor" stopOpacity="0.2" />
+                  <stop offset="100%" stopColor="currentColor" stopOpacity="0.02" />
                 </linearGradient>
               </defs>
+              <path d="M 0 35.5 L 100 35.5" className="text-border dark:text-white/[0.08]" stroke="currentColor" strokeWidth="0.6" />
+              {areaPath ? (
+                <path
+                  d={areaPath}
+                  fill="url(#lookupSparklineFill)"
+                  className={sparklineToneClass(dailyChangePct)}
+                />
+              ) : null}
               <polyline
                 fill="none"
-                stroke="url(#lookupSparkline)"
+                stroke="url(#lookupSparklineStroke)"
                 strokeWidth="2.8"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className={sparklineToneClass(overallTone)}
+                className={sparklineToneClass(dailyChangePct)}
                 points={sparklinePoints}
               />
+              {lastPoint ? (
+                <circle
+                  cx={lastPoint.x}
+                  cy={lastPoint.y}
+                  r="1.7"
+                  className={sparklineToneClass(dailyChangePct)}
+                  fill="currentColor"
+                  stroke="rgba(255,255,255,0.85)"
+                  strokeWidth="0.9"
+                />
+              ) : null}
             </svg>
           </div>
 
