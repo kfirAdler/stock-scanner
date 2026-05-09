@@ -423,7 +423,7 @@ export function FilterPanel({
                   return (
                     <label
                       key={`${activeTimeframe}-${definition.field}`}
-                      className="grid gap-2 rounded-2xl bg-surface-raised p-3 ring-1 ring-border"
+                      className="grid gap-2 rounded-2xl bg-surface-raised p-3 ring-1 ring-border dark:bg-[#172033] dark:ring-white/[0.05]"
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div>
@@ -439,7 +439,7 @@ export function FilterPanel({
                           setNumericRule(activeTimeframe, definition.field, operator, e.target.value)
                         }
                         placeholder={t("valuePlaceholder")}
-                        className="w-full rounded-xl bg-surface px-3 py-2 text-sm text-text ring-1 ring-border transition focus:outline-none focus:ring-2 focus:ring-primary/25"
+                        className="w-full rounded-xl bg-surface px-3 py-2 text-sm text-text ring-1 ring-border transition focus:outline-none focus:ring-2 focus:ring-primary/25 dark:bg-[#111827] dark:ring-white/[0.05]"
                       />
                     </label>
                   );
@@ -458,7 +458,7 @@ export function FilterPanel({
                 return (
                   <div
                     key={`${activeTimeframe}-${definition.field}`}
-                    className="space-y-2 rounded-2xl bg-surface-raised p-3 ring-1 ring-border"
+                    className="space-y-2 rounded-2xl bg-surface-raised p-3 ring-1 ring-border dark:bg-[#172033] dark:ring-white/[0.05]"
                   >
                     <p className="text-sm font-semibold text-text">{t(definition.labelKey)}</p>
                     <div className="flex flex-wrap gap-2">
