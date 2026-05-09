@@ -27,7 +27,7 @@ function StatusBadge({
         tone === "primary" && "bg-primary-soft text-primary ring-1 ring-primary/10",
         tone === "success" && "bg-success-soft text-success ring-1 ring-success/10",
         tone === "warning" && "bg-warning-soft text-warning ring-1 ring-warning/10",
-        tone === "default" && "bg-surface-raised text-text-secondary ring-1 ring-border"
+        tone === "default" && "bg-surface-raised text-text-secondary ring-1 ring-border dark:bg-white/[0.04] dark:ring-white/[0.05]"
       )}
     >
       {label}
@@ -46,7 +46,7 @@ export function ScannerStatusBar({
   statusMessage,
 }: ScannerStatusBarProps) {
   return (
-    <div className="rounded-2xl bg-surface-alt/90 p-3 ring-1 ring-border">
+    <div className="rounded-2xl bg-surface-alt/90 p-3 ring-1 ring-border dark:bg-[linear-gradient(180deg,rgba(21,30,49,0.92),rgba(16,24,39,0.9))] dark:ring-white/[0.05]">
       <div className="flex flex-wrap items-center gap-2">
         <StatusBadge
           label={syncLabel}

@@ -33,31 +33,31 @@
 }
 
 .dark {
-  --color-primary: #2dd4bf;
-  --color-primary-hover: #5eead4;
-  --color-primary-soft: #052a27;
-  --color-on-primary: #031311;
-  --color-ambient-glow: rgba(45, 212, 191, 0.08);
-  --color-surface: #02050a;
-  --color-surface-alt: #070d14;
-  --color-surface-raised: #0a1119;
-  --color-border: #15212d;
-  --color-border-strong: #213243;
-  --color-text: #ecfdf5;
-  --color-text-secondary: #b4d0cb;
-  --color-text-muted: #6c8a92;
-  --color-success: #4dff88;
-  --color-success-soft: #072515;
-  --color-danger: #ff6b81;
-  --color-danger-soft: #2d0a12;
-  --color-on-danger: #18060a;
-  --color-warning: #facc15;
-  --color-warning-soft: #2b2105;
-  --color-accent: #67e8f9;
-  --color-accent-soft: #08252b;
-  --color-on-text: #02050a;
-  --color-chart-up: #4dff88;
-  --color-chart-down: #ff6b81;
+  --color-primary: #4f6ef7;
+  --color-primary-hover: #6f88ff;
+  --color-primary-soft: #1a2544;
+  --color-on-primary: #eff4ff;
+  --color-ambient-glow: rgba(79, 110, 247, 0.13);
+  --color-surface: #0b1020;
+  --color-surface-alt: #111827;
+  --color-surface-raised: #162033;
+  --color-border: rgba(255, 255, 255, 0.055);
+  --color-border-strong: #22314d;
+  --color-text: #e5e7eb;
+  --color-text-secondary: #94a3b8;
+  --color-text-muted: #64748b;
+  --color-success: #86efac;
+  --color-success-soft: rgba(34, 197, 94, 0.12);
+  --color-danger: #fca5a5;
+  --color-danger-soft: rgba(239, 68, 68, 0.12);
+  --color-on-danger: #fff1f2;
+  --color-warning: #fcd34d;
+  --color-warning-soft: rgba(245, 158, 11, 0.12);
+  --color-accent: #93c5fd;
+  --color-accent-soft: rgba(96, 165, 250, 0.14);
+  --color-on-text: #0b1020;
+  --color-chart-up: #86efac;
+  --color-chart-down: #fca5a5;
 }
 
 html {
@@ -74,9 +74,10 @@ body {
 
 html.dark body {
   background-image:
-    radial-gradient(1000px 480px at 85% -15%, rgba(45, 212, 191, 0.1), transparent 55%),
-    radial-gradient(900px 420px at 10% 0%, rgba(77, 255, 136, 0.06), transparent 45%),
-    radial-gradient(800px 360px at 0% 0%, var(--color-ambient-glow), transparent 50%);
+    radial-gradient(1100px 520px at 82% -12%, rgba(79, 110, 247, 0.16), transparent 58%),
+    radial-gradient(900px 420px at 12% 4%, rgba(59, 130, 246, 0.08), transparent 48%),
+    radial-gradient(780px 360px at 50% 100%, rgba(15, 23, 42, 0.55), transparent 64%),
+    radial-gradient(820px 380px at 0% 0%, var(--color-ambient-glow), transparent 52%);
 }
 
 ::selection {

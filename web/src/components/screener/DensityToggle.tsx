@@ -23,7 +23,7 @@ export function DensityToggle({
   ];
 
   return (
-    <div className="inline-flex items-center rounded-full bg-surface-alt p-1 ring-1 ring-border">
+    <div className="inline-flex items-center rounded-full bg-surface-alt p-1 ring-1 ring-border dark:bg-white/[0.035] dark:ring-white/[0.05]">
       {options.map((option) => (
         <button
           key={option.id}
@@ -33,7 +33,7 @@ export function DensityToggle({
             "rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35",
             value === option.id
-              ? "bg-surface-raised text-text shadow-sm ring-1 ring-border"
+              ? "bg-surface-raised text-text shadow-sm ring-1 ring-border dark:bg-white/[0.07] dark:ring-white/[0.06]"
               : "text-text-muted hover:text-text-secondary"
           )}
         >

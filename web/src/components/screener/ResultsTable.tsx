@@ -99,14 +99,14 @@ function SignalBadge({ row }: { row: ScreenerResultRow }) {
 }
 
 function snapshotMatrixTone(snapshot: SnapshotRow | null | undefined) {
-  if (!snapshot) return "border-border bg-surface text-text-muted";
+  if (!snapshot) return "border-border bg-surface text-text-muted dark:border-white/[0.04] dark:bg-white/[0.03]";
   if (snapshot.strong_buy_signal || snapshot.buy_signal || snapshot.bullish_sequence_active) {
     return "border-success/30 bg-success-soft text-success";
   }
   if (snapshot.strong_sell_signal || snapshot.sell_signal || snapshot.bearish_sequence_active) {
     return "border-danger/30 bg-danger-soft text-danger";
   }
-  return "border-border-strong bg-surface-alt text-text-secondary";
+  return "border-border-strong bg-surface-alt text-text-secondary dark:border-white/[0.05] dark:bg-white/[0.035]";
 }
 
 function snapshotMatrixLabel(
@@ -229,7 +229,7 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
 
   if (loading) {
     return (
-      <div className="flex min-h-[420px] items-center justify-center rounded-2xl border border-border bg-surface-raised">
+      <div className="flex min-h-[420px] items-center justify-center rounded-2xl border border-border bg-surface-raised dark:border-white/[0.05] dark:bg-[linear-gradient(180deg,rgba(20,29,48,0.9),rgba(17,24,39,0.96))]">
         <div className="flex flex-col items-center gap-3">
           <div className="h-9 w-9 animate-spin rounded-full border-[3px] border-primary/25 border-t-primary" role="status" />
           <span className="text-sm font-medium text-text-muted">{t("results")}…</span>
@@ -240,7 +240,7 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
 
   if (rows.length === 0) {
     return (
-      <div className="flex min-h-[420px] items-center justify-center rounded-2xl border border-border bg-surface-raised">
+      <div className="flex min-h-[420px] items-center justify-center rounded-2xl border border-border bg-surface-raised dark:border-white/[0.05] dark:bg-[linear-gradient(180deg,rgba(20,29,48,0.9),rgba(17,24,39,0.96))]">
         <div className="space-y-2 text-center">
           <p className="text-sm font-bold text-text">{t("symbols", { count: 0 })}</p>
           <p className="text-sm text-text-muted">{t("activeFiltersEmpty")}</p>
@@ -269,7 +269,7 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
             {activeScanSummary.map((block) => (
               <span
                 key={block.timeframe}
-                className="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-1 text-[11px] text-text-secondary ring-1 ring-border"
+                className="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-1 text-[11px] text-text-secondary ring-1 ring-border dark:bg-white/[0.04] dark:ring-white/[0.05]"
               >
                 <span className="font-semibold text-text">{t(`timeframes.${block.timeframe}`)}</span>
                 <span className="truncate">{block.labels.join(" · ")}</span>
@@ -287,13 +287,13 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
           <span className="rounded-full bg-primary-soft px-2.5 py-1 text-[11px] font-semibold text-primary ring-1 ring-primary/10">
             {resultSummary.strong} {t("workspace.cards.strong")}
           </span>
-          <div className="inline-flex items-center rounded-full bg-surface-alt p-1 ring-1 ring-border">
+          <div className="inline-flex items-center rounded-full bg-surface-alt p-1 ring-1 ring-border dark:bg-white/[0.035] dark:ring-white/[0.05]">
             <button
               type="button"
               onClick={() => setDensity("comfortable")}
               className={clsx(
                 "rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors",
-                density === "comfortable" ? "bg-surface-raised text-text shadow-sm ring-1 ring-border" : "text-text-muted hover:text-text"
+                density === "comfortable" ? "bg-surface-raised text-text shadow-sm ring-1 ring-border dark:bg-white/[0.07] dark:ring-white/[0.06]" : "text-text-muted hover:text-text"
               )}
             >
               {t("workspace.density.comfortable")}
@@ -303,7 +303,7 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
               onClick={() => setDensity("compact")}
               className={clsx(
                 "rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors",
-                density === "compact" ? "bg-surface-raised text-text shadow-sm ring-1 ring-border" : "text-text-muted hover:text-text"
+                density === "compact" ? "bg-surface-raised text-text shadow-sm ring-1 ring-border dark:bg-white/[0.07] dark:ring-white/[0.06]" : "text-text-muted hover:text-text"
               )}
             >
               {t("workspace.density.compact")}
@@ -312,16 +312,16 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-[20px] bg-surface-raised shadow-[0_10px_34px_rgba(15,23,42,0.06)] ring-1 ring-border dark:bg-[linear-gradient(180deg,rgba(6,12,18,0.98),rgba(7,14,22,0.98))] dark:ring-[#183241]">
-      <div className="divide-y divide-border lg:hidden">
+      <div className="overflow-hidden rounded-[20px] bg-surface-raised shadow-[0_10px_34px_rgba(15,23,42,0.06)] ring-1 ring-border dark:bg-[radial-gradient(circle_at_top,rgba(79,110,247,0.1),transparent_34%),linear-gradient(180deg,rgba(22,32,51,0.98),rgba(15,23,42,0.98))] dark:shadow-[0_24px_64px_rgba(2,6,23,0.5)] dark:ring-white/[0.05]">
+      <div className="divide-y divide-border dark:divide-white/[0.04] lg:hidden">
         {sorted.map((row) => {
           const expanded = !!expandedTickers[row.ticker];
           return (
-            <div key={row.ticker} className="bg-surface-raised dark:bg-[#071019]">
+            <div key={row.ticker} className="bg-surface-raised dark:bg-transparent">
               <button
                 type="button"
                 onClick={() => toggleExpanded(row.ticker)}
-                className="flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left transition-colors hover:bg-surface-alt/55"
+                className="flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left transition-colors hover:bg-surface-alt/55 dark:hover:bg-white/[0.04]"
               >
                 <div className="min-w-0">
                   <p className="text-sm font-bold tracking-[0.01em] text-text">{row.ticker}</p>
@@ -333,15 +333,15 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
               </button>
 
               {expanded ? (
-                <div className="space-y-3 border-t border-border bg-surface-alt/45 px-4 py-3.5 dark:border-[#183241] dark:bg-[#0a141d]">
+                <div className="space-y-3 border-t border-border bg-surface-alt/45 px-4 py-3.5 dark:border-white/[0.05] dark:bg-white/[0.03]">
                   <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div className="rounded-lg bg-surface px-3 py-2.5 ring-1 ring-border dark:bg-[#071019] dark:ring-[#1a2d39]">
+                    <div className="rounded-lg bg-surface px-3 py-2.5 ring-1 ring-border dark:bg-white/[0.035] dark:ring-white/[0.05]">
                       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
                         {t("table.close")}
                       </p>
                       <p className="mt-1 font-bold text-text">{fmt(row.close)}</p>
                     </div>
-                    <div className="rounded-lg bg-surface px-3 py-2.5 ring-1 ring-border dark:bg-[#071019] dark:ring-[#1a2d39]">
+                    <div className="rounded-lg bg-surface px-3 py-2.5 ring-1 ring-border dark:bg-white/[0.035] dark:ring-white/[0.05]">
                       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
                         {t("table.atrPct")}
                       </p>
@@ -356,19 +356,19 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
                   </div>
 
                   <div className="grid grid-cols-4 gap-2">
-                    <div className="rounded-lg bg-surface px-3 py-2 text-center ring-1 ring-border dark:bg-[#071019] dark:ring-[#1a2d39]">
+                    <div className="rounded-lg bg-surface px-3 py-2 text-center ring-1 ring-border dark:bg-white/[0.035] dark:ring-white/[0.05]">
                       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">20</p>
                       <div className="mt-1"><SmaPill above={row.is_above_sma20} below={row.is_below_sma20} /></div>
                     </div>
-                    <div className="rounded-lg bg-surface px-3 py-2 text-center ring-1 ring-border dark:bg-[#071019] dark:ring-[#1a2d39]">
+                    <div className="rounded-lg bg-surface px-3 py-2 text-center ring-1 ring-border dark:bg-white/[0.035] dark:ring-white/[0.05]">
                       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">50</p>
                       <div className="mt-1"><SmaPill above={row.is_above_sma50} below={row.is_below_sma50} /></div>
                     </div>
-                    <div className="rounded-lg bg-surface px-3 py-2 text-center ring-1 ring-border dark:bg-[#071019] dark:ring-[#1a2d39]">
+                    <div className="rounded-lg bg-surface px-3 py-2 text-center ring-1 ring-border dark:bg-white/[0.035] dark:ring-white/[0.05]">
                       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">150</p>
                       <div className="mt-1"><SmaPill above={row.is_above_sma150} below={row.is_below_sma150} /></div>
                     </div>
-                    <div className="rounded-lg bg-surface px-3 py-2 text-center ring-1 ring-border dark:bg-[#071019] dark:ring-[#1a2d39]">
+                    <div className="rounded-lg bg-surface px-3 py-2 text-center ring-1 ring-border dark:bg-white/[0.035] dark:ring-white/[0.05]">
                       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">200</p>
                       <div className="mt-1"><SmaPill above={row.is_above_sma200} below={row.is_below_sma200} /></div>
                     </div>
@@ -376,7 +376,7 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
 
                   <Link
                     href={`/ticker/${row.ticker}${tickerQuery}`}
-                    className="inline-flex items-center rounded-lg bg-surface px-3 py-2 text-xs font-bold uppercase tracking-wide text-text-secondary ring-1 ring-border transition-colors hover:text-text hover:ring-border-strong"
+                    className="inline-flex items-center rounded-lg bg-surface px-3 py-2 text-xs font-bold uppercase tracking-wide text-text-secondary ring-1 ring-border transition-colors hover:text-text hover:ring-border-strong dark:bg-white/[0.035] dark:ring-white/[0.05] dark:hover:bg-white/[0.05]"
                   >
                     {t("workspace.openTicker")}
                   </Link>
@@ -389,8 +389,8 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
 
       <div className="hidden overflow-x-auto lg:block">
         <table className="min-w-full text-sm">
-          <thead className="sticky top-0 z-10 bg-surface-alt/92 backdrop-blur dark:bg-[#0a141df2]">
-            <tr className="border-b border-border/80 text-start">
+          <thead className="sticky top-0 z-10 bg-surface-alt/92 backdrop-blur dark:bg-[rgba(17,24,39,0.82)]">
+            <tr className="border-b border-border/80 text-start dark:border-white/[0.05]">
               <th scope="col" className="px-4 py-2.5 text-start text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">
                 <button onClick={() => handleSort("ticker")} className="inline-flex items-center gap-1 transition-colors hover:text-text">
                   {t("table.ticker")}
@@ -414,9 +414,9 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
               <th scope="col" className="px-3 py-2.5 text-start text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">{t("workspace.columns.matrix")}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border">
+          <tbody className="divide-y divide-border dark:divide-white/[0.04]">
             {sorted.map((row) => (
-              <tr key={row.ticker} className="align-top transition-colors hover:bg-surface-alt/40 focus-within:bg-surface-alt/55">
+              <tr key={row.ticker} className="align-top transition-colors hover:bg-surface-alt/40 focus-within:bg-surface-alt/55 dark:odd:bg-transparent dark:even:bg-white/[0.02] dark:hover:bg-white/[0.045] dark:focus-within:bg-white/[0.05]">
                 <td className={densityTickerClass}>
                   <div className="flex flex-col gap-1">
                     <Link

@@ -343,7 +343,7 @@ export function FilterPanel({
               {t("workspace.sections.universe")}
             </p>
             <div className="grid gap-3">
-              <div className="inline-flex rounded-2xl bg-surface-raised p-1 ring-1 ring-border">
+              <div className="inline-flex rounded-2xl bg-surface-raised p-1 ring-1 ring-border dark:bg-white/[0.04] dark:ring-white/[0.05]">
                 {[
                   { value: "", label: t("listingMarket.all") },
                   { value: "US", label: t("listingMarket.us") },
@@ -362,8 +362,8 @@ export function FilterPanel({
                     className={clsx(
                       "rounded-[14px] px-3 py-2 text-[12px] font-semibold transition-colors",
                       (filters.listing_market ?? "") === option.value
-                        ? "bg-primary-soft text-primary"
-                        : "text-text-secondary hover:text-text"
+                        ? "bg-primary-soft text-primary dark:bg-[linear-gradient(180deg,rgba(79,110,247,0.18),rgba(79,110,247,0.12))] dark:text-[#c7d2fe]"
+                        : "text-text-secondary hover:text-text dark:hover:bg-white/[0.04]"
                     )}
                   >
                     {option.label}
@@ -386,7 +386,7 @@ export function FilterPanel({
                       })
                     }
                     placeholder="1000000000"
-                    className="w-full rounded-xl bg-surface-raised px-3 py-2 text-sm text-text ring-1 ring-border transition focus:outline-none focus:ring-2 focus:ring-primary/25"
+                    className="w-full rounded-xl bg-surface-raised px-3 py-2 text-sm text-text ring-1 ring-border transition focus:outline-none focus:ring-2 focus:ring-primary/25 dark:bg-white/[0.04] dark:ring-white/[0.05]"
                   />
                 </label>
                 <label className="space-y-1.5">
@@ -404,7 +404,7 @@ export function FilterPanel({
                       })
                     }
                     placeholder="50000000000"
-                    className="w-full rounded-xl bg-surface-raised px-3 py-2 text-sm text-text ring-1 ring-border transition focus:outline-none focus:ring-2 focus:ring-primary/25"
+                    className="w-full rounded-xl bg-surface-raised px-3 py-2 text-sm text-text ring-1 ring-border transition focus:outline-none focus:ring-2 focus:ring-primary/25 dark:bg-white/[0.04] dark:ring-white/[0.05]"
                   />
                 </label>
               </div>
