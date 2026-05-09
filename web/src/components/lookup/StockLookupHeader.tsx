@@ -98,6 +98,35 @@ export function StockLookupHeader({
   const areaPath = sparklineAreaPath(sparklinePoints);
   const lastPoint = sparklineLastPoint(sparklinePoints);
   const sparklineColors = sparklineTone(dailyChangePct);
+  const summaryCards = [
+    meta?.market_cap != null
+      ? {
+          key: "market-cap",
+          label: t("workspace.marketCap"),
+          value: formatMarketCap(meta.market_cap),
+        }
+      : null,
+    coverage.dailySnapshot.atr_percent != null
+      ? {
+          key: "atr",
+          label: t("workspace.atrPct"),
+          value: formatPercent(coverage.dailySnapshot.atr_percent),
+        }
+      : null,
+    {
+      key: "sequence",
+      label: t("workspace.sequence"),
+      value: t(`sequence.${overallTone}`),
+    },
+    meta?.industry
+      ? {
+          key: "industry",
+          label: t("workspace.industry"),
+          value: meta.industry,
+        }
+      : null,
+  ].filter(Boolean) as { key: string; label: string; value: string }[];
+
   return (
     <section className="overflow-hidden rounded-[24px] bg-surface-raised shadow-[0_12px_34px_rgba(15,23,42,0.06)] ring-1 ring-border dark:ring-[#183241]">
       <div className="grid gap-5 px-5 py-5 lg:grid-cols-[minmax(0,1.5fr)_280px] lg:px-6">
@@ -110,11 +139,13 @@ export function StockLookupHeader({
                   {t(`status.${overallTone}`)}
                 </span>
               </div>
-              <p className="mt-1 text-sm text-text-secondary">
-                {meta?.company_name || t("workspace.noCompanyName")} {meta?.sector ? `· ${meta.sector}` : ""}
-              </p>
+              {meta?.company_name || meta?.sector ? (
+                <p className="mt-1 text-sm text-text-secondary">
+                  {[meta?.company_name, meta?.sector].filter(Boolean).join(" · ")}
+                </p>
+              ) : null}
               <p className="mt-1 text-[12px] text-text-muted">
-                {coverage.market} · {coverage.barCount} {t("workspace.dailyBars")} · {coverage.snapshot.last_trade_date}
+                {coverage.market} · {coverage.snapshot.last_trade_date}
               </p>
             </div>
 
@@ -132,50 +163,40 @@ export function StockLookupHeader({
                       : "text-danger"
                 )}
               >
-                {dailyChangePct == null ? "—" : formatPercent(dailyChangePct / 100)}
+                {dailyChangePct == null ? "—" : formatPercent(dailyChangePct)}
               </p>
             </div>
           </div>
 
-          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-            <div className="rounded-2xl bg-surface-alt/75 px-3 py-3 ring-1 ring-border">
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.marketCap")}</p>
-              <p className="mt-1 text-sm font-semibold text-text">{formatMarketCap(meta?.market_cap)}</p>
-            </div>
-            <div className="rounded-2xl bg-surface-alt/75 px-3 py-3 ring-1 ring-border">
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.atrPct")}</p>
-              <p className="mt-1 text-sm font-semibold text-text">
-                {formatPercent(coverage.dailySnapshot.atr_percent)}
-              </p>
-            </div>
-            <div className="rounded-2xl bg-surface-alt/75 px-3 py-3 ring-1 ring-border">
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.sequence")}</p>
-              <p className="mt-1 text-sm font-semibold text-text">{t(`sequence.${overallTone}`)}</p>
-            </div>
-            <div className="rounded-2xl bg-surface-alt/75 px-3 py-3 ring-1 ring-border">
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.industry")}</p>
-              <p className="mt-1 truncate text-sm font-semibold text-text">{meta?.industry || "—"}</p>
-            </div>
+          <div className={clsx("grid gap-2", summaryCards.length >= 4 ? "sm:grid-cols-2 xl:grid-cols-4" : "sm:grid-cols-2 xl:grid-cols-3")}>
+            {summaryCards.map((card) => (
+              <div key={card.key} className="rounded-2xl bg-surface-alt/75 px-3 py-3 ring-1 ring-border">
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{card.label}</p>
+                <p className="mt-1 truncate text-sm font-semibold text-text">{card.value}</p>
+              </div>
+            ))}
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {headerBadges.map((badge) => (
+            {headerBadges.slice(0, 5).map((badge) => (
               <span key={badge.id} className={clsx("inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1", toneClass(badge.tone))}>
                 {badge.label}
               </span>
             ))}
           </div>
 
-          <div className="rounded-2xl bg-surface-alt/70 px-3 py-3 ring-1 ring-border">
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.currentMatches")}</p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {coreConditions.slice(0, 8).map((condition) => (
-                <span key={condition.id} className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-medium text-text-secondary ring-1 ring-border">
-                  {(condition.timeframeLabel ?? condition.timeframe)} · {condition.label}
-                </span>
-              ))}
+          {coreConditions.length > 0 ? (
+            <div className="rounded-2xl bg-surface-alt/70 px-3 py-3 ring-1 ring-border">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.currentMatches")}</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {coreConditions.slice(0, 6).map((condition) => (
+                  <span key={condition.id} className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-medium text-text-secondary ring-1 ring-border">
+                    {(condition.timeframeLabel ?? condition.timeframe)} · {condition.label}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
+          ) : null}
         </div>
 
         <div className="space-y-4">
