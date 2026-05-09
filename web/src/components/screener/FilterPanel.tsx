@@ -272,7 +272,7 @@ export function FilterPanel({
         </div>
       }
     >
-      <section className="space-y-2.5">
+      <section className="space-y-2.5 rounded-2xl dark:bg-[#111827]">
         <div className="flex items-center justify-between gap-3">
           <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-text-muted">
             {t("workspace.sections.timeframes")}
@@ -294,7 +294,7 @@ export function FilterPanel({
         />
       </section>
 
-      <section className="space-y-2.5">
+      <section className="space-y-2.5 rounded-2xl dark:bg-[#111827]">
         <FilterCategoryTabs
           tabs={categorySummary}
           activeTab={activeCategory}

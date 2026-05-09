@@ -391,27 +391,27 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
         <table className="min-w-full text-sm">
           <thead className="sticky top-0 z-10 bg-surface-alt/92 backdrop-blur dark:bg-[#172033]">
             <tr className="border-b border-border/80 text-start dark:border-white/[0.05]">
-              <th scope="col" className="px-4 py-2.5 text-start text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">
+              <th scope="col" className="px-4 py-2.5 text-start text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted dark:text-[#94a3b8]">
                 <button onClick={() => handleSort("ticker")} className="inline-flex items-center gap-1 transition-colors hover:text-text">
                   {t("table.ticker")}
                 </button>
               </th>
-              <th scope="col" className="px-3 py-2.5 text-end text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">
+              <th scope="col" className="px-3 py-2.5 text-end text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted dark:text-[#94a3b8]">
                 <button onClick={() => handleSort("close")} className="inline-flex items-center gap-1 transition-colors hover:text-text">
                   {t("table.close")}
                 </button>
               </th>
-              <th scope="col" className="px-2 py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">{t("table.sma20")}</th>
-              <th scope="col" className="px-2 py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">{t("table.sma50")}</th>
-              <th scope="col" className="px-2 py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">{t("table.sma150")}</th>
-              <th scope="col" className="px-2 py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">{t("table.sma200")}</th>
-              <th scope="col" className="px-3 py-2.5 text-end text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">
+              <th scope="col" className="px-2 py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted dark:text-[#94a3b8]">{t("table.sma20")}</th>
+              <th scope="col" className="px-2 py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted dark:text-[#94a3b8]">{t("table.sma50")}</th>
+              <th scope="col" className="px-2 py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted dark:text-[#94a3b8]">{t("table.sma150")}</th>
+              <th scope="col" className="px-2 py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted dark:text-[#94a3b8]">{t("table.sma200")}</th>
+              <th scope="col" className="px-3 py-2.5 text-end text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted dark:text-[#94a3b8]">
                 <button onClick={() => handleSort("atr_percent")} className="inline-flex items-center gap-1 transition-colors hover:text-text">
                   {t("table.atrPct")}
                 </button>
               </th>
-              <th scope="col" className="px-3 py-2.5 text-start text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">{t("table.seqState")}</th>
-              <th scope="col" className="px-3 py-2.5 text-start text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">{t("workspace.columns.matrix")}</th>
+              <th scope="col" className="px-3 py-2.5 text-start text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted dark:text-[#94a3b8]">{t("table.seqState")}</th>
+              <th scope="col" className="px-3 py-2.5 text-start text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted dark:text-[#94a3b8]">{t("workspace.columns.matrix")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border dark:divide-white/[0.04]">
@@ -421,19 +421,19 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
                   <div className="flex flex-col gap-1">
                     <Link
                       href={`/ticker/${row.ticker}${tickerQuery}`}
-                      className="font-bold tracking-[0.01em] text-text hover:text-primary hover:underline decoration-primary/30 underline-offset-2"
+                      className="font-bold tracking-[0.01em] text-text hover:text-primary hover:underline decoration-primary/30 underline-offset-2 dark:text-[#f1f5f9]"
                     >
                       {row.ticker}
                     </Link>
-                    <span className="text-[10px] text-text-muted">{row.last_trade_date}</span>
+                    <span className="text-[10px] text-text-muted dark:text-[#94a3b8]">{row.last_trade_date}</span>
                   </div>
                 </td>
-                <td className={clsx(densityRowClass, "text-end tabular-nums font-semibold text-text")}>{fmt(row.close)}</td>
+                <td className={clsx(densityRowClass, "text-end tabular-nums font-semibold text-text dark:text-[#cbd5e1]")}>{fmt(row.close)}</td>
                 <td className={clsx(densityRowClass, "text-center")}><SmaPill above={row.is_above_sma20} below={row.is_below_sma20} /></td>
                 <td className={clsx(densityRowClass, "text-center")}><SmaPill above={row.is_above_sma50} below={row.is_below_sma50} /></td>
                 <td className={clsx(densityRowClass, "text-center")}><SmaPill above={row.is_above_sma150} below={row.is_below_sma150} /></td>
                 <td className={clsx(densityRowClass, "text-center")}><SmaPill above={row.is_above_sma200} below={row.is_below_sma200} /></td>
-                <td className={clsx(densityRowClass, "text-end tabular-nums text-[12px] text-text-secondary")}>{fmt(row.atr_percent)}</td>
+                <td className={clsx(densityRowClass, "text-end tabular-nums text-[12px] text-text-secondary dark:text-[#cbd5e1]")}>{fmt(row.atr_percent)}</td>
                 <td className={densityRowClass}>
                   <SignalBadge row={row} />
                 </td>
