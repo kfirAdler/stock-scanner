@@ -528,7 +528,7 @@ export function FilterPanel({
         </div>
       </AdvancedFiltersPanel>
 
-      <section className="space-y-2.5">
+      <section className="space-y-2.5 rounded-2xl dark:bg-[#111827]">
         <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-text-muted">
           {t("workspace.sections.active")}
         </p>

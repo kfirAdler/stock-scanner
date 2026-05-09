@@ -22,16 +22,16 @@ export function ScannerSidebar({
   footer,
 }: ScannerSidebarProps) {
   return (
-    <aside className="overflow-hidden rounded-[22px] bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,253,0.98))] shadow-[0_20px_48px_rgba(15,23,42,0.06)] ring-1 ring-border dark:bg-[#111827] dark:shadow-[0_8px_24px_rgba(0,0,0,0.18)] dark:ring-white/[0.05]">
-      <div className="border-b border-border/70 px-4 py-3 dark:border-white/[0.05]">
+    <aside className="overflow-hidden rounded-[22px] bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,253,0.98))] shadow-[0_20px_48px_rgba(15,23,42,0.06)] ring-1 ring-border dark:!bg-[#111827] dark:text-[#cbd5e1] dark:shadow-[0_8px_24px_rgba(0,0,0,0.18)] dark:ring-white/[0.05]">
+      <div className="border-b border-border/70 px-4 py-3 dark:border-white/[0.05] dark:bg-[#111827]">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-text-muted">
+            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-text-muted dark:text-[#94a3b8]">
               Scanner
             </p>
-            <h2 className="mt-1 text-[17px] font-bold tracking-tight text-text">{title}</h2>
+            <h2 className="mt-1 text-[17px] font-bold tracking-tight text-text dark:text-[#f1f5f9]">{title}</h2>
             {subtitle ? (
-              <p className="mt-1 text-[13px] leading-relaxed text-text-secondary">{subtitle}</p>
+              <p className="mt-1 text-[13px] leading-relaxed text-text-secondary dark:text-[#cbd5e1]">{subtitle}</p>
             ) : null}
           </div>
           <div className="flex items-center gap-2">
@@ -56,7 +56,7 @@ export function ScannerSidebar({
         {statusBar}
       </div>
 
-      <div className="space-y-4 px-4 py-3.5">{children}</div>
+      <div className="space-y-4 bg-transparent px-4 py-3.5 dark:bg-[#111827]">{children}</div>
 
       <div className="sticky bottom-0 border-t border-border/70 bg-surface-raised/96 px-4 py-2.5 backdrop-blur dark:border-white/[0.05] dark:bg-[#111827]">
         {footer}
