@@ -22,7 +22,7 @@ export function ScannerSidebar({
   footer,
 }: ScannerSidebarProps) {
   return (
-    <aside className="overflow-hidden rounded-[24px] bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,253,0.98))] shadow-[0_20px_48px_rgba(15,23,42,0.06)] ring-1 ring-border dark:bg-[radial-gradient(circle_at_top,rgba(79,110,247,0.12),transparent_38%),linear-gradient(180deg,rgba(19,28,47,0.96),rgba(13,19,33,0.98))] dark:shadow-[0_28px_80px_rgba(2,6,23,0.55)] dark:ring-white/[0.05]">
+    <aside className="overflow-hidden rounded-[22px] bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,253,0.98))] shadow-[0_20px_48px_rgba(15,23,42,0.06)] ring-1 ring-border dark:bg-[#111827] dark:shadow-[0_8px_24px_rgba(0,0,0,0.18)] dark:ring-white/[0.05]">
       <div className="border-b border-border/70 px-4 py-3 dark:border-white/[0.05]">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -42,7 +42,7 @@ export function ScannerSidebar({
               <button
                 type="button"
                 onClick={onClose}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-surface-raised text-text-muted ring-1 ring-border transition-colors hover:text-text dark:bg-white/[0.04] dark:ring-white/[0.06] dark:hover:bg-white/[0.07]"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-surface-raised text-text-muted ring-1 ring-border transition-colors hover:text-text dark:bg-[#172033] dark:ring-white/[0.05] dark:hover:bg-[#1e293b]"
                 aria-label="Close filters"
               >
                 ×
@@ -52,13 +52,13 @@ export function ScannerSidebar({
         </div>
       </div>
 
-      <div className="sticky top-0 z-10 border-b border-border/60 bg-surface-raised/94 px-4 py-2.5 backdrop-blur dark:border-white/[0.05] dark:bg-[rgba(17,24,39,0.82)]">
+      <div className="sticky top-0 z-10 border-b border-border/60 bg-surface-raised/94 px-4 py-2.5 backdrop-blur dark:border-white/[0.05] dark:bg-[#111827]">
         {statusBar}
       </div>
 
       <div className="space-y-4 px-4 py-3.5">{children}</div>
 
-      <div className="sticky bottom-0 border-t border-border/70 bg-surface-raised/96 px-4 py-2.5 backdrop-blur dark:border-white/[0.05] dark:bg-[rgba(18,25,40,0.9)]">
+      <div className="sticky bottom-0 border-t border-border/70 bg-surface-raised/96 px-4 py-2.5 backdrop-blur dark:border-white/[0.05] dark:bg-[#111827]">
         {footer}
       </div>
     </aside>

@@ -14,11 +14,11 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles: Record<Variant, string> = {
   primary:
-    "bg-primary text-on-primary shadow-sm hover:bg-primary-hover active:scale-[0.98] focus-visible:ring-primary/50 dark:shadow-[0_10px_30px_rgba(79,110,247,0.22)]",
+    "bg-primary text-on-primary shadow-sm hover:bg-primary-hover active:scale-[0.98] focus-visible:ring-primary/50 dark:shadow-none",
   secondary:
-    "bg-surface-raised text-text border border-border hover:border-border-strong hover:bg-surface-alt active:scale-[0.98] focus-visible:ring-primary/50 dark:bg-[linear-gradient(180deg,rgba(27,37,64,0.92),rgba(21,31,50,0.92))] dark:border-white/[0.05] dark:hover:bg-[linear-gradient(180deg,rgba(31,43,73,0.96),rgba(24,35,58,0.96))]",
+    "bg-surface-raised text-text border border-border hover:border-border-strong hover:bg-surface-alt active:scale-[0.98] focus-visible:ring-primary/50 dark:bg-surface-raised dark:border-white/[0.05] dark:hover:bg-[#1e293b]",
   ghost:
-    "text-text-secondary hover:text-text hover:bg-surface-alt focus-visible:ring-primary/50 dark:hover:bg-white/[0.04]",
+    "text-text-secondary hover:text-text hover:bg-surface-alt focus-visible:ring-primary/50 dark:hover:bg-[#1e293b]",
   danger:
     "bg-danger text-on-danger shadow-sm hover:bg-red-700 active:scale-[0.98] focus-visible:ring-danger/50",
 };

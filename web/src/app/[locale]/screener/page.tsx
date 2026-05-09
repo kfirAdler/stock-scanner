@@ -338,7 +338,7 @@ export default function ScreenerPage() {
   return (
     <div className="mx-auto max-w-[1580px] px-4 py-4">
       <div className="space-y-3">
-        <section className="sticky top-3 z-30 rounded-[20px] border border-border/80 bg-surface-raised/94 px-4 py-3 shadow-[0_12px_30px_rgba(15,23,42,0.06)] backdrop-blur dark:border-white/[0.05] dark:bg-[radial-gradient(circle_at_top,rgba(79,110,247,0.12),transparent_38%),rgba(17,24,39,0.82)] dark:shadow-[0_20px_50px_rgba(2,6,23,0.42)]">
+        <section className="sticky top-3 z-30 rounded-[20px] border border-border/80 bg-surface-raised/94 px-4 py-3 shadow-[0_12px_30px_rgba(15,23,42,0.06)] backdrop-blur dark:border-white/[0.05] dark:bg-[#111827] dark:shadow-[0_8px_22px_rgba(0,0,0,0.14)]">
           <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
             <div className="flex flex-wrap items-center gap-2.5">
               <h1 className="text-[17px] font-bold tracking-tight text-text">{t("title")}</h1>
@@ -397,7 +397,7 @@ export default function ScreenerPage() {
           </div>
         </section>
 
-        <div className="flex items-center gap-2 rounded-2xl bg-surface-alt/75 px-3 py-2 text-[11px] text-text-muted ring-1 ring-border/70 dark:bg-white/[0.035] dark:ring-white/[0.05]">
+        <div className="flex items-center gap-2 rounded-2xl bg-surface-alt/75 px-3 py-2 text-[11px] text-text-muted ring-1 ring-border/70 dark:bg-[#172033] dark:ring-white/[0.05]">
           <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-warning-soft text-[10px] text-warning">
             i
           </span>
@@ -446,7 +446,7 @@ export default function ScreenerPage() {
             </div>
 
             <div className="space-y-3">
-              <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-surface-alt/70 px-3.5 py-2.5 ring-1 ring-border/70 dark:bg-white/[0.035] dark:ring-white/[0.05]">
+              <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-surface-alt/70 px-3.5 py-2.5 ring-1 ring-border/70 dark:bg-[#172033] dark:ring-white/[0.05]">
                 <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-text-secondary ring-1 ring-border">
                   {t("workspace.appliedCount", { count: appliedFilterCount })}
                 </span>
@@ -472,7 +472,7 @@ export default function ScreenerPage() {
                   screenerFilters={appliedFilters}
                 />
               ) : (
-                <div className="flex min-h-[520px] items-center justify-center rounded-2xl border border-dashed border-border bg-surface-raised px-6 text-center dark:border-white/[0.06] dark:bg-[linear-gradient(180deg,rgba(20,29,48,0.9),rgba(17,24,39,0.96))]">
+                <div className="flex min-h-[520px] items-center justify-center rounded-2xl border border-dashed border-border bg-surface-raised px-6 text-center dark:border-white/[0.06] dark:bg-[#111827]">
                   <div className="max-w-lg space-y-2">
                     <h2 className="text-2xl font-bold text-text">{t("terminalHeader.emptyTitle")}</h2>
                     <p className="text-sm leading-relaxed text-text-secondary">
@@ -493,7 +493,7 @@ export default function ScreenerPage() {
               aria-label={t("mobile.closeFilters")}
               onClick={() => setMobileFiltersOpen(false)}
             />
-            <div className="absolute inset-x-0 bottom-0 top-12 overflow-y-auto rounded-t-[28px] border border-border-strong/70 bg-surface-raised px-4 pb-6 pt-4 shadow-[0_-18px_50px_rgba(15,23,42,0.18)] dark:border-white/[0.05] dark:bg-[radial-gradient(circle_at_top,rgba(79,110,247,0.12),transparent_40%),linear-gradient(180deg,rgba(19,28,47,0.98),rgba(13,19,33,0.98))] dark:shadow-[0_-22px_70px_rgba(2,6,23,0.68)]">
+            <div className="absolute inset-x-0 bottom-0 top-12 overflow-y-auto rounded-t-[28px] border border-border-strong/70 bg-surface-raised px-4 pb-6 pt-4 shadow-[0_-18px_50px_rgba(15,23,42,0.18)] dark:border-white/[0.05] dark:bg-[#111827] dark:shadow-[0_-12px_32px_rgba(0,0,0,0.28)]">
               <div className="mb-4 flex items-center justify-between">
                 <div>
                   <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">

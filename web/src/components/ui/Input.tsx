@@ -30,7 +30,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             "placeholder:text-text-secondary",
             "focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent",
             "disabled:opacity-50 disabled:cursor-not-allowed",
-            "dark:border-white/[0.05] dark:bg-[linear-gradient(180deg,rgba(20,29,48,0.94),rgba(17,24,39,0.94))] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]",
+            "dark:border-white/[0.05] dark:bg-surface-raised dark:shadow-none",
             error && "border-danger focus:ring-danger",
             className
           )}

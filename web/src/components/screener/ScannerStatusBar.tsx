@@ -27,7 +27,10 @@ function StatusBadge({
         tone === "primary" && "bg-primary-soft text-primary ring-1 ring-primary/10",
         tone === "success" && "bg-success-soft text-success ring-1 ring-success/10",
         tone === "warning" && "bg-warning-soft text-warning ring-1 ring-warning/10",
-        tone === "default" && "bg-surface-raised text-text-secondary ring-1 ring-border dark:bg-white/[0.04] dark:ring-white/[0.05]"
+        tone === "default" && "bg-surface-raised text-text-secondary ring-1 ring-border dark:bg-[#172033] dark:ring-white/[0.05]",
+        tone === "primary" && "dark:bg-[rgba(79,110,247,0.14)] dark:text-[#c7d2fe] dark:ring-[rgba(99,102,241,0.18)]",
+        tone === "success" && "dark:bg-[rgba(34,197,94,0.11)] dark:text-success dark:ring-[rgba(34,197,94,0.14)]",
+        tone === "warning" && "dark:bg-[rgba(245,158,11,0.11)] dark:text-warning dark:ring-[rgba(245,158,11,0.14)]"
       )}
     >
       {label}
@@ -46,7 +49,7 @@ export function ScannerStatusBar({
   statusMessage,
 }: ScannerStatusBarProps) {
   return (
-    <div className="rounded-2xl bg-surface-alt/90 p-3 ring-1 ring-border dark:bg-[linear-gradient(180deg,rgba(21,30,49,0.92),rgba(16,24,39,0.9))] dark:ring-white/[0.05]">
+    <div className="rounded-2xl bg-surface-alt/90 p-3 ring-1 ring-border dark:bg-[#172033] dark:ring-white/[0.05]">
       <div className="flex flex-wrap items-center gap-2">
         <StatusBadge
           label={syncLabel}
