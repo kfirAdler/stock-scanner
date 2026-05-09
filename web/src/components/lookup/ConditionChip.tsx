@@ -27,7 +27,9 @@ export function ConditionChip({ condition, active = false, onClick }: ConditionC
         active && "shadow-sm ring-border-strong"
       )}
     >
-      <span className="text-[10px] uppercase tracking-[0.18em] opacity-75">{condition.timeframe}</span>
+      <span className="text-[10px] uppercase tracking-[0.18em] opacity-75">
+        {condition.timeframeLabel ?? condition.timeframe}
+      </span>
       <span>{condition.label}</span>
     </button>
   );

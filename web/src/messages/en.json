@@ -617,11 +617,16 @@
       "openInScreener": "Open in Screener",
       "findSimilar": "Find Similar",
       "saveSetup": "Save Setup",
-      "copyConditions": "Copy Active Conditions",
-      "viewSequenceHistory": "View Sequence History",
-      "compareTicker": "Compare Another Ticker",
+      "copyConditions": "Copy Setup Summary",
+      "viewSequenceHistory": "Open Ticker Detail",
+      "compareTicker": "Lookup Another Ticker",
       "findAll": "Find all stocks matching this",
       "combine": "Combine with current scan"
+    },
+    "timeframes": {
+      "1D": "Daily",
+      "1W": "Weekly",
+      "1M": "Monthly"
     },
     "variants": {
       "exact": "Match these conditions",

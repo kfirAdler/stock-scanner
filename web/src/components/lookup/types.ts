@@ -51,6 +51,7 @@ export type LookupCondition = {
   id: string;
   label: string;
   timeframe: ScreenerTimeframe;
+  timeframeLabel?: string;
   status: ConditionStatus;
   note?: string | null;
   rule?: ScreenerRule;

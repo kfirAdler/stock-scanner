@@ -149,6 +149,7 @@ function buildRule(
 
 function conditionLabel(
   timeframe: ScreenerTimeframe,
+  timeframeLabel: string,
   label: string,
   status: LookupCondition["status"],
   rule?: ScreenerRule,
@@ -157,6 +158,7 @@ function conditionLabel(
   return {
     id: `${timeframe}-${label.toLowerCase().replace(/\s+/g, "-")}-${status}`,
     timeframe,
+    timeframeLabel,
     label,
     status,
     rule,
@@ -257,6 +259,12 @@ export function StockLookupClient() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [accessGate, setAccessGate] = useState<AccessGate>(null);
+
+  const timeframeLabel = useCallback((timeframe: ScreenerTimeframe) => {
+    if (timeframe === "1D") return t("timeframes.1D");
+    if (timeframe === "1W") return t("timeframes.1W");
+    return t("timeframes.1M");
+  }, [t]);
 
   const syncTickerUrl = useCallback((ticker: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -484,6 +492,7 @@ export function StockLookupClient() {
     for (const timeframe of ["1D", "1W", "1M"] as ScreenerTimeframe[]) {
       const snapshot = coverage.timeframeSnapshots[timeframe];
       if (!snapshot) continue;
+      const tfLabel = timeframeLabel(timeframe);
 
       const appendTrendCondition = (
         label: string,
@@ -493,9 +502,9 @@ export function StockLookupClient() {
         note?: string | null
       ) => {
         const rule = buildRule(timeframe, ruleField);
-        if (active) matched.push(conditionLabel(timeframe, label, "match", rule, note));
-        else if (nearActive) near.push(conditionLabel(timeframe, label, "near", rule, note));
-        else failed.push(conditionLabel(timeframe, label, "fail", rule, note));
+        if (active) matched.push(conditionLabel(timeframe, tfLabel, label, "match", rule, note));
+        else if (nearActive) near.push(conditionLabel(timeframe, tfLabel, label, "near", rule, note));
+        else failed.push(conditionLabel(timeframe, tfLabel, label, "fail", rule, note));
       };
 
       appendTrendCondition(
@@ -519,43 +528,43 @@ export function StockLookupClient() {
       );
 
       const bullishRule = buildRule(timeframe, "bullish_sequence_active");
-      if (snapshot.bullish_sequence_active) matched.push(conditionLabel(timeframe, t("badges.upSequence"), "match", bullishRule));
-      else if (snapshot.up_sequence_count >= 2) near.push(conditionLabel(timeframe, t("badges.upSequence"), "near", bullishRule, t("workspace.sequenceBuilding")));
-      else failed.push(conditionLabel(timeframe, t("badges.upSequence"), "fail", bullishRule));
+      if (snapshot.bullish_sequence_active) matched.push(conditionLabel(timeframe, tfLabel, t("badges.upSequence"), "match", bullishRule));
+      else if (snapshot.up_sequence_count >= 2) near.push(conditionLabel(timeframe, tfLabel, t("badges.upSequence"), "near", bullishRule, t("workspace.sequenceBuilding")));
+      else failed.push(conditionLabel(timeframe, tfLabel, t("badges.upSequence"), "fail", bullishRule));
 
       const strongContextRule = buildRule(timeframe, "strong_up_sequence_context");
-      if (snapshot.strong_up_sequence_context) matched.push(conditionLabel(timeframe, t("badges.strongUpContext"), "match", strongContextRule));
-      else failed.push(conditionLabel(timeframe, t("badges.strongUpContext"), "fail", strongContextRule));
+      if (snapshot.strong_up_sequence_context) matched.push(conditionLabel(timeframe, tfLabel, t("badges.strongUpContext"), "match", strongContextRule));
+      else failed.push(conditionLabel(timeframe, tfLabel, t("badges.strongUpContext"), "fail", strongContextRule));
 
       const buyRule = buildRule(timeframe, "buy_signal");
-      if (snapshot.strong_buy_signal) matched.push(conditionLabel(timeframe, t("badges.strongBullish"), "match", buildRule(timeframe, "strong_buy_signal")));
-      else if (snapshot.buy_signal) matched.push(conditionLabel(timeframe, t("badges.bullishBreak"), "match", buyRule));
-      else if (snapshot.up_sequence_broke_recently) near.push(conditionLabel(timeframe, t("badges.bullishBreak"), "near", buyRule, t("workspace.breakRecently")));
-      else failed.push(conditionLabel(timeframe, t("badges.bullishBreak"), "fail", buyRule));
+      if (snapshot.strong_buy_signal) matched.push(conditionLabel(timeframe, tfLabel, t("badges.strongBullish"), "match", buildRule(timeframe, "strong_buy_signal")));
+      else if (snapshot.buy_signal) matched.push(conditionLabel(timeframe, tfLabel, t("badges.bullishBreak"), "match", buyRule));
+      else if (snapshot.up_sequence_broke_recently) near.push(conditionLabel(timeframe, tfLabel, t("badges.bullishBreak"), "near", buyRule, t("workspace.breakRecently")));
+      else failed.push(conditionLabel(timeframe, tfLabel, t("badges.bullishBreak"), "fail", buyRule));
     }
 
     const daily = coverage.dailySnapshot;
     const atrRule = buildRule("1D", "atr_percent", "gt", 5);
-    if ((daily.atr_percent ?? 0) >= 5) matched.push(conditionLabel("1D", t("badges.highAtr"), "match", atrRule, `${formatPercent(daily.atr_percent)}`));
-    else if ((daily.atr_percent ?? 0) >= 4) near.push(conditionLabel("1D", t("badges.highAtr"), "near", atrRule));
-    else failed.push(conditionLabel("1D", t("badges.highAtr"), "fail", atrRule));
+    if ((daily.atr_percent ?? 0) >= 5) matched.push(conditionLabel("1D", timeframeLabel("1D"), t("badges.highAtr"), "match", atrRule, `${formatPercent(daily.atr_percent)}`));
+    else if ((daily.atr_percent ?? 0) >= 4) near.push(conditionLabel("1D", timeframeLabel("1D"), t("badges.highAtr"), "near", atrRule));
+    else failed.push(conditionLabel("1D", timeframeLabel("1D"), t("badges.highAtr"), "fail", atrRule));
 
     const upperBbRule = buildRule("1D", "pct_to_bb_upper", "lte", 5);
-    if ((daily.pct_to_bb_upper ?? Number.POSITIVE_INFINITY) <= 5) matched.push(conditionLabel("1D", t("badges.nearBreakout"), "match", upperBbRule));
-    else if ((daily.pct_to_bb_upper ?? Number.POSITIVE_INFINITY) <= 10) near.push(conditionLabel("1D", t("badges.nearBreakout"), "near", upperBbRule));
-    else failed.push(conditionLabel("1D", t("badges.nearBreakout"), "fail", upperBbRule));
+    if ((daily.pct_to_bb_upper ?? Number.POSITIVE_INFINITY) <= 5) matched.push(conditionLabel("1D", timeframeLabel("1D"), t("badges.nearBreakout"), "match", upperBbRule));
+    else if ((daily.pct_to_bb_upper ?? Number.POSITIVE_INFINITY) <= 10) near.push(conditionLabel("1D", timeframeLabel("1D"), t("badges.nearBreakout"), "near", upperBbRule));
+    else failed.push(conditionLabel("1D", timeframeLabel("1D"), t("badges.nearBreakout"), "fail", upperBbRule));
 
     const lowerBbRule = buildRule("1D", "pct_to_bb_lower", "lte", 5);
-    if ((daily.pct_to_bb_lower ?? Number.POSITIVE_INFINITY) <= 5) matched.push(conditionLabel("1D", t("badges.nearLowerBand"), "match", lowerBbRule));
-    else if ((daily.pct_to_bb_lower ?? Number.POSITIVE_INFINITY) <= 10) near.push(conditionLabel("1D", t("badges.nearLowerBand"), "near", lowerBbRule));
-    else failed.push(conditionLabel("1D", t("badges.nearLowerBand"), "fail", lowerBbRule));
+    if ((daily.pct_to_bb_lower ?? Number.POSITIVE_INFINITY) <= 5) matched.push(conditionLabel("1D", timeframeLabel("1D"), t("badges.nearLowerBand"), "match", lowerBbRule));
+    else if ((daily.pct_to_bb_lower ?? Number.POSITIVE_INFINITY) <= 10) near.push(conditionLabel("1D", timeframeLabel("1D"), t("badges.nearLowerBand"), "near", lowerBbRule));
+    else failed.push(conditionLabel("1D", timeframeLabel("1D"), t("badges.nearLowerBand"), "fail", lowerBbRule));
 
     return {
       matched,
       near,
       failed,
     };
-  }, [coverage, reasonText, t]);
+  }, [coverage, reasonText, t, timeframeLabel]);
 
   const headerBadges = useMemo(() => {
     if (!coverage) return [];
@@ -756,6 +765,7 @@ export function StockLookupClient() {
   }
 
   function compareTicker() {
+    wrapRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     inputRef.current?.focus();
     inputRef.current?.select();
   }
@@ -913,7 +923,12 @@ export function StockLookupClient() {
                   onSaveSetup={saveSetup}
                   onCopyConditions={() =>
                     copyConditionText(
-                      conditions.matched.map((condition) => `${condition.timeframe} · ${condition.label}`).join("\n")
+                      [
+                        `${coverage.ticker} setup summary`,
+                        ...conditions.matched.map(
+                          (condition) => `${condition.timeframeLabel ?? condition.timeframe} · ${condition.label}`
+                        ),
+                      ].join("\n")
                     )
                   }
                   onCompare={compareTicker}

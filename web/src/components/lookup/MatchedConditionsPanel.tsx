@@ -92,7 +92,7 @@ export function MatchedConditionsPanel({
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.conditionActions")}</p>
               <p className="mt-1 text-sm font-semibold text-text">
-                {selectedCondition.timeframe} · {selectedCondition.label}
+                {(selectedCondition.timeframeLabel ?? selectedCondition.timeframe)} · {selectedCondition.label}
               </p>
               {selectedCondition.note ? (
                 <p className="mt-1 text-[12px] text-text-secondary">{selectedCondition.note}</p>

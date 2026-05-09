@@ -617,11 +617,16 @@
       "openInScreener": "פתח בסורק",
       "findSimilar": "מצא דומים",
       "saveSetup": "שמור סטאפ",
-      "copyConditions": "העתק תנאים פעילים",
-      "viewSequenceHistory": "צפה בהיסטוריית רצף",
-      "compareTicker": "השווה לסימול אחר",
+      "copyConditions": "העתק סיכום סטאפ",
+      "viewSequenceHistory": "פתח עמוד מניה",
+      "compareTicker": "חפש מניה אחרת",
       "findAll": "מצא את כל המניות עם התנאי הזה",
       "combine": "שלב עם הסריקה הנוכחית"
+    },
+    "timeframes": {
+      "1D": "יומי",
+      "1W": "שבועי",
+      "1M": "חודשי"
     },
     "variants": {
       "exact": "התאמה לתנאים האלה",

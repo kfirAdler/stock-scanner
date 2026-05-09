@@ -123,7 +123,7 @@ export function StockLookupHeader({
             <div className="mt-2 flex flex-wrap gap-2">
               {coreConditions.slice(0, 8).map((condition) => (
                 <span key={condition.id} className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-medium text-text-secondary ring-1 ring-border">
-                  {condition.timeframe} · {condition.label}
+                  {(condition.timeframeLabel ?? condition.timeframe)} · {condition.label}
                 </span>
               ))}
             </div>
