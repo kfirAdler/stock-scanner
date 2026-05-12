@@ -35,14 +35,14 @@ function fmt(val: number | null | undefined, decimals = 2): string {
 function SmaPill({ above, below }: { above: boolean | null; below: boolean | null }) {
   if (above) {
     return (
-      <span className="inline-flex min-w-7 items-center justify-center rounded-full bg-success-soft px-2 py-0.5 text-[10px] font-bold text-success">
+      <span className="inline-flex min-w-7 items-center justify-center rounded-full bg-success-soft px-2 py-0.5 text-[10px] font-bold text-success dark:bg-[rgba(29,78,53,0.42)] dark:text-[#7dffb1]">
         ↑
       </span>
     );
   }
   if (below) {
     return (
-      <span className="inline-flex min-w-7 items-center justify-center rounded-full bg-danger-soft px-2 py-0.5 text-[10px] font-bold text-danger">
+      <span className="inline-flex min-w-7 items-center justify-center rounded-full bg-danger-soft px-2 py-0.5 text-[10px] font-bold text-danger dark:bg-[rgba(127,29,29,0.34)] dark:text-[#ff9b9b]">
         ↓
       </span>
     );
@@ -55,28 +55,28 @@ function SignalBadge({ row }: { row: ScreenerResultRow }) {
 
   if (row.strong_buy_signal) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-success ring-1 ring-success/15">
+      <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-success ring-1 ring-success/15 dark:bg-[rgba(29,78,53,0.42)] dark:text-[#7dffb1] dark:ring-[rgba(34,197,94,0.22)]">
         ▲▲ {t("workspace.cards.strongBullish")}
       </span>
     );
   }
   if (row.buy_signal) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-success ring-1 ring-success/15">
+      <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-success ring-1 ring-success/15 dark:bg-[rgba(29,78,53,0.42)] dark:text-[#7dffb1] dark:ring-[rgba(34,197,94,0.22)]">
         ▲ {t("workspace.cards.bullishBreak")}
       </span>
     );
   }
   if (row.strong_sell_signal) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-danger-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-danger ring-1 ring-danger/15">
+      <span className="inline-flex items-center gap-1 rounded-full bg-danger-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-danger ring-1 ring-danger/15 dark:bg-[rgba(127,29,29,0.34)] dark:text-[#ff9b9b] dark:ring-[rgba(239,68,68,0.2)]">
         ▼▼ {t("workspace.cards.strongBearish")}
       </span>
     );
   }
   if (row.sell_signal) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-danger-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-danger ring-1 ring-danger/15">
+      <span className="inline-flex items-center gap-1 rounded-full bg-danger-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-danger ring-1 ring-danger/15 dark:bg-[rgba(127,29,29,0.34)] dark:text-[#ff9b9b] dark:ring-[rgba(239,68,68,0.2)]">
         ▼ {t("workspace.cards.bearishBreak")}
       </span>
     );
@@ -101,12 +101,12 @@ function SignalBadge({ row }: { row: ScreenerResultRow }) {
 function snapshotMatrixTone(snapshot: SnapshotRow | null | undefined) {
   if (!snapshot) return "border-border bg-surface text-text-muted dark:border-white/[0.04] dark:bg-[#111827]";
   if (snapshot.strong_buy_signal || snapshot.buy_signal || snapshot.bullish_sequence_active) {
-    return "border-success/30 bg-success-soft text-success";
+    return "border-success/30 bg-success-soft text-success dark:border-[rgba(34,197,94,0.22)] dark:bg-[rgba(29,78,53,0.42)] dark:text-[#7dffb1]";
   }
   if (snapshot.strong_sell_signal || snapshot.sell_signal || snapshot.bearish_sequence_active) {
-    return "border-danger/30 bg-danger-soft text-danger";
+    return "border-danger/30 bg-danger-soft text-danger dark:border-[rgba(239,68,68,0.2)] dark:bg-[rgba(127,29,29,0.34)] dark:text-[#ff9b9b]";
   }
-  return "border-border-strong bg-surface-alt text-text-secondary dark:border-white/[0.05] dark:bg-[#172033]";
+  return "border-border-strong bg-surface-alt text-text-secondary dark:border-white/[0.05] dark:bg-[#0f1828] dark:text-[#d9e4f2]";
 }
 
 function snapshotMatrixLabel(
@@ -269,22 +269,22 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
             {activeScanSummary.map((block) => (
               <span
                 key={block.timeframe}
-                className="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-1 text-[11px] text-text-secondary ring-1 ring-border dark:bg-[#172033] dark:ring-white/[0.05]"
+                className="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-1 text-[11px] text-text-secondary ring-1 ring-border dark:bg-[#0f1828] dark:text-[#d9e4f2] dark:ring-white/[0.05]"
               >
-                <span className="font-semibold text-text">{t(`timeframes.${block.timeframe}`)}</span>
+                <span className="font-semibold text-text dark:text-[#f8fafc]">{t(`timeframes.${block.timeframe}`)}</span>
                 <span className="truncate">{block.labels.join(" · ")}</span>
               </span>
             ))}
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-full bg-success-soft px-2.5 py-1 text-[11px] font-semibold text-success ring-1 ring-success/15">
+          <span className="rounded-full bg-success-soft px-2.5 py-1 text-[11px] font-semibold text-success ring-1 ring-success/15 dark:bg-[rgba(29,78,53,0.42)] dark:text-[#7dffb1] dark:ring-[rgba(34,197,94,0.22)]">
             {resultSummary.bullish} {t("workspace.cards.bullish")}
           </span>
-          <span className="rounded-full bg-danger-soft px-2.5 py-1 text-[11px] font-semibold text-danger ring-1 ring-danger/15">
+          <span className="rounded-full bg-danger-soft px-2.5 py-1 text-[11px] font-semibold text-danger ring-1 ring-danger/15 dark:bg-[rgba(127,29,29,0.34)] dark:text-[#ff9b9b] dark:ring-[rgba(239,68,68,0.2)]">
             {resultSummary.bearish} {t("workspace.cards.bearish")}
           </span>
-          <span className="rounded-full bg-primary-soft px-2.5 py-1 text-[11px] font-semibold text-primary ring-1 ring-primary/10">
+          <span className="rounded-full bg-primary-soft px-2.5 py-1 text-[11px] font-semibold text-primary ring-1 ring-primary/10 dark:bg-[#162447] dark:text-[#f8fafc] dark:ring-[rgba(99,102,241,0.2)]">
             {resultSummary.strong} {t("workspace.cards.strong")}
           </span>
           <div className="inline-flex items-center rounded-full bg-surface-alt p-1 ring-1 ring-border dark:bg-[#111827] dark:ring-white/[0.05]">
@@ -312,7 +312,7 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-[20px] bg-surface-raised shadow-[0_10px_34px_rgba(15,23,42,0.06)] ring-1 ring-border dark:bg-[#111827] dark:shadow-[0_8px_24px_rgba(0,0,0,0.16)] dark:ring-white/[0.05]">
+      <div className="overflow-hidden rounded-[20px] bg-surface-raised shadow-[0_10px_34px_rgba(15,23,42,0.06)] ring-1 ring-border dark:bg-[#09111d] dark:shadow-[0_12px_28px_rgba(0,0,0,0.28)] dark:ring-white/[0.05]">
       <div className="divide-y divide-border dark:divide-white/[0.04] lg:hidden">
         {sorted.map((row) => {
           const expanded = !!expandedTickers[row.ticker];
@@ -389,7 +389,7 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
 
       <div className="hidden overflow-x-auto lg:block">
         <table className="min-w-full text-sm">
-          <thead className="sticky top-0 z-10 bg-surface-alt/92 backdrop-blur dark:bg-[#172033]">
+          <thead className="sticky top-0 z-10 bg-surface-alt/92 backdrop-blur dark:bg-[#0f1828]">
             <tr className="border-b border-border/80 text-start dark:border-white/[0.05]">
               <th scope="col" className="px-4 py-2.5 text-start text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted dark:text-[#94a3b8]">
                 <button onClick={() => handleSort("ticker")} className="inline-flex items-center gap-1 transition-colors hover:text-text">
@@ -416,7 +416,7 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
           </thead>
           <tbody className="divide-y divide-border dark:divide-white/[0.04]">
             {sorted.map((row) => (
-              <tr key={row.ticker} className="align-top transition-colors hover:bg-surface-alt/40 focus-within:bg-surface-alt/55 dark:odd:bg-[#111827] dark:even:bg-[#131d30] dark:hover:bg-[#1e293b] dark:focus-within:bg-[#1e293b]">
+              <tr key={row.ticker} className="align-top transition-colors hover:bg-surface-alt/40 focus-within:bg-surface-alt/55 dark:odd:bg-[#09111d] dark:even:bg-[#0c1524] dark:hover:bg-[#121d2f] dark:focus-within:bg-[#121d2f]">
                 <td className={densityTickerClass}>
                   <div className="flex flex-col gap-1">
                     <Link
