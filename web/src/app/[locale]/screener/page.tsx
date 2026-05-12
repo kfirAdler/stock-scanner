@@ -338,26 +338,26 @@ export default function ScreenerPage() {
   return (
     <div className="mx-auto max-w-[1580px] px-4 py-4">
       <div className="space-y-3">
-        <section className="sticky top-3 z-30 rounded-[20px] border border-border/80 bg-surface-raised/94 px-4 py-3 shadow-[0_12px_30px_rgba(15,23,42,0.06)] backdrop-blur dark:border-white/[0.05] dark:bg-[#111827] dark:shadow-[0_8px_22px_rgba(0,0,0,0.14)]">
+        <section className="sticky top-3 z-30 rounded-[20px] border border-border/80 bg-surface-raised/94 px-4 py-3 shadow-[0_12px_30px_rgba(15,23,42,0.06)] backdrop-blur dark:border-white/[0.05] dark:bg-[#09111d] dark:shadow-[0_12px_28px_rgba(0,0,0,0.28)]">
           <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
             <div className="flex flex-wrap items-center gap-2.5">
               <h1 className="text-[17px] font-bold tracking-tight text-text">{t("title")}</h1>
-              <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-text-secondary ring-1 ring-border dark:bg-[#172033] dark:ring-white/[0.05]">
+              <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-text-secondary ring-1 ring-border dark:bg-[#0f1828] dark:text-[#d9e4f2] dark:ring-white/[0.05]">
                 {resultSummary.rows} {t("workspace.statusMatches")}
               </span>
-              <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-text-secondary ring-1 ring-border dark:bg-[#172033] dark:ring-white/[0.05]">
+              <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-text-secondary ring-1 ring-border dark:bg-[#0f1828] dark:text-[#d9e4f2] dark:ring-white/[0.05]">
                 {activeFilterCount} {t("workspace.statusFilters")}
               </span>
               <span
                 className={hasPendingChanges
                   ? "rounded-full bg-warning-soft px-2.5 py-1 text-[11px] font-semibold text-warning ring-1 ring-warning/15"
-                  : "rounded-full bg-success-soft px-2.5 py-1 text-[11px] font-semibold text-success ring-1 ring-success/15"
+                  : "rounded-full bg-success-soft px-2.5 py-1 text-[11px] font-semibold text-success ring-1 ring-success/15 dark:bg-[rgba(29,78,53,0.42)] dark:text-[#7dffb1] dark:ring-[rgba(34,197,94,0.22)]"
                 }
               >
                 {hasPendingChanges ? t("workspace.draftPending") : t("workspace.draftSynced")}
               </span>
               {relativeLastUpdated ? (
-                <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-text-muted ring-1 ring-border dark:bg-[#172033] dark:ring-white/[0.05]">
+                <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-text-muted ring-1 ring-border dark:bg-[#0f1828] dark:text-[#8ea0b9] dark:ring-white/[0.05]">
                   {t("workspace.statusUpdated")} {relativeLastUpdated}
                 </span>
               ) : null}
@@ -397,8 +397,8 @@ export default function ScreenerPage() {
           </div>
         </section>
 
-        <div className="flex items-center gap-2 rounded-2xl bg-surface-alt/75 px-3 py-2 text-[11px] text-text-muted ring-1 ring-border/70 dark:bg-[#172033] dark:ring-white/[0.05]">
-          <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-warning-soft text-[10px] text-warning">
+        <div className="flex items-center gap-2 rounded-2xl bg-surface-alt/75 px-3 py-2 text-[11px] text-text-muted ring-1 ring-border/70 dark:bg-[#0f1828] dark:text-[#8ea0b9] dark:ring-white/[0.05]">
+          <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-warning-soft text-[10px] text-warning dark:bg-[rgba(133,77,14,0.32)] dark:text-[#f4d38d]">
             i
           </span>
           <span>{t("legalNotice.inlineShort")}</span>
@@ -446,15 +446,15 @@ export default function ScreenerPage() {
             </div>
 
             <div className="space-y-3">
-              <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-surface-alt/70 px-3.5 py-2.5 ring-1 ring-border/70 dark:bg-[#172033] dark:ring-white/[0.05]">
-                <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-text-secondary ring-1 ring-border dark:bg-[#111827] dark:ring-white/[0.05]">
+              <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-surface-alt/70 px-3.5 py-2.5 ring-1 ring-border/70 dark:bg-[#0f1828] dark:ring-white/[0.05]">
+                <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-text-secondary ring-1 ring-border dark:bg-[#09111d] dark:text-[#d9e4f2] dark:ring-white/[0.05]">
                   {t("workspace.appliedCount", { count: appliedFilterCount })}
                 </span>
-                <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-text-secondary ring-1 ring-border dark:bg-[#111827] dark:ring-white/[0.05]">
+                <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-text-secondary ring-1 ring-border dark:bg-[#09111d] dark:text-[#d9e4f2] dark:ring-white/[0.05]">
                   {t("terminalHeader.appliedRules", { count: appliedFilters.rules.length })}
                 </span>
                 {resultSummary.strongSignals > 0 ? (
-                  <span className="rounded-full bg-success-soft px-2.5 py-1 text-[11px] font-semibold text-success ring-1 ring-success/15">
+                  <span className="rounded-full bg-success-soft px-2.5 py-1 text-[11px] font-semibold text-success ring-1 ring-success/15 dark:bg-[rgba(29,78,53,0.42)] dark:text-[#7dffb1] dark:ring-[rgba(34,197,94,0.22)]">
                     {resultSummary.strongSignals} {t("terminalHeader.cards.strong")}
                   </span>
                 ) : null}
