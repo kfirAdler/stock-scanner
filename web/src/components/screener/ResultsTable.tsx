@@ -242,8 +242,8 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
     return (
       <div className="flex min-h-[420px] items-center justify-center rounded-2xl border border-border bg-surface-raised dark:border-white/[0.05] dark:bg-[#111827]">
         <div className="space-y-2 text-center">
-          <p className="text-sm font-bold text-text">{t("symbols", { count: 0 })}</p>
-          <p className="text-sm text-text-muted">{t("activeFiltersEmpty")}</p>
+          <p className="text-sm font-bold text-text dark:text-[#e2e8f0]">{t("symbols", { count: 0 })}</p>
+          <p className="text-sm text-text-muted dark:text-[#94a3b8]">{t("activeFiltersEmpty")}</p>
         </div>
       </div>
     );
@@ -293,7 +293,7 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
               onClick={() => setDensity("comfortable")}
               className={clsx(
                 "rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors",
-                density === "comfortable" ? "bg-surface-raised text-text shadow-sm ring-1 ring-border dark:bg-[#172033] dark:ring-white/[0.06]" : "text-text-muted hover:text-text"
+                density === "comfortable" ? "bg-surface-raised text-text shadow-sm ring-1 ring-border dark:bg-[#172033] dark:text-[#f1f5f9] dark:ring-white/[0.06]" : "text-text-muted hover:text-text dark:text-[#94a3b8] dark:hover:text-[#f8fafc]"
               )}
             >
               {t("workspace.density.comfortable")}
@@ -303,7 +303,7 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
               onClick={() => setDensity("compact")}
               className={clsx(
                 "rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors",
-                density === "compact" ? "bg-surface-raised text-text shadow-sm ring-1 ring-border dark:bg-[#172033] dark:ring-white/[0.06]" : "text-text-muted hover:text-text"
+                density === "compact" ? "bg-surface-raised text-text shadow-sm ring-1 ring-border dark:bg-[#172033] dark:text-[#f1f5f9] dark:ring-white/[0.06]" : "text-text-muted hover:text-text dark:text-[#94a3b8] dark:hover:text-[#f8fafc]"
               )}
             >
               {t("workspace.density.compact")}

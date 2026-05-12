@@ -20,7 +20,7 @@ export function LanguageToggle() {
 
   return (
     <div
-      className="inline-flex items-center gap-1 rounded-full border border-border bg-surface-raised p-1 shadow-sm"
+      className="inline-flex items-center gap-1 rounded-full border border-border bg-surface-raised p-1 shadow-sm dark:bg-[#111827] dark:border-white/[0.06]"
       aria-label="Language selector"
       dir="ltr"
     >
@@ -31,8 +31,8 @@ export function LanguageToggle() {
         className={clsx(
           "rounded-full px-2.5 py-1 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50 sm:px-3",
           locale === "en"
-            ? "bg-primary text-on-primary"
-            : "text-text-secondary hover:bg-surface-alt hover:text-text"
+            ? "bg-primary text-on-primary dark:bg-[#3657d6] dark:text-white"
+            : "text-text-secondary hover:bg-surface-alt hover:text-text dark:text-[#cbd5e1] dark:hover:bg-[#1e293b] dark:hover:text-[#f8fafc]"
         )}
         aria-pressed={locale === "en"}
       >
@@ -45,8 +45,8 @@ export function LanguageToggle() {
         className={clsx(
           "rounded-full px-2.5 py-1 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50 sm:px-3",
           locale === "he"
-            ? "bg-primary text-on-primary"
-            : "text-text-secondary hover:bg-surface-alt hover:text-text"
+            ? "bg-primary text-on-primary dark:bg-[#3657d6] dark:text-white"
+            : "text-text-secondary hover:bg-surface-alt hover:text-text dark:text-[#cbd5e1] dark:hover:bg-[#1e293b] dark:hover:text-[#f8fafc]"
         )}
         aria-pressed={locale === "he"}
       >
