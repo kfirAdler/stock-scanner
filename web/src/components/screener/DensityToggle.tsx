@@ -33,8 +33,8 @@ export function DensityToggle({
             "rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35",
             value === option.id
-              ? "bg-surface-raised text-text shadow-sm ring-1 ring-border dark:bg-[#172033] dark:ring-white/[0.06]"
-              : "text-text-muted hover:text-text-secondary"
+              ? "bg-surface-raised text-text shadow-sm ring-1 ring-border dark:bg-[#172033] dark:text-[#f1f5f9] dark:ring-white/[0.06]"
+              : "text-text-muted hover:text-text-secondary dark:text-[#94a3b8] dark:hover:text-[#cbd5e1]"
           )}
         >
           {option.label}
