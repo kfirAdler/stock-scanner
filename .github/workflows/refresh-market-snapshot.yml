@@ -6,20 +6,34 @@ name: Refresh market snapshot
 
 on:
   schedule:
-    # --- US: NYSE/NASDAQ regular session Mon–Fri 09:30–16:00 America/New_York ---
-    # GitHub Actions `schedule` is always UTC (no DST). Eastern Time is:
-    #   EDT (~mid Mar–early Nov): 09:30 ET = 13:30 UTC, 16:00 ET = 20:00 UTC
-    #   EST (~early Nov–mid Mar): 09:30 ET = 14:30 UTC, 16:00 ET = 21:00 UTC
-    # Union of both = run every 15m from 13:30 through 21:00 UTC Mon–Fri (covers
-    # full RTH in either offset + small buffer after the bell for last prints).
+    # --- US: NYSE/NASDAQ regular session Mon-Fri ---
+    # GitHub Actions schedule is UTC.
+    # Covers US market across DST combinations:
+    # 09:30 ET can be 13:30 or 14:30 UTC.
+    # 16:00 ET can be 20:00 or 21:00 UTC.
+    #
+    # Priority:
+    # - More frequent near market open
+    # - Light polling during the day
+    # - More frequent near market close
+    # - Avoid running every 15m all day to reduce API/Supabase usage
+
+    # Open window: every 15m, 13:30-15:00 UTC
     - cron: "30,45 13 * * 1-5"
-    - cron: "*/15 14-20 * * 1-5"
-    - cron: "0,15,30,45 21 * * 1-5"
-    # --- Israel: TASE regular session Sun–Thu ~09:00–17:35 Asia/Jerusalem ---
-    # ~09:00 IL ≈ 06:00 UTC (IDT, UTC+3) or 07:00 UTC (IST, UTC+2); ~17:35 IL ≈
-    # 14:35–15:35 UTC. Sun–Thu *UTC* approximates the IL trading week; US market
-    # is closed on those UTC mornings. Holidays are not skipped here (job is safe).
-    - cron: "*/30 6-16 * * 0-4"
+    - cron: "0,15,30,45 14 * * 1-5"
+    - cron: "0 15 * * 1-5"
+
+    # Mid-session: once per hour
+    - cron: "0 16-19 * * 1-5"
+
+    # Close window: every 15m, 20:00-21:00 UTC
+    - cron: "0,15,30,45 20 * * 1-5"
+    - cron: "0 21 * * 1-5"
+
+    # --- Israel: TASE regular session Sun-Thu ---
+    # Approx 09:00-17:35 Israel time.
+    # Run hourly to reduce usage.
+    - cron: "0 6-16 * * 0-4"
   workflow_dispatch:
     inputs:
       tickers:
