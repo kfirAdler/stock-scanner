@@ -45,30 +45,30 @@
 
 .dark {
   --color-primary: #5b7cff;
-  --color-primary-hover: #6d89ff;
-  --color-primary-soft: rgba(91, 124, 255, 0.18);
-  --color-primary-ring: rgba(91, 124, 255, 0.32);
+  --color-primary-hover: #7a94ff;
+  --color-primary-soft: rgba(91, 124, 255, 0.22);
+  --color-primary-ring: rgba(91, 124, 255, 0.4);
   --color-on-primary: #eef3ff;
-  --color-ambient-glow: rgba(38, 76, 190, 0.18);
+  --color-ambient-glow: rgba(57, 92, 214, 0.24);
   --color-surface: #050816;
-  --color-surface-alt: #071020;
+  --color-surface-alt: #0b1220;
   --color-surface-raised: #111827;
-  --color-surface-elevated: #1a2332;
-  --color-surface-overlay: rgba(12, 19, 34, 0.92);
-  --color-surface-hover: #202b3d;
-  --color-surface-accent: #263247;
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-border-strong: rgba(255, 255, 255, 0.12);
-  --color-divider-soft: rgba(255, 255, 255, 0.05);
-  --color-text: #f3f4f6;
-  --color-text-secondary: #9ca3af;
-  --color-text-muted: #6b7280;
+  --color-surface-elevated: #172033;
+  --color-surface-overlay: rgba(9, 14, 27, 0.9);
+  --color-surface-hover: #223048;
+  --color-surface-accent: #24324a;
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-border-strong: rgba(255, 255, 255, 0.16);
+  --color-divider-soft: rgba(255, 255, 255, 0.065);
+  --color-text: #f8fafc;
+  --color-text-secondary: #e5e7eb;
+  --color-text-muted: #aeb6c4;
   --color-focus-ring: rgba(91, 124, 255, 0.34);
-  --color-disabled-surface: #151d2a;
-  --color-disabled-text: #596172;
-  --color-shadow-panel: 0 18px 40px rgba(0, 0, 0, 0.32);
-  --color-shadow-panel-strong: 0 28px 64px rgba(0, 0, 0, 0.42);
-  --color-shadow-overlay: 0 30px 90px rgba(0, 0, 0, 0.5);
+  --color-disabled-surface: #121927;
+  --color-disabled-text: #6c7483;
+  --color-shadow-panel: 0 16px 34px rgba(0, 0, 0, 0.28);
+  --color-shadow-panel-strong: 0 28px 72px rgba(0, 0, 0, 0.4);
+  --color-shadow-overlay: 0 26px 80px rgba(0, 0, 0, 0.46);
   --color-success: #7cc8a4;
   --color-success-soft: rgba(30, 70, 58, 0.48);
   --color-danger: #e39a9a;
@@ -97,9 +97,9 @@ body {
 
 .dark body {
   background-image:
-    radial-gradient(900px 420px at 50% -12%, rgba(64, 101, 229, 0.12), transparent 58%),
-    radial-gradient(760px 320px at 0% 0%, rgba(20, 31, 58, 0.34), transparent 52%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.015), rgba(255, 255, 255, 0));
+    radial-gradient(920px 420px at 50% -12%, rgba(82, 120, 255, 0.16), transparent 58%),
+    radial-gradient(760px 320px at 0% 0%, rgba(25, 38, 72, 0.38), transparent 52%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0));
 }
 
 html {
@@ -165,14 +165,16 @@ button:disabled {
 }
 
 .ui-panel-subtle {
-  background-color: color-mix(in srgb, var(--color-surface-elevated) 78%, var(--color-surface-alt));
-  border: 1px solid color-mix(in srgb, var(--color-border) 88%, transparent);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  background-color: color-mix(in srgb, var(--color-surface-elevated) 88%, var(--color-surface-alt));
+  border: 1px solid color-mix(in srgb, var(--color-border-strong) 82%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.025),
+    0 10px 28px rgba(0, 0, 0, 0.18);
 }
 
 .ui-panel-overlay {
   background-color: var(--color-surface-overlay);
-  border: 1px solid var(--color-border);
+  border: 1px solid color-mix(in srgb, var(--color-border-strong) 92%, transparent);
   box-shadow: var(--color-shadow-overlay);
   backdrop-filter: blur(22px);
 }
@@ -181,7 +183,9 @@ button:disabled {
   background-color: var(--color-surface-elevated);
   color: var(--color-text);
   border: 1px solid var(--color-border);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.015);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.02),
+    0 8px 18px rgba(0, 0, 0, 0.14);
   transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
 }
 
@@ -233,26 +237,26 @@ button:disabled {
 
 .ui-table-shell {
   background-color: var(--color-surface-raised);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-strong);
   box-shadow: var(--color-shadow-panel);
 }
 
 .ui-table-header {
-  background-color: color-mix(in srgb, var(--color-surface-alt) 96%, transparent);
+  background-color: color-mix(in srgb, var(--color-surface-elevated) 78%, var(--color-surface-alt));
   border-bottom-color: var(--color-divider-soft);
 }
 
 .ui-table-row:nth-child(odd) {
-  background-color: color-mix(in srgb, var(--color-surface-raised) 96%, transparent);
+  background-color: color-mix(in srgb, var(--color-surface-raised) 97%, transparent);
 }
 
 .ui-table-row:nth-child(even) {
-  background-color: color-mix(in srgb, var(--color-surface-alt) 62%, var(--color-surface-raised));
+  background-color: color-mix(in srgb, var(--color-surface-elevated) 58%, var(--color-surface-raised));
 }
 
 .ui-table-row:hover,
 .ui-table-row:focus-within {
-  background-color: color-mix(in srgb, var(--color-surface-hover) 92%, transparent);
+  background-color: color-mix(in srgb, var(--color-surface-hover) 94%, transparent);
 }
 
 .ui-elevated-hover {

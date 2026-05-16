@@ -97,15 +97,16 @@ export function HomePageClient() {
     <div className="mx-auto max-w-7xl px-4 sm:px-6">
       <section className="relative py-14 sm:py-20">
         <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-80 opacity-55"
+          className="pointer-events-none absolute inset-x-0 top-0 h-96 opacity-90"
           style={{
             background:
-              "radial-gradient(620px 260px at 50% 0%, var(--color-primary-soft), transparent 72%)",
+              "radial-gradient(720px 320px at 50% 0%, var(--color-primary-soft), transparent 72%)",
           }}
         />
+        <div className="pointer-events-none absolute inset-x-0 top-14 mx-auto h-72 max-w-5xl rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.05),transparent_68%)] blur-3xl" />
 
         <div className="relative mx-auto max-w-4xl text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-border bg-surface-overlay px-5 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-secondary shadow-[0_12px_28px_rgba(0,0,0,0.18)] backdrop-blur-md">
+          <div className="inline-flex items-center gap-2 rounded-full border border-border-strong bg-surface-overlay px-5 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-secondary shadow-[0_16px_32px_rgba(0,0,0,0.22)] backdrop-blur-md">
             <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
             {t("badge")}
           </div>
@@ -134,18 +135,18 @@ export function HomePageClient() {
             </Link>
           </div>
 
-          <p className="mt-4 text-sm text-text-muted">{t("microcopy")}</p>
+          <p className="mt-4 text-sm text-text-secondary">{t("microcopy")}</p>
 
           <div className="mx-auto mt-8 grid max-w-4xl gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {stats.map((stat) => (
               <div
                 key={stat.label}
-                className="ui-panel ui-elevated-hover rounded-2xl px-4 py-4 text-start backdrop-blur-sm"
+                className="ui-panel-strong ui-elevated-hover rounded-2xl px-4 py-4 text-start backdrop-blur-sm"
               >
                 <strong className="block text-lg font-bold text-text sm:text-xl">
                   {stat.value}
                 </strong>
-                <span className="mt-1 block text-xs font-medium text-text-secondary sm:text-sm">
+                <span className="mt-1 block text-xs font-medium text-text-muted sm:text-sm">
                   {stat.label}
                 </span>
               </div>
@@ -167,8 +168,8 @@ export function HomePageClient() {
           </p>
         </div>
 
-        <div className="ui-panel-strong mx-auto mt-8 max-w-6xl rounded-[28px] p-3">
-          <div className="overflow-hidden rounded-[22px] border border-border bg-surface-raised">
+        <div className="ui-panel-strong mx-auto mt-8 max-w-6xl rounded-[28px] p-3.5">
+          <div className="overflow-hidden rounded-[22px] border border-border-strong bg-surface-raised shadow-[0_24px_60px_rgba(0,0,0,0.24)]">
             <div className="ui-table-header flex items-center justify-between border-b border-border px-4 py-3">
               <div className="flex items-center gap-2">
                 <span className="h-2.5 w-2.5 rounded-full bg-danger/60" />
@@ -196,7 +197,7 @@ export function HomePageClient() {
                       {t("preview.filtersTitle")}
                     </h3>
                   </div>
-                  <div className="rounded-full bg-primary-soft px-3 py-1 text-xs font-bold text-primary">
+                  <div className="rounded-full border border-primary/20 bg-primary-soft px-3 py-1 text-xs font-bold text-primary">
                     {t("preview.strategyBadge")}
                   </div>
                 </div>
@@ -215,8 +216,8 @@ export function HomePageClient() {
                         className={clsx(
                           "rounded-2xl border px-4 py-3 transition-all duration-500",
                           active
-                            ? "border-primary/35 bg-primary-soft/70 shadow-sm"
-                            : "border-border bg-surface-raised"
+                            ? "border-primary/40 bg-primary-soft/80 shadow-[0_14px_28px_rgba(37,99,235,0.12)]"
+                            : "border-border bg-surface-elevated"
                         )}
                       >
                         <div className="flex items-center justify-between gap-3">
@@ -259,7 +260,7 @@ export function HomePageClient() {
                       size="sm"
                       className={clsx(
                         "min-w-[160px]",
-                        previewStep >= 4 && "shadow-[0_0_0_6px_rgba(30,64,175,0.08)]"
+                        previewStep >= 4 && "shadow-[0_0_0_6px_rgba(91,124,255,0.12)]"
                       )}
                     >
                       {t("preview.runScan")}
@@ -286,8 +287,8 @@ export function HomePageClient() {
                   </div>
                 </div>
 
-                <div className="mt-6 overflow-hidden rounded-2xl border border-border shadow-[0_18px_42px_rgba(0,0,0,0.18)]">
-                  <div className="grid grid-cols-[1.1fr_0.95fr_0.7fr_0.7fr_0.8fr] gap-2 border-b border-border bg-surface-alt px-4 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted">
+                <div className="mt-6 overflow-hidden rounded-2xl border border-border-strong shadow-[0_22px_48px_rgba(0,0,0,0.22)]">
+                  <div className="grid grid-cols-[1.1fr_0.95fr_0.7fr_0.7fr_0.8fr] gap-2 border-b border-border bg-surface-elevated px-4 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted">
                     <span>{t("preview.table.ticker")}</span>
                     <span className="text-end">{t("preview.table.close")}</span>
                     <span className="text-center market-inline-ltr">{t("preview.table.sma20")}</span>
@@ -327,7 +328,7 @@ export function HomePageClient() {
                           key={row.ticker}
                           className={clsx(
                             "grid grid-cols-[1.1fr_0.95fr_0.7fr_0.7fr_0.8fr] items-center gap-2 px-4 py-3 transition-all duration-500",
-                            visible ? "translate-y-0 opacity-100" : "translate-y-2 opacity-30"
+                            visible ? "translate-y-0 opacity-100" : "translate-y-2 opacity-45"
                           )}
                         >
                           <span className="market-inline-ltr font-bold text-primary">{row.ticker}</span>
