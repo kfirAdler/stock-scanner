@@ -45,7 +45,7 @@ export function TechnicalSummaryPanel({
           const snapshot = snapshots[timeframe];
           const tone = classifyTrend(snapshot);
           return (
-            <div key={timeframe} className="rounded-2xl bg-surface-alt/75 px-3 py-3 ring-1 ring-border">
+            <div key={timeframe} className="ui-panel-subtle rounded-2xl px-3 py-3">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-sm font-semibold text-text">{t(`timeframes.${timeframe}`)}</span>
                 <span className={clsx("rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1", toneClasses(tone))}>
@@ -57,17 +57,17 @@ export function TechnicalSummaryPanel({
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {summaryLines(snapshot, t).map((line) => (
-                  <span key={line} className="rounded-full bg-surface px-2.5 py-1 text-[11px] text-text-secondary ring-1 ring-border">
+                  <span key={line} className="rounded-full bg-surface-elevated px-2.5 py-1 text-[11px] text-text-secondary ring-1 ring-border">
                     {line}
                   </span>
                 ))}
               </div>
               <div className="mt-3 grid grid-cols-2 gap-2 text-[12px]">
-                <div className="rounded-xl bg-surface px-2.5 py-2 ring-1 ring-border">
+                <div className="rounded-xl bg-surface-elevated px-2.5 py-2 ring-1 ring-border">
                   <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.atrPct")}</p>
                   <p className="mt-1 font-semibold text-text">{formatPercent(snapshot?.atr_percent != null ? snapshot.atr_percent / 100 : null)}</p>
                 </div>
-                <div className="rounded-xl bg-surface px-2.5 py-2 ring-1 ring-border">
+                <div className="rounded-xl bg-surface-elevated px-2.5 py-2 ring-1 ring-border">
                   <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.sequenceCount")}</p>
                   <p className="mt-1 font-semibold text-text">
                     {snapshot?.up_sequence_count || 0}/{snapshot?.down_sequence_count || 0}

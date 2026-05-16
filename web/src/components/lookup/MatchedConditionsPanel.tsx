@@ -87,7 +87,7 @@ export function MatchedConditionsPanel({
       </div>
 
       {selectedCondition ? (
-        <div className="mt-5 rounded-2xl bg-surface-alt/70 px-4 py-4 ring-1 ring-border">
+        <div className="ui-panel-subtle mt-5 rounded-2xl px-4 py-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.conditionActions")}</p>

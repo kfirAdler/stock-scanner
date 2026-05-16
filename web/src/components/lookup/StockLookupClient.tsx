@@ -844,7 +844,7 @@ export function StockLookupClient() {
             </div>
 
             <div ref={wrapRef} className="relative w-full max-w-[760px]">
-              <div className="rounded-[22px] bg-surface-alt/75 p-2 ring-1 ring-border">
+              <div className="ui-panel-subtle rounded-[22px] p-2">
                 <div className="flex items-center gap-2">
                   <div className="min-w-0 flex-1">
                     <Input
@@ -883,7 +883,7 @@ export function StockLookupClient() {
                 <ul
                   id={`${listId}-listbox`}
                   role="listbox"
-                  className="absolute z-30 mt-2 max-h-72 w-full overflow-auto rounded-[20px] bg-surface-raised py-2 shadow-[0_18px_40px_rgba(15,23,42,0.12)] ring-1 ring-border"
+                  className="absolute z-30 mt-2 max-h-72 w-full overflow-auto rounded-[20px] bg-surface-elevated py-2 shadow-2xl ring-1 ring-border"
                 >
                   {loadingSuggest && (
                     <li className="px-4 py-3 text-sm text-text-muted">{t("loadingSuggest")}</li>
@@ -895,7 +895,7 @@ export function StockLookupClient() {
                     <li key={s.ticker} role="option" aria-selected={false}>
                       <button
                         type="button"
-                        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-start transition-colors hover:bg-surface-alt/55"
+                        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-start transition-colors hover:bg-surface-hover/65"
                         onClick={() => {
                           setQ(s.ticker);
                           void loadCoverage(s.ticker);
@@ -1028,7 +1028,7 @@ export function StockLookupClient() {
                 </Link>
               </div>
               <div className="mt-4 grid gap-3 xl:grid-cols-2">
-                <div className="rounded-2xl bg-surface-alt/70 px-4 py-4 ring-1 ring-border">
+                <div className="ui-panel-subtle rounded-2xl px-4 py-4">
                   <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.unsupportedIndicators")}</p>
                   <div className="mt-3 space-y-2">
                     {coverage.indicators
@@ -1042,7 +1042,7 @@ export function StockLookupClient() {
                       ))}
                   </div>
                 </div>
-                <div className="rounded-2xl bg-surface-alt/70 px-4 py-4 ring-1 ring-border">
+                <div className="ui-panel-subtle rounded-2xl px-4 py-4">
                   <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.unsupportedFilters")}</p>
                   <div className="mt-3 space-y-2">
                     {diagnostics.length > 0 ? diagnostics.map((entry) => (

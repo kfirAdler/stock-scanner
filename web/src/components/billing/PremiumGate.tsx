@@ -12,9 +12,9 @@ export function PremiumGate({ kind }: { kind: ExtendedGateKind }) {
   const isLoginGate = kind === "login" || kind === "multiFilterLogin";
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-border-strong bg-surface-raised shadow-lg ring-1 ring-black/[0.03] dark:ring-white/[0.06]">
+    <div className="relative overflow-hidden rounded-3xl border border-border-strong bg-surface-raised shadow-lg ring-1 ring-border">
       <div
-        className="pointer-events-none absolute inset-0 opacity-50 dark:opacity-40"
+        className="pointer-events-none absolute inset-0 opacity-45"
         style={{
           background:
             "radial-gradient(720px 320px at 50% -30%, var(--color-primary-soft), transparent 58%)",

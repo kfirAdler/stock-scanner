@@ -332,7 +332,7 @@ export function ResultsTable({
               <button
                 type="button"
                 onClick={() => toggleExpanded(row.ticker)}
-                className="flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left transition-colors hover:bg-surface-alt/55"
+                className="flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left transition-colors hover:bg-surface-hover/70"
               >
                 <div className="min-w-0">
                   <p className="text-sm font-bold tracking-[0.01em] text-text">{row.ticker}</p>
@@ -344,7 +344,7 @@ export function ResultsTable({
               </button>
 
               {expanded ? (
-                <div className="space-y-3 border-t border-border bg-surface-alt/45 px-4 py-3.5">
+                <div className="space-y-3 border-t border-border bg-surface-alt/65 px-4 py-3.5">
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div className="ui-control rounded-lg px-3 py-2.5">
                       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">

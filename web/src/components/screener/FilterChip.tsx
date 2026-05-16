@@ -31,7 +31,7 @@ export function FilterChip({
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
           density === "compact" ? "min-h-7 px-2.5 py-1 text-[11px]" : "min-h-8 px-3 py-1.5 text-[12px]",
           active
-            ? "bg-primary text-on-primary shadow-[0_10px_28px_rgba(30,64,175,0.22)] dark:shadow-none"
+            ? "bg-primary text-on-primary shadow-[0_12px_30px_rgba(37,99,235,0.26)]"
             : "ui-control text-text-secondary hover:border-border-strong hover:text-text"
         )}
       >

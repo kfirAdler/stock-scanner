@@ -11,7 +11,7 @@ export function InsightPanel({ insights, t }: InsightPanelProps) {
       <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.insights")}</h2>
       <div className="mt-3 space-y-2">
         {insights.map((insight) => (
-          <div key={insight} className="rounded-2xl bg-surface-alt/70 px-3 py-3 text-sm text-text-secondary ring-1 ring-border">
+          <div key={insight} className="ui-panel-subtle rounded-2xl px-3 py-3 text-sm text-text-secondary">
             {insight}
           </div>
         ))}

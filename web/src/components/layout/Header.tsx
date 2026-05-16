@@ -118,11 +118,11 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border-strong/40 bg-surface/85 backdrop-blur-xl shadow-sm">
+    <header className="sticky top-0 z-40 border-b border-border bg-surface-overlay/95 backdrop-blur-2xl shadow-[0_10px_32px_rgba(0,0,0,0.18)]">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6">
         <div className="flex items-center gap-3 sm:gap-8">
           <Link href="/" className="flex items-center gap-2 group" onClick={closeMenus}>
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary-hover shadow-md ring-1 ring-black/5 dark:ring-white/[0.08] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.04)]">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-hover shadow-[0_12px_24px_rgba(37,99,235,0.28)] ring-1 ring-white/10">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="white" className="h-4 w-4">
                 <path fillRule="evenodd" d="M12.577 4.878a.75.75 0 01.919-.53l4.78 1.281a.75.75 0 01.531.919l-1.281 4.78a.75.75 0 01-1.449-.387l.81-3.022a19.407 19.407 0 00-5.594 5.203.75.75 0 01-1.139.093L7 10.06l-4.72 4.72a.75.75 0 01-1.06-1.061l5.25-5.25a.75.75 0 011.06 0l3.074 3.073a20.923 20.923 0 015.545-4.931l-3.042.815a.75.75 0 01-.53-.919z" clipRule="evenodd" />
               </svg>
@@ -139,7 +139,7 @@ export function Header() {
               <span
                 className={clsx(
                   "hidden items-center rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider sm:inline-flex",
-                  "border-border-strong bg-surface-alt text-text-muted"
+                  "border-border bg-surface-elevated text-text-secondary"
                 )}
               >
                 {t("premium.headerBadgeLocked")}
@@ -179,7 +179,7 @@ export function Header() {
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
                   <div
-                    className="ui-panel absolute end-0 z-50 mt-1.5 w-48 rounded-xl py-1.5 shadow-xl"
+                    className="ui-panel-strong absolute end-0 z-50 mt-1.5 w-48 rounded-2xl py-1.5 shadow-xl"
                     role="menu"
                   >
                     <Link
@@ -201,7 +201,7 @@ export function Header() {
                     <div className="my-1 border-t border-border" />
                     <button
                       onClick={handleSignOut}
-                      className="block w-full px-4 py-2 text-start text-sm text-danger transition-colors hover:bg-danger-soft dark:hover:bg-[rgba(127,29,29,0.34)]"
+                      className="block w-full px-4 py-2 text-start text-sm text-danger transition-colors hover:bg-danger-soft"
                       role="menuitem"
                     >
                       {t("common.signOut")}
@@ -243,7 +243,7 @@ export function Header() {
       </div>
 
       {mobileNavOpen && (
-        <div id="mobile-site-nav" className="border-t border-border/70 md:hidden">
+        <div id="mobile-site-nav" className="border-t border-border/70 bg-surface-overlay/95 md:hidden">
           <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6">
             {user && (
               <div className="ui-panel-subtle mb-3 rounded-xl px-3 py-2">

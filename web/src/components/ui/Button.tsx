@@ -14,13 +14,13 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles: Record<Variant, string> = {
   primary:
-    "bg-primary text-on-primary shadow-sm hover:bg-primary-hover active:scale-[0.98] focus-visible:ring-primary/50 disabled:bg-primary/55 disabled:text-on-primary/80",
+    "bg-primary text-on-primary shadow-[0_12px_28px_rgba(37,99,235,0.24)] hover:bg-primary-hover hover:shadow-[0_16px_32px_rgba(37,99,235,0.28)] active:scale-[0.98] focus-visible:ring-primary/50 disabled:bg-primary/55 disabled:text-on-primary/80 disabled:shadow-none",
   secondary:
     "ui-control border-border-strong text-text hover:border-border-strong active:scale-[0.98] focus-visible:ring-primary/50",
   ghost:
-    "text-text-secondary hover:text-text hover:bg-surface-alt active:scale-[0.98] focus-visible:ring-primary/50",
+    "text-text-secondary hover:text-text hover:bg-surface-hover active:scale-[0.98] focus-visible:ring-primary/50",
   danger:
-    "bg-danger text-on-danger shadow-sm hover:bg-red-700 active:scale-[0.98] focus-visible:ring-danger/50 disabled:bg-danger/60 disabled:text-on-danger/80",
+    "bg-danger text-on-danger shadow-[0_12px_24px_rgba(127,29,29,0.18)] hover:bg-[#cf8080] active:scale-[0.98] focus-visible:ring-danger/50 disabled:bg-danger/60 disabled:text-on-danger/80 disabled:shadow-none",
 };
 
 const sizeStyles: Record<Size, string> = {

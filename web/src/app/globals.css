@@ -6,7 +6,7 @@
   --color-primary-hover: #1d3c9c;
   --color-primary-soft: #dbeafe;
   --color-on-primary: #ffffff;
-  /* Page wash: subtle blue tint, no metallic accent */
+  --color-primary-ring: rgba(30, 64, 175, 0.34);
   --color-ambient-glow: rgba(30, 64, 175, 0.055);
   --color-surface: #fafbfc;
   --color-surface-alt: #f1f5f9;
@@ -14,16 +14,19 @@
   --color-surface-elevated: #ffffff;
   --color-surface-overlay: rgba(255, 255, 255, 0.94);
   --color-surface-hover: #eef4fb;
+  --color-surface-accent: #e7eefc;
   --color-border: #e2e8f0;
   --color-border-strong: #cbd5e1;
+  --color-divider-soft: rgba(148, 163, 184, 0.18);
   --color-text: #0c1222;
   --color-text-secondary: #5c6b7e;
   --color-text-muted: #8b9aad;
   --color-focus-ring: rgba(30, 64, 175, 0.34);
   --color-disabled-surface: #e5ebf3;
   --color-disabled-text: #8b9aad;
-  --color-shadow-panel: 0 18px 48px rgba(15, 23, 42, 0.08);
-  --color-shadow-panel-strong: 0 24px 70px rgba(15, 23, 42, 0.12);
+  --color-shadow-panel: 0 18px 42px rgba(15, 23, 42, 0.08);
+  --color-shadow-panel-strong: 0 28px 72px rgba(15, 23, 42, 0.12);
+  --color-shadow-overlay: 0 24px 80px rgba(15, 23, 42, 0.16);
   --color-success: #16a34a;
   --color-success-soft: #dcfce7;
   --color-danger: #dc2626;
@@ -41,39 +44,43 @@
 }
 
 .dark {
-  --color-primary: #3f67ff;
-  --color-primary-hover: #5378ff;
-  --color-primary-soft: rgba(63, 103, 255, 0.18);
-  --color-on-primary: #f8fbff;
-  --color-ambient-glow: transparent;
-  --color-surface: #08111c;
-  --color-surface-alt: #0d1828;
-  --color-surface-raised: #111e31;
-  --color-surface-elevated: #162338;
-  --color-surface-overlay: rgba(17, 30, 49, 0.94);
-  --color-surface-hover: #1a2940;
+  --color-primary: #5b7cff;
+  --color-primary-hover: #6d89ff;
+  --color-primary-soft: rgba(91, 124, 255, 0.18);
+  --color-primary-ring: rgba(91, 124, 255, 0.32);
+  --color-on-primary: #eef3ff;
+  --color-ambient-glow: rgba(38, 76, 190, 0.18);
+  --color-surface: #050816;
+  --color-surface-alt: #071020;
+  --color-surface-raised: #111827;
+  --color-surface-elevated: #1a2332;
+  --color-surface-overlay: rgba(12, 19, 34, 0.92);
+  --color-surface-hover: #202b3d;
+  --color-surface-accent: #263247;
   --color-border: rgba(255, 255, 255, 0.08);
-  --color-border-strong: rgba(255, 255, 255, 0.14);
-  --color-text: #f4f8ff;
-  --color-text-secondary: #c8d5e6;
-  --color-text-muted: #93a6bc;
-  --color-focus-ring: rgba(83, 120, 255, 0.38);
-  --color-disabled-surface: #172334;
-  --color-disabled-text: #6f8299;
-  --color-shadow-panel: 0 18px 42px rgba(0, 0, 0, 0.26);
-  --color-shadow-panel-strong: 0 24px 64px rgba(0, 0, 0, 0.34);
-  --color-success: #7dffb1;
-  --color-success-soft: rgba(29, 78, 53, 0.42);
-  --color-danger: #ffb4b4;
-  --color-danger-soft: rgba(127, 29, 29, 0.34);
+  --color-border-strong: rgba(255, 255, 255, 0.12);
+  --color-divider-soft: rgba(255, 255, 255, 0.05);
+  --color-text: #f3f4f6;
+  --color-text-secondary: #9ca3af;
+  --color-text-muted: #6b7280;
+  --color-focus-ring: rgba(91, 124, 255, 0.34);
+  --color-disabled-surface: #151d2a;
+  --color-disabled-text: #596172;
+  --color-shadow-panel: 0 18px 40px rgba(0, 0, 0, 0.32);
+  --color-shadow-panel-strong: 0 28px 64px rgba(0, 0, 0, 0.42);
+  --color-shadow-overlay: 0 30px 90px rgba(0, 0, 0, 0.5);
+  --color-success: #7cc8a4;
+  --color-success-soft: rgba(30, 70, 58, 0.48);
+  --color-danger: #e39a9a;
+  --color-danger-soft: rgba(102, 43, 48, 0.42);
   --color-on-danger: #fff1f2;
-  --color-warning: #f4d38d;
-  --color-warning-soft: rgba(133, 77, 14, 0.32);
-  --color-accent: #a9b8ff;
-  --color-accent-soft: rgba(56, 73, 164, 0.26);
+  --color-warning: #d7ba7a;
+  --color-warning-soft: rgba(111, 81, 28, 0.34);
+  --color-accent: #97abff;
+  --color-accent-soft: rgba(61, 81, 150, 0.28);
   --color-on-text: #0f172a;
-  --color-chart-up: #7dffb1;
-  --color-chart-down: #ff9b9b;
+  --color-chart-up: #76cfa7;
+  --color-chart-down: #e59a9a;
 }
 
 html {
@@ -88,8 +95,11 @@ body {
     radial-gradient(900px 400px at 0% 0%, var(--color-ambient-glow), transparent 45%);
 }
 
-html.dark body {
-  background-image: none;
+.dark body {
+  background-image:
+    radial-gradient(900px 420px at 50% -12%, rgba(64, 101, 229, 0.12), transparent 58%),
+    radial-gradient(760px 320px at 0% 0%, rgba(20, 31, 58, 0.34), transparent 52%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.015), rgba(255, 255, 255, 0));
 }
 
 html {
@@ -120,6 +130,28 @@ button:disabled {
   color: var(--color-disabled-text);
 }
 
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-text-muted) 40%, transparent);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--color-text-secondary) 58%, transparent);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
 .ui-panel {
   background-color: var(--color-surface-raised);
   border: 1px solid var(--color-border);
@@ -133,31 +165,35 @@ button:disabled {
 }
 
 .ui-panel-subtle {
-  background-color: color-mix(in srgb, var(--color-surface-alt) 82%, transparent);
+  background-color: color-mix(in srgb, var(--color-surface-elevated) 78%, var(--color-surface-alt));
   border: 1px solid color-mix(in srgb, var(--color-border) 88%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
 }
 
 .ui-panel-overlay {
   background-color: var(--color-surface-overlay);
   border: 1px solid var(--color-border);
-  box-shadow: var(--color-shadow-panel);
-  backdrop-filter: blur(16px);
+  box-shadow: var(--color-shadow-overlay);
+  backdrop-filter: blur(22px);
 }
 
 .ui-control {
   background-color: var(--color-surface-elevated);
   color: var(--color-text);
   border: 1px solid var(--color-border);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.015);
+  transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
 }
 
 .ui-control:hover {
   background-color: var(--color-surface-hover);
+  border-color: var(--color-border-strong);
 }
 
 .ui-icon-button,
 .ui-nav-item {
   color: var(--color-text-secondary);
-  transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease;
+  transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
 }
 
 .ui-icon-button:hover,
@@ -167,8 +203,9 @@ button:disabled {
 }
 
 .ui-segment {
-  background-color: color-mix(in srgb, var(--color-surface-alt) 88%, transparent);
+  background-color: color-mix(in srgb, var(--color-surface-alt) 92%, transparent);
   border: 1px solid var(--color-border);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.015);
 }
 
 .ui-segment-item {
@@ -185,7 +222,7 @@ button:disabled {
   background-color: var(--color-surface-elevated);
   color: var(--color-text);
   border: 1px solid var(--color-border);
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02), 0 10px 24px rgba(0, 0, 0, 0.22);
 }
 
 .ui-badge-default {
@@ -201,7 +238,8 @@ button:disabled {
 }
 
 .ui-table-header {
-  background-color: color-mix(in srgb, var(--color-surface-alt) 92%, transparent);
+  background-color: color-mix(in srgb, var(--color-surface-alt) 96%, transparent);
+  border-bottom-color: var(--color-divider-soft);
 }
 
 .ui-table-row:nth-child(odd) {
@@ -209,17 +247,27 @@ button:disabled {
 }
 
 .ui-table-row:nth-child(even) {
-  background-color: color-mix(in srgb, var(--color-surface-alt) 50%, var(--color-surface-raised));
+  background-color: color-mix(in srgb, var(--color-surface-alt) 62%, var(--color-surface-raised));
 }
 
 .ui-table-row:hover,
 .ui-table-row:focus-within {
-  background-color: color-mix(in srgb, var(--color-surface-hover) 88%, transparent);
+  background-color: color-mix(in srgb, var(--color-surface-hover) 92%, transparent);
+}
+
+.ui-elevated-hover {
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+}
+
+.ui-elevated-hover:hover {
+  transform: translateY(-1px);
+  border-color: var(--color-border-strong);
+  box-shadow: var(--color-shadow-panel-strong);
 }
 
 :focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px var(--color-focus-ring);
+  box-shadow: 0 0 0 2px var(--color-focus-ring), 0 0 0 6px color-mix(in srgb, var(--color-focus-ring) 22%, transparent);
 }
 
 ::selection {

@@ -97,7 +97,7 @@ export function HomePageClient() {
     <div className="mx-auto max-w-7xl px-4 sm:px-6">
       <section className="relative py-14 sm:py-20">
         <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-80 opacity-55 dark:opacity-35"
+          className="pointer-events-none absolute inset-x-0 top-0 h-80 opacity-55"
           style={{
             background:
               "radial-gradient(620px 260px at 50% 0%, var(--color-primary-soft), transparent 72%)",
@@ -105,7 +105,7 @@ export function HomePageClient() {
         />
 
         <div className="relative mx-auto max-w-4xl text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-border-strong bg-surface-raised/90 px-5 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-secondary shadow-sm backdrop-blur-sm">
+          <div className="inline-flex items-center gap-2 rounded-full border border-border bg-surface-overlay px-5 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-secondary shadow-[0_12px_28px_rgba(0,0,0,0.18)] backdrop-blur-md">
             <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
             {t("badge")}
           </div>
@@ -140,7 +140,7 @@ export function HomePageClient() {
             {stats.map((stat) => (
               <div
                 key={stat.label}
-                className="rounded-2xl border border-border-strong/80 bg-surface-raised/80 px-4 py-4 text-start shadow-sm backdrop-blur-sm"
+                className="ui-panel ui-elevated-hover rounded-2xl px-4 py-4 text-start backdrop-blur-sm"
               >
                 <strong className="block text-lg font-bold text-text sm:text-xl">
                   {stat.value}
@@ -168,7 +168,7 @@ export function HomePageClient() {
         </div>
 
         <div className="ui-panel-strong mx-auto mt-8 max-w-6xl rounded-[28px] p-3">
-          <div className="overflow-hidden rounded-[22px] border border-border bg-surface">
+          <div className="overflow-hidden rounded-[22px] border border-border bg-surface-raised">
             <div className="ui-table-header flex items-center justify-between border-b border-border px-4 py-3">
               <div className="flex items-center gap-2">
                 <span className="h-2.5 w-2.5 rounded-full bg-danger/60" />
@@ -243,7 +243,7 @@ export function HomePageClient() {
                   })}
                 </div>
 
-                <div className="mt-6 rounded-2xl border border-border bg-surface-alt/70 p-4">
+                <div className="ui-panel-subtle mt-6 rounded-2xl p-4">
                   <div className="mb-3 flex items-center justify-between text-xs font-bold uppercase tracking-[0.16em] text-text-muted">
                     <span>{t("preview.scanProgress")}</span>
                     <span>{previewStep >= 5 ? t("preview.scanDone") : t("preview.scanPreparing")}</span>
@@ -286,7 +286,7 @@ export function HomePageClient() {
                   </div>
                 </div>
 
-                <div className="mt-6 overflow-hidden rounded-2xl border border-border shadow-sm">
+                <div className="mt-6 overflow-hidden rounded-2xl border border-border shadow-[0_18px_42px_rgba(0,0,0,0.18)]">
                   <div className="grid grid-cols-[1.1fr_0.95fr_0.7fr_0.7fr_0.8fr] gap-2 border-b border-border bg-surface-alt px-4 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted">
                     <span>{t("preview.table.ticker")}</span>
                     <span className="text-end">{t("preview.table.close")}</span>
@@ -294,7 +294,7 @@ export function HomePageClient() {
                     <span className="text-center market-inline-ltr">{t("preview.table.sma50")}</span>
                     <span>{t("preview.table.sequence")}</span>
                   </div>
-                  <div className="divide-y divide-border bg-surface text-sm">
+                  <div className="divide-y divide-border bg-surface-raised text-sm">
                     {[
                       {
                         ticker: "AAPL",
@@ -352,7 +352,7 @@ export function HomePageClient() {
                   </div>
                 </div>
 
-                <div className="mt-5 rounded-2xl border border-border bg-surface-alt/70 p-4">
+                <div className="ui-panel-subtle mt-5 rounded-2xl p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-sm font-bold text-text">{t("preview.savedScreenTitle")}</p>
@@ -499,8 +499,8 @@ function FeatureCard({
   color: CardColor;
 }) {
   return (
-    <div className="ui-panel group relative rounded-[24px] p-6 transition-all duration-300 hover:-translate-y-0.5 hover:border-border-strong">
-      <div className={`inline-flex h-11 w-11 items-center justify-center rounded-xl ring-1 ring-black/5 dark:ring-white/10 ${colorMap[color]}`}>
+    <div className="ui-panel ui-elevated-hover group relative rounded-[24px] p-6">
+      <div className={`inline-flex h-11 w-11 items-center justify-center rounded-xl ring-1 ring-white/10 ${colorMap[color]}`}>
         {icon}
       </div>
       <h3 className="mt-4 font-bold tracking-tight text-text">{title}</h3>

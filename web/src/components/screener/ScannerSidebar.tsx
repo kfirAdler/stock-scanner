@@ -52,13 +52,13 @@ export function ScannerSidebar({
         </div>
       </div>
 
-      <div className="sticky top-0 z-10 border-b border-border/60 bg-surface-overlay px-4 py-2.5 backdrop-blur">
+      <div className="sticky top-0 z-10 border-b border-border/60 bg-surface-overlay px-4 py-2.5 backdrop-blur-xl">
         {statusBar}
       </div>
 
       <div className="space-y-4 bg-transparent px-4 py-3.5">{children}</div>
 
-      <div className="sticky bottom-0 border-t border-border/70 bg-surface-overlay px-4 py-2.5 backdrop-blur">
+      <div className="sticky bottom-0 border-t border-border/70 bg-surface-overlay px-4 py-2.5 backdrop-blur-xl">
         {footer}
       </div>
     </aside>

@@ -508,7 +508,7 @@ export function FilterPanel({
                 disabled={activeFilterCount === 0}
                 className={clsx(
                   favoriteAvailable &&
-                    "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:border-amber-900/60 dark:bg-amber-950/50 dark:text-amber-300"
+                    "border-amber-500/25 bg-amber-500/10 text-amber-200 hover:bg-amber-500/16"
                 )}
               >
                 {favoriteAvailable ? t("favorite.update") : t("favorite.save")}

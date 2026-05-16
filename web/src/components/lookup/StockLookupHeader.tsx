@@ -28,7 +28,7 @@ function toneClass(tone: TrendTone | "accent") {
   if (tone === "bullish") return "bg-success-soft text-success ring-success/15";
   if (tone === "bearish") return "bg-danger-soft text-danger ring-danger/15";
   if (tone === "accent") return "bg-primary-soft text-primary ring-primary/10";
-  return "bg-surface text-text-secondary ring-border";
+  return "bg-surface-elevated text-text-secondary ring-border";
 }
 
 function sparklineTone(changePct: number | null) {
@@ -170,7 +170,7 @@ export function StockLookupHeader({
 
           <div className={clsx("grid gap-2", summaryCards.length >= 4 ? "sm:grid-cols-2 xl:grid-cols-4" : "sm:grid-cols-2 xl:grid-cols-3")}>
             {summaryCards.map((card) => (
-              <div key={card.key} className="rounded-2xl bg-surface-alt/75 px-3 py-3 ring-1 ring-border">
+              <div key={card.key} className="ui-panel-subtle rounded-2xl px-3 py-3">
                 <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{card.label}</p>
                 <p className="mt-1 truncate text-sm font-semibold text-text">{card.value}</p>
               </div>
@@ -186,11 +186,11 @@ export function StockLookupHeader({
           </div>
 
           {coreConditions.length > 0 ? (
-            <div className="rounded-2xl bg-surface-alt/70 px-3 py-3 ring-1 ring-border">
+            <div className="ui-panel-subtle rounded-2xl px-3 py-3">
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.currentMatches")}</p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {coreConditions.slice(0, 6).map((condition) => (
-                  <span key={condition.id} className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-medium text-text-secondary ring-1 ring-border">
+                  <span key={condition.id} className="rounded-full bg-surface-elevated px-2.5 py-1 text-[11px] font-medium text-text-secondary ring-1 ring-border">
                     {(condition.timeframeLabel ?? condition.timeframe)} · {condition.label}
                   </span>
                 ))}
@@ -244,11 +244,11 @@ export function StockLookupHeader({
             </svg>
           </div>
 
-          <div className="rounded-2xl bg-surface-alt/75 px-4 py-4 ring-1 ring-border">
+          <div className="ui-panel-subtle rounded-2xl px-4 py-4">
             <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.timeframeMatrix")}</p>
             <div className="mt-3 space-y-2">
               {timeframeStates.map((item) => (
-                <div key={item.timeframe} className="flex items-center justify-between rounded-xl bg-surface px-3 py-2 ring-1 ring-border">
+                <div key={item.timeframe} className="flex items-center justify-between rounded-xl bg-surface-elevated px-3 py-2 ring-1 ring-border">
                   <span className="text-sm font-semibold text-text">{item.timeframe}</span>
                   <span className={clsx("rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1", toneClass(item.tone))}>
                     {item.label}

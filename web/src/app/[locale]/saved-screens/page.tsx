@@ -113,11 +113,11 @@ export default function SavedScreensPage() {
                     size="sm"
                     variant="ghost"
                     disabled
-                    className="w-full justify-center border border-dashed border-amber-300/80 bg-amber-50/70 text-amber-900 hover:bg-amber-50 dark:border-amber-400/30 dark:bg-amber-500/10 dark:text-amber-200 sm:w-auto"
+                    className="w-full justify-center border border-dashed border-amber-400/20 bg-amber-500/10 text-amber-200 hover:bg-amber-500/14 sm:w-auto"
                   >
                     <PremiumStar />
                     {t("savedScreens.enableAlerts")}
-                    <span className="rounded-full border border-amber-300/60 bg-amber-100/80 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-800 dark:border-amber-400/30 dark:bg-amber-950/40 dark:text-amber-200">
+                    <span className="rounded-full border border-amber-400/25 bg-amber-500/12 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-200">
                       {t("savedScreens.alertsPremium")}
                     </span>
                   </Button>
