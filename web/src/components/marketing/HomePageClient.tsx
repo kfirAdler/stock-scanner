@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/Button";
@@ -81,7 +81,7 @@ export function HomePageClient() {
 
   const savedBullets = ["save", "rerun", "track", "premium"];
 
-  const formattedUpdate = useMemo(() => {
+  const formattedUpdate = (() => {
     if (!marketMeta?.lastUpdated) return null;
     try {
       return new Intl.DateTimeFormat(locale, {
@@ -91,7 +91,7 @@ export function HomePageClient() {
     } catch {
       return null;
     }
-  }, [locale, marketMeta?.lastUpdated]);
+  })();
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6">
@@ -167,9 +167,9 @@ export function HomePageClient() {
           </p>
         </div>
 
-        <div className="mx-auto mt-8 max-w-6xl rounded-[28px] border border-border-strong/80 bg-surface-raised p-3 shadow-[0_24px_70px_rgba(15,23,42,0.10)]">
+        <div className="ui-panel-strong mx-auto mt-8 max-w-6xl rounded-[28px] p-3">
           <div className="overflow-hidden rounded-[22px] border border-border bg-surface">
-            <div className="flex items-center justify-between border-b border-border bg-surface-alt/80 px-4 py-3">
+            <div className="ui-table-header flex items-center justify-between border-b border-border px-4 py-3">
               <div className="flex items-center gap-2">
                 <span className="h-2.5 w-2.5 rounded-full bg-danger/60" />
                 <span className="h-2.5 w-2.5 rounded-full bg-warning/60" />
@@ -412,7 +412,7 @@ export function HomePageClient() {
 
       <section id="saved-screens" className="py-10 sm:py-16">
         <div className="grid gap-6 lg:grid-cols-[1fr_0.9fr] lg:items-stretch">
-          <div className="rounded-[28px] border border-border-strong/80 bg-surface-raised p-8 shadow-[0_14px_40px_rgba(15,23,42,0.06)]">
+          <div className="ui-panel rounded-[28px] p-8">
             <p className="text-[12px] font-bold uppercase tracking-[0.18em] text-primary">
               {t("saved.eyebrow")}
             </p>
@@ -435,7 +435,7 @@ export function HomePageClient() {
             </ul>
           </div>
 
-          <div className="rounded-[28px] border border-border-strong/80 bg-[linear-gradient(180deg,rgba(219,234,254,0.85),rgba(255,255,255,0.95))] p-8 shadow-[0_14px_40px_rgba(15,23,42,0.06)] dark:bg-[linear-gradient(180deg,rgba(30,58,95,0.9),rgba(17,28,46,0.98))]">
+          <div className="ui-panel rounded-[28px] p-8">
             <div className="inline-flex items-center rounded-full border border-warning/30 bg-warning-soft px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-warning">
               {t("saved.comingSoon")}
             </div>
@@ -460,7 +460,7 @@ export function HomePageClient() {
       </section>
 
       <section className="pb-16 pt-10 sm:pb-24 sm:pt-16">
-        <div className="rounded-[32px] border border-border-strong/70 bg-[linear-gradient(135deg,rgba(30,64,175,0.10),rgba(255,255,255,0.96))] px-6 py-10 shadow-[0_24px_70px_rgba(15,23,42,0.10)] dark:bg-[linear-gradient(135deg,rgba(30,58,95,0.9),rgba(17,28,46,0.98))] sm:px-10">
+        <div className="ui-panel-strong rounded-[32px] px-6 py-10 sm:px-10">
           <div className="mx-auto max-w-3xl text-center">
             <h2 className="text-3xl font-bold tracking-tight text-text sm:text-4xl">
               {t("finalCta.title")}
@@ -499,7 +499,7 @@ function FeatureCard({
   color: CardColor;
 }) {
   return (
-    <div className="group relative rounded-[24px] border border-border-strong/70 bg-surface-raised/90 p-6 shadow-[0_14px_40px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-0.5 hover:border-border-strong hover:shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
+    <div className="ui-panel group relative rounded-[24px] p-6 transition-all duration-300 hover:-translate-y-0.5 hover:border-border-strong">
       <div className={`inline-flex h-11 w-11 items-center justify-center rounded-xl ring-1 ring-black/5 dark:ring-white/10 ${colorMap[color]}`}>
         {icon}
       </div>

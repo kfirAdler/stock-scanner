@@ -25,7 +25,7 @@ export function LookupActionsBar({
   t,
 }: LookupActionsBarProps) {
   return (
-    <section className="rounded-[22px] bg-surface-raised px-4 py-4 ring-1 ring-border shadow-[0_10px_30px_rgba(15,23,42,0.05)] dark:ring-[#183241]">
+    <section className="ui-panel rounded-[22px] px-4 py-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.quickActions")}</h2>
         {feedback ? <span className="text-[12px] text-text-muted">{feedback}</span> : null}
@@ -33,7 +33,7 @@ export function LookupActionsBar({
       <div className="mt-3 flex flex-wrap gap-2">
         <Link
           href={screenerHref}
-          className="inline-flex items-center justify-center rounded-lg bg-primary px-3 py-2 text-sm font-bold text-on-primary shadow-sm transition-colors hover:bg-primary-hover"
+          className="inline-flex items-center justify-center rounded-lg bg-primary px-3 py-2 text-sm font-bold text-on-primary shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
           {t("actions.openInScreener")}
         </Link>
@@ -48,7 +48,7 @@ export function LookupActionsBar({
         </Button>
         <Link
           href={tickerHref}
-          className="inline-flex items-center justify-center rounded-lg border border-border bg-surface-raised px-3 py-2 text-sm font-bold text-text transition-colors hover:bg-surface-alt"
+          className="ui-control inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-bold transition-colors hover:border-border-strong"
         >
           {t("actions.viewSequenceHistory")}
         </Link>

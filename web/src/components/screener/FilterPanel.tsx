@@ -272,7 +272,7 @@ export function FilterPanel({
         </div>
       }
     >
-      <section className="space-y-2.5 rounded-2xl dark:bg-[#111827]">
+      <section className="space-y-2.5 rounded-2xl">
         <div className="flex items-center justify-between gap-3">
           <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-text-muted">
             {t("workspace.sections.timeframes")}
@@ -294,7 +294,7 @@ export function FilterPanel({
         />
       </section>
 
-      <section className="space-y-2.5 rounded-2xl dark:bg-[#111827]">
+      <section className="space-y-2.5 rounded-2xl">
         <FilterCategoryTabs
           tabs={categorySummary}
           activeTab={activeCategory}
@@ -343,7 +343,7 @@ export function FilterPanel({
               {t("workspace.sections.universe")}
             </p>
             <div className="grid gap-3">
-              <div className="inline-flex rounded-2xl bg-surface-raised p-1 ring-1 ring-border dark:bg-[#172033] dark:ring-white/[0.05]">
+              <div className="ui-segment inline-flex rounded-2xl p-1">
                 {[
                   { value: "", label: t("listingMarket.all") },
                   { value: "US", label: t("listingMarket.us") },
@@ -362,8 +362,8 @@ export function FilterPanel({
                     className={clsx(
                       "rounded-[14px] px-3 py-2 text-[12px] font-semibold transition-colors",
                       (filters.listing_market ?? "") === option.value
-                        ? "bg-primary-soft text-primary dark:bg-[rgba(79,110,247,0.16)] dark:text-[#f8fafc]"
-                        : "text-text-secondary hover:text-text dark:hover:bg-[#1e293b]"
+                        ? "bg-primary-soft text-primary"
+                        : "ui-segment-item text-text-secondary hover:text-text"
                     )}
                   >
                     {option.label}
@@ -386,7 +386,7 @@ export function FilterPanel({
                       })
                     }
                     placeholder="1000000000"
-                    className="w-full rounded-xl bg-surface-raised px-3 py-2 text-sm text-text ring-1 ring-border transition focus:outline-none focus:ring-2 focus:ring-primary/25 dark:bg-[#172033] dark:ring-white/[0.05]"
+                    className="ui-control w-full rounded-xl px-3 py-2 text-sm transition focus:outline-none focus:ring-2 focus:ring-primary/25"
                   />
                 </label>
                 <label className="space-y-1.5">
@@ -404,7 +404,7 @@ export function FilterPanel({
                       })
                     }
                     placeholder="50000000000"
-                    className="w-full rounded-xl bg-surface-raised px-3 py-2 text-sm text-text ring-1 ring-border transition focus:outline-none focus:ring-2 focus:ring-primary/25 dark:bg-[#172033] dark:ring-white/[0.05]"
+                    className="ui-control w-full rounded-xl px-3 py-2 text-sm transition focus:outline-none focus:ring-2 focus:ring-primary/25"
                   />
                 </label>
               </div>
@@ -423,7 +423,7 @@ export function FilterPanel({
                   return (
                     <label
                       key={`${activeTimeframe}-${definition.field}`}
-                      className="grid gap-2 rounded-2xl bg-surface-raised p-3 ring-1 ring-border dark:bg-[#172033] dark:ring-white/[0.05]"
+                      className="ui-panel-subtle grid gap-2 rounded-2xl p-3"
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div>
@@ -439,7 +439,7 @@ export function FilterPanel({
                           setNumericRule(activeTimeframe, definition.field, operator, e.target.value)
                         }
                         placeholder={t("valuePlaceholder")}
-                        className="w-full rounded-xl bg-surface px-3 py-2 text-sm text-text ring-1 ring-border transition focus:outline-none focus:ring-2 focus:ring-primary/25 dark:bg-[#111827] dark:ring-white/[0.05]"
+                        className="ui-control w-full rounded-xl bg-surface px-3 py-2 text-sm transition focus:outline-none focus:ring-2 focus:ring-primary/25"
                       />
                     </label>
                   );
@@ -458,7 +458,7 @@ export function FilterPanel({
                 return (
                   <div
                     key={`${activeTimeframe}-${definition.field}`}
-                    className="space-y-2 rounded-2xl bg-surface-raised p-3 ring-1 ring-border dark:bg-[#172033] dark:ring-white/[0.05]"
+                    className="ui-panel-subtle space-y-2 rounded-2xl p-3"
                   >
                     <p className="text-sm font-semibold text-text">{t(definition.labelKey)}</p>
                     <div className="flex flex-wrap gap-2">
@@ -528,7 +528,7 @@ export function FilterPanel({
         </div>
       </AdvancedFiltersPanel>
 
-      <section className="space-y-2.5 rounded-2xl dark:bg-[#111827]">
+      <section className="space-y-2.5 rounded-2xl">
         <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-text-muted">
           {t("workspace.sections.active")}
         </p>

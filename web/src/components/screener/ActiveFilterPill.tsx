@@ -20,14 +20,13 @@ export function ActiveFilterPill({
       type="button"
       onClick={onRemove}
       className={clsx(
-        "inline-flex items-center gap-2 rounded-full bg-surface-raised text-text-secondary ring-1 ring-border transition-colors hover:text-text hover:ring-border-strong",
-        "dark:bg-[#172033] dark:text-[#cbd5e1] dark:ring-white/[0.05] dark:hover:bg-[#1e293b] dark:hover:text-[#f8fafc] dark:hover:ring-white/[0.07]",
+        "ui-control inline-flex items-center gap-2 rounded-full text-text-secondary transition-colors hover:border-border-strong hover:text-text",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
         density === "compact" ? "px-2.5 py-1 text-[11px]" : "px-3 py-1.5 text-[12px]"
       )}
     >
       <span className="truncate">{label}</span>
-      <span aria-hidden="true" className="text-text-muted dark:text-[#94a3b8]">
+      <span aria-hidden="true" className="text-text-muted">
         ×
       </span>
     </button>

@@ -781,7 +781,7 @@ export function StockLookupClient() {
   return (
     <div className="mx-auto max-w-[1480px] px-4 py-6">
       <div className="space-y-5">
-        <section className="sticky top-[4.75rem] z-20 rounded-[24px] bg-surface-raised/95 px-4 py-4 shadow-[0_12px_30px_rgba(15,23,42,0.06)] ring-1 ring-border backdrop-blur dark:ring-[#183241]">
+        <section className="ui-panel-overlay sticky top-[4.75rem] z-20 rounded-[24px] px-4 py-4">
           <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.kicker")}</p>
@@ -874,7 +874,7 @@ export function StockLookupClient() {
         ) : null}
 
         {!accessGate && !coverage && !loadingCoverage ? (
-          <section className="rounded-[24px] bg-surface-raised px-5 py-8 ring-1 ring-border shadow-[0_12px_30px_rgba(15,23,42,0.05)] dark:ring-[#183241]">
+          <section className="ui-panel rounded-[24px] px-5 py-8">
             <div className="max-w-3xl">
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.kicker")}</p>
               <h2 className="mt-2 text-2xl font-bold tracking-[-0.02em] text-text">{t("workspace.emptyTitle")}</h2>
@@ -884,7 +884,7 @@ export function StockLookupClient() {
         ) : null}
 
         {!accessGate && loadingCoverage ? (
-          <section className="rounded-[24px] bg-surface-raised px-5 py-8 text-sm text-text-muted ring-1 ring-border shadow-[0_12px_30px_rgba(15,23,42,0.05)] dark:ring-[#183241]">
+          <section className="ui-panel rounded-[24px] px-5 py-8 text-sm text-text-muted">
             {t("loadingCoverage")}
           </section>
         ) : null}
@@ -963,7 +963,7 @@ export function StockLookupClient() {
               t={t}
             />
 
-            <section className="rounded-[22px] bg-surface-raised px-4 py-4 ring-1 ring-border shadow-[0_10px_30px_rgba(15,23,42,0.05)] dark:ring-[#183241]">
+            <section className="ui-panel rounded-[22px] px-4 py-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.coverageDiagnostics")}</h2>

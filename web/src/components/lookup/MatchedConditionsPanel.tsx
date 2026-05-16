@@ -57,7 +57,7 @@ export function MatchedConditionsPanel({
   t,
 }: MatchedConditionsPanelProps) {
   return (
-    <section className="rounded-[22px] bg-surface-raised px-4 py-4 ring-1 ring-border shadow-[0_10px_30px_rgba(15,23,42,0.05)] dark:ring-[#183241]">
+    <section className="ui-panel rounded-[22px] px-4 py-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.currentMatches")}</h2>

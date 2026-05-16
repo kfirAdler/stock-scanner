@@ -94,7 +94,7 @@ export default function SavedScreensPage() {
           {screens.map((screen) => (
             <div
               key={screen.id}
-              className="flex flex-col gap-4 rounded-xl border border-border bg-surface p-4 sm:flex-row sm:items-center sm:justify-between"
+              className="ui-panel flex flex-col gap-4 rounded-xl p-4 sm:flex-row sm:items-center sm:justify-between"
             >
               <div>
                 <h3 className="font-bold">{screen.name}</h3>
@@ -117,7 +117,7 @@ export default function SavedScreensPage() {
                   >
                     <PremiumStar />
                     {t("savedScreens.enableAlerts")}
-                    <span className="rounded-full bg-white/80 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:bg-black/20 dark:text-amber-200">
+                    <span className="rounded-full border border-amber-300/60 bg-amber-100/80 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-800 dark:border-amber-400/30 dark:bg-amber-950/40 dark:text-amber-200">
                       {t("savedScreens.alertsPremium")}
                     </span>
                   </Button>

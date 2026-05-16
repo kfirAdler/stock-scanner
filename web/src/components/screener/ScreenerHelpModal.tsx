@@ -18,18 +18,18 @@ export function ScreenerHelpModal({ open, onClose }: ScreenerHelpModalProps) {
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/65 p-4 backdrop-blur-sm">
-      <div className="relative max-h-[90vh] w-full max-w-6xl overflow-hidden rounded-[28px] border border-border-strong bg-surface-raised shadow-[0_24px_80px_rgba(0,0,0,0.5)] dark:border-[#183241] dark:bg-[#061019]">
+      <div className="ui-panel-strong relative max-h-[90vh] w-full max-w-6xl overflow-hidden rounded-[28px]">
         <button
           type="button"
           onClick={onClose}
-          className="absolute end-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface text-text-secondary transition-colors hover:border-border-strong hover:text-text"
+          className="ui-control absolute end-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full text-text-secondary transition-colors hover:border-border-strong hover:text-text"
           aria-label={t("workspace.help.close")}
         >
           ×
         </button>
 
         <div className="grid gap-0 lg:grid-cols-[360px_minmax(0,1fr)]">
-          <div className="border-b border-border bg-surface-alt p-6 lg:border-b-0 lg:border-e dark:border-[#183241] dark:bg-[#0a141d]">
+          <div className="border-b border-border bg-surface-alt p-6 lg:border-b-0 lg:border-e">
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary">
               {t("workspace.help.eyebrow")}
             </p>
@@ -39,7 +39,7 @@ export function ScreenerHelpModal({ open, onClose }: ScreenerHelpModalProps) {
             </p>
 
             <div className="mt-6 space-y-4">
-              <div className="rounded-2xl border border-border bg-surface p-4 dark:border-[#1a2d39] dark:bg-[#071019]">
+              <div className="ui-panel-subtle rounded-2xl p-4">
                 <p className="text-sm font-bold text-text">{t("workspace.help.meaningTitle")}</p>
                 <ul className="mt-3 space-y-2 text-sm text-text-secondary">
                   <li>{t("workspace.help.meanings.up5")}</li>
@@ -49,7 +49,7 @@ export function ScreenerHelpModal({ open, onClose }: ScreenerHelpModalProps) {
                 </ul>
               </div>
 
-              <div className="rounded-2xl border border-border bg-surface p-4 dark:border-[#1a2d39] dark:bg-[#071019]">
+              <div className="ui-panel-subtle rounded-2xl p-4">
                 <p className="text-sm font-bold text-text">{t("workspace.help.flowTitle")}</p>
                 <ul className="mt-3 space-y-2 text-sm text-text-secondary">
                   <li>{t("workspace.help.flow.one")}</li>
@@ -62,7 +62,7 @@ export function ScreenerHelpModal({ open, onClose }: ScreenerHelpModalProps) {
           </div>
 
           <div className="p-6">
-            <div className="rounded-[28px] border border-border-strong bg-surface p-5 dark:border-[#183241] dark:bg-[#071019]">
+            <div className="ui-panel rounded-[28px] p-5">
               <div className="grid gap-5 lg:grid-cols-[180px_minmax(0,1fr)]">
                 <div className="space-y-5">
                   <div className="rounded-2xl border border-border bg-surface-alt p-4">

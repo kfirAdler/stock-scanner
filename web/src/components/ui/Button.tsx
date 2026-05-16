@@ -14,13 +14,13 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles: Record<Variant, string> = {
   primary:
-    "bg-primary text-on-primary shadow-sm hover:bg-primary-hover active:scale-[0.98] focus-visible:ring-primary/50 dark:shadow-none",
+    "bg-primary text-on-primary shadow-sm hover:bg-primary-hover active:scale-[0.98] focus-visible:ring-primary/50 disabled:bg-primary/55 disabled:text-on-primary/80",
   secondary:
-    "bg-surface-raised text-text border border-border hover:border-border-strong hover:bg-surface-alt active:scale-[0.98] focus-visible:ring-primary/50 dark:bg-[#172033] dark:text-[#f1f5f9] dark:border-white/[0.06] dark:hover:bg-[#1e293b] dark:hover:text-[#f8fafc]",
+    "ui-control border-border-strong text-text hover:border-border-strong active:scale-[0.98] focus-visible:ring-primary/50",
   ghost:
-    "text-text-secondary hover:text-text hover:bg-surface-alt focus-visible:ring-primary/50 dark:text-[#cbd5e1] dark:hover:bg-[#1e293b] dark:hover:text-[#f8fafc]",
+    "text-text-secondary hover:text-text hover:bg-surface-alt active:scale-[0.98] focus-visible:ring-primary/50",
   danger:
-    "bg-danger text-on-danger shadow-sm hover:bg-red-700 active:scale-[0.98] focus-visible:ring-danger/50",
+    "bg-danger text-on-danger shadow-sm hover:bg-red-700 active:scale-[0.98] focus-visible:ring-danger/50 disabled:bg-danger/60 disabled:text-on-danger/80",
 };
 
 const sizeStyles: Record<Size, string> = {
@@ -38,7 +38,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           "inline-flex items-center justify-center gap-2 rounded-lg font-bold",
           "transition-all duration-150 ease-out",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
-          "disabled:opacity-50 disabled:pointer-events-none",
+          "disabled:pointer-events-none disabled:shadow-none",
           variantStyles[variant],
           sizeStyles[size],
           className

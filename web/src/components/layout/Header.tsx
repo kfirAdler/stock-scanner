@@ -33,7 +33,7 @@ function NavLink({
     <Link
       href={href}
       className={clsx(
-        "rounded-md font-bold text-text-secondary transition-colors hover:bg-surface-alt hover:text-text dark:text-[#d9e4f2] dark:hover:bg-[#101a2a] dark:hover:text-white",
+        "ui-nav-item rounded-md font-bold",
         mobile ? "block px-3 py-2 text-sm" : "px-3 py-1.5 text-sm"
       )}
       onClick={onClick}
@@ -118,7 +118,7 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border-strong/40 bg-surface/85 backdrop-blur-xl shadow-sm dark:border-white/[0.05] dark:bg-[#03060cf2]">
+    <header className="sticky top-0 z-40 border-b border-border-strong/40 bg-surface/85 backdrop-blur-xl shadow-sm">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6">
         <div className="flex items-center gap-3 sm:gap-8">
           <Link href="/" className="flex items-center gap-2 group" onClick={closeMenus}>
@@ -127,7 +127,7 @@ export function Header() {
                 <path fillRule="evenodd" d="M12.577 4.878a.75.75 0 01.919-.53l4.78 1.281a.75.75 0 01.531.919l-1.281 4.78a.75.75 0 01-1.449-.387l.81-3.022a19.407 19.407 0 00-5.594 5.203.75.75 0 01-1.139.093L7 10.06l-4.72 4.72a.75.75 0 01-1.06-1.061l5.25-5.25a.75.75 0 011.06 0l3.074 3.073a20.923 20.923 0 015.545-4.931l-3.042.815a.75.75 0 01-.53-.919z" clipRule="evenodd" />
               </svg>
             </div>
-            <span className="hidden text-base font-bold tracking-tight text-text transition-colors group-hover:text-primary dark:text-[#f1f5f9] sm:inline">
+            <span className="hidden text-base font-bold tracking-tight text-text transition-colors group-hover:text-primary sm:inline">
               {t("common.appName")}
             </span>
             {showMemberBadge && (
@@ -166,7 +166,7 @@ export function Header() {
                   setMenuOpen(!menuOpen);
                   setMobileNavOpen(false);
                 }}
-                className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm text-text-secondary transition-colors hover:bg-surface-alt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:text-[#d9e4f2] dark:hover:bg-[#101a2a] dark:hover:text-white"
+                className="ui-nav-item flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 aria-expanded={menuOpen}
                 aria-haspopup="true"
               >
@@ -179,12 +179,12 @@ export function Header() {
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
                   <div
-                    className="absolute end-0 z-50 mt-1.5 w-48 rounded-xl border border-border bg-surface-raised py-1.5 shadow-xl dark:border-white/[0.06] dark:bg-[#0e1726]"
+                    className="ui-panel absolute end-0 z-50 mt-1.5 w-48 rounded-xl py-1.5 shadow-xl"
                     role="menu"
                   >
                     <Link
                       href="/settings"
-                      className="block px-4 py-2 text-sm text-text-secondary transition-colors hover:bg-surface-alt hover:text-text dark:text-[#d9e4f2] dark:hover:bg-[#101a2a] dark:hover:text-white"
+                      className="ui-nav-item block px-4 py-2 text-sm"
                       role="menuitem"
                       onClick={() => setMenuOpen(false)}
                     >
@@ -192,7 +192,7 @@ export function Header() {
                     </Link>
                     <Link
                       href="/terms"
-                      className="block px-4 py-2 text-sm text-text-secondary transition-colors hover:bg-surface-alt hover:text-text dark:text-[#d9e4f2] dark:hover:bg-[#101a2a] dark:hover:text-white"
+                      className="ui-nav-item block px-4 py-2 text-sm"
                       role="menuitem"
                       onClick={() => setMenuOpen(false)}
                     >
@@ -224,7 +224,7 @@ export function Header() {
               setMobileNavOpen(!mobileNavOpen);
               setMenuOpen(false);
             }}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-surface-alt hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:text-[#d9e4f2] dark:hover:bg-[#101a2a] dark:hover:text-white md:hidden"
+            className="ui-icon-button inline-flex h-9 w-9 items-center justify-center rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary md:hidden"
             aria-label={t("nav.menu")}
             aria-expanded={mobileNavOpen}
             aria-controls="mobile-site-nav"
@@ -243,10 +243,10 @@ export function Header() {
       </div>
 
       {mobileNavOpen && (
-        <div id="mobile-site-nav" className="border-t border-border/70 dark:border-white/[0.05] md:hidden">
+        <div id="mobile-site-nav" className="border-t border-border/70 md:hidden">
           <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6">
             {user && (
-              <div className="mb-3 rounded-xl border border-border bg-surface-alt px-3 py-2 dark:border-white/[0.05] dark:bg-[#0e1726]">
+              <div className="ui-panel-subtle mb-3 rounded-xl px-3 py-2">
                 <p className="text-xs font-bold uppercase tracking-wider text-text-muted">
                   {showMemberBadge ? badgeLabel : t("premium.headerBadgeLocked")}
                 </p>

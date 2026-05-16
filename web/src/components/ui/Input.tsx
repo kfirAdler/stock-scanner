@@ -26,11 +26,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           id={inputId}
           className={clsx(
-            "w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text",
-            "placeholder:text-text-secondary",
-            "focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent",
-            "disabled:opacity-50 disabled:cursor-not-allowed",
-            "dark:border-white/[0.05] dark:bg-surface-raised dark:shadow-none",
+            "ui-control w-full rounded-lg px-3 py-2 text-sm shadow-none",
+            "placeholder:text-text-muted",
+            "focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-transparent",
+            "disabled:cursor-not-allowed",
             error && "border-danger focus:ring-danger",
             className
           )}

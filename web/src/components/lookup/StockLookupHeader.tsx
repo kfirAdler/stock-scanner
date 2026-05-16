@@ -128,7 +128,7 @@ export function StockLookupHeader({
   ].filter(Boolean) as { key: string; label: string; value: string }[];
 
   return (
-    <section className="overflow-hidden rounded-[24px] bg-surface-raised shadow-[0_12px_34px_rgba(15,23,42,0.06)] ring-1 ring-border dark:ring-[#183241]">
+    <section className="ui-panel overflow-hidden rounded-[24px]">
       <div className="grid gap-5 px-5 py-5 lg:grid-cols-[minmax(0,1.5fr)_280px] lg:px-6">
         <div className="space-y-4">
           <div className="flex flex-wrap items-start justify-between gap-4">
@@ -200,10 +200,10 @@ export function StockLookupHeader({
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-[22px] bg-surface-alt px-4 py-4 ring-1 ring-border dark:bg-[#172033] dark:ring-white/[0.06]">
+          <div className="ui-panel-subtle rounded-[22px] px-4 py-4">
             <div className="flex items-center justify-between">
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted dark:text-[#94a3b8]">{t("workspace.priceStructure")}</p>
-              <span className="text-[11px] text-text-muted dark:text-[#94a3b8]">{t("workspace.last60Bars")}</span>
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.priceStructure")}</p>
+              <span className="text-[11px] text-text-muted">{t("workspace.last60Bars")}</span>
             </div>
             <svg viewBox="0 0 100 36" className="mt-3 h-24 w-full overflow-visible">
               <defs>
@@ -216,7 +216,7 @@ export function StockLookupHeader({
                   <stop offset="100%" stopColor={sparklineColors.fillTo} />
                 </linearGradient>
               </defs>
-              <path d="M 0 35.5 L 100 35.5" className="text-border dark:text-white/[0.08]" stroke="currentColor" strokeWidth="0.6" />
+              <path d="M 0 35.5 L 100 35.5" className="text-border" stroke="currentColor" strokeWidth="0.6" />
               {areaPath ? (
                 <path
                   d={areaPath}

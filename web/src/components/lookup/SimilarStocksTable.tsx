@@ -23,13 +23,13 @@ export function SimilarStocksTable({
   t,
 }: SimilarStocksTableProps) {
   return (
-    <section className="rounded-[22px] bg-surface-raised px-4 py-4 ring-1 ring-border shadow-[0_10px_30px_rgba(15,23,42,0.05)] dark:ring-[#183241]">
+    <section className="ui-panel rounded-[22px] px-4 py-4">
       <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
         <div>
           <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.similarSetups")}</h2>
           <p className="mt-1 text-sm text-text-secondary">{t("workspace.similarSetupsSub")}</p>
         </div>
-        <div className="inline-flex flex-wrap items-center gap-2 rounded-full bg-surface-alt p-1 ring-1 ring-border">
+        <div className="ui-segment inline-flex flex-wrap items-center gap-2 rounded-full p-1">
           {(Object.keys(variantLabels) as SimilarVariant[]).map((variant) => (
             <button
               key={variant}
@@ -38,8 +38,8 @@ export function SimilarStocksTable({
               className={clsx(
                 "rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors",
                 activeVariant === variant
-                  ? "bg-surface-raised text-text shadow-sm ring-1 ring-border"
-                  : "text-text-muted hover:text-text"
+                  ? "ui-segment-item-active"
+                  : "ui-segment-item hover:text-text"
               )}
             >
               {variantLabels[variant]}
@@ -48,8 +48,8 @@ export function SimilarStocksTable({
         </div>
       </div>
 
-      <div className="mt-4 overflow-hidden rounded-[18px] bg-surface-alt/55 ring-1 ring-border">
-        <div className="hidden grid-cols-[120px_110px_110px_100px_150px_minmax(0,1fr)] gap-0 border-b border-border/80 bg-surface-alt/85 px-4 py-2.5 text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted lg:grid">
+      <div className="ui-panel-subtle mt-4 overflow-hidden rounded-[18px]">
+        <div className="ui-table-header hidden grid-cols-[120px_110px_110px_100px_150px_minmax(0,1fr)] gap-0 border-b border-border/80 px-4 py-2.5 text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted lg:grid">
           <div>{t("workspace.ticker")}</div>
           <div>{t("workspace.similarity")}</div>
           <div>{t("workspace.sequence")}</div>

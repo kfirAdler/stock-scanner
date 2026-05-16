@@ -338,26 +338,26 @@ export default function ScreenerPage() {
   return (
     <div className="mx-auto max-w-[1580px] px-4 py-4">
       <div className="space-y-3">
-        <section className="sticky top-3 z-30 rounded-[20px] border border-border/80 bg-surface-raised/94 px-4 py-3 shadow-[0_12px_30px_rgba(15,23,42,0.06)] backdrop-blur dark:border-white/[0.05] dark:bg-[#09111d] dark:shadow-[0_12px_28px_rgba(0,0,0,0.28)]">
+        <section className="ui-panel-overlay sticky top-3 z-30 rounded-[20px] px-4 py-3">
           <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
             <div className="flex flex-wrap items-center gap-2.5">
               <h1 className="text-[17px] font-bold tracking-tight text-text">{t("title")}</h1>
-              <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-text-secondary ring-1 ring-border dark:bg-[#0f1828] dark:text-[#d9e4f2] dark:ring-white/[0.05]">
+              <span className="ui-badge-default rounded-full px-2.5 py-1 text-[11px] font-semibold">
                 {resultSummary.rows} {t("workspace.statusMatches")}
               </span>
-              <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-text-secondary ring-1 ring-border dark:bg-[#0f1828] dark:text-[#d9e4f2] dark:ring-white/[0.05]">
+              <span className="ui-badge-default rounded-full px-2.5 py-1 text-[11px] font-semibold">
                 {activeFilterCount} {t("workspace.statusFilters")}
               </span>
               <span
                 className={hasPendingChanges
                   ? "rounded-full bg-warning-soft px-2.5 py-1 text-[11px] font-semibold text-warning ring-1 ring-warning/15"
-                  : "rounded-full bg-success-soft px-2.5 py-1 text-[11px] font-semibold text-success ring-1 ring-success/15 dark:bg-[rgba(29,78,53,0.42)] dark:text-[#7dffb1] dark:ring-[rgba(34,197,94,0.22)]"
+                  : "rounded-full bg-success-soft px-2.5 py-1 text-[11px] font-semibold text-success ring-1 ring-success/15"
                 }
               >
                 {hasPendingChanges ? t("workspace.draftPending") : t("workspace.draftSynced")}
               </span>
               {relativeLastUpdated ? (
-                <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-text-muted ring-1 ring-border dark:bg-[#0f1828] dark:text-[#8ea0b9] dark:ring-white/[0.05]">
+                <span className="ui-badge-default rounded-full px-2.5 py-1 text-[11px] font-semibold text-text-muted">
                   {t("workspace.statusUpdated")} {relativeLastUpdated}
                 </span>
               ) : null}
@@ -397,8 +397,8 @@ export default function ScreenerPage() {
           </div>
         </section>
 
-        <div className="flex items-center gap-2 rounded-2xl bg-surface-alt/75 px-3 py-2 text-[11px] text-text-muted ring-1 ring-border/70 dark:bg-[#0f1828] dark:text-[#8ea0b9] dark:ring-white/[0.05]">
-          <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-warning-soft text-[10px] text-warning dark:bg-[rgba(133,77,14,0.32)] dark:text-[#f4d38d]">
+        <div className="ui-panel-subtle flex items-center gap-2 rounded-2xl px-3 py-2 text-[11px] text-text-muted">
+          <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-warning-soft text-[10px] text-warning">
             i
           </span>
           <span>{t("legalNotice.inlineShort")}</span>
@@ -446,20 +446,20 @@ export default function ScreenerPage() {
             </div>
 
             <div className="space-y-3">
-              <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-surface-alt/70 px-3.5 py-2.5 ring-1 ring-border/70 dark:bg-[#0f1828] dark:ring-white/[0.05]">
-                <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-text-secondary ring-1 ring-border dark:bg-[#09111d] dark:text-[#d9e4f2] dark:ring-white/[0.05]">
+              <div className="ui-panel-subtle flex flex-wrap items-center gap-2 rounded-2xl px-3.5 py-2.5">
+                <span className="ui-badge-default rounded-full px-2.5 py-1 text-[11px] font-semibold">
                   {t("workspace.appliedCount", { count: appliedFilterCount })}
                 </span>
-                <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-text-secondary ring-1 ring-border dark:bg-[#09111d] dark:text-[#d9e4f2] dark:ring-white/[0.05]">
+                <span className="ui-badge-default rounded-full px-2.5 py-1 text-[11px] font-semibold">
                   {t("terminalHeader.appliedRules", { count: appliedFilters.rules.length })}
                 </span>
                 {resultSummary.strongSignals > 0 ? (
-                  <span className="rounded-full bg-success-soft px-2.5 py-1 text-[11px] font-semibold text-success ring-1 ring-success/15 dark:bg-[rgba(29,78,53,0.42)] dark:text-[#7dffb1] dark:ring-[rgba(34,197,94,0.22)]">
+                  <span className="rounded-full bg-success-soft px-2.5 py-1 text-[11px] font-semibold text-success ring-1 ring-success/15">
                     {resultSummary.strongSignals} {t("terminalHeader.cards.strong")}
                   </span>
                 ) : null}
                 {resultSummary.higherTimeframeRules > 0 ? (
-                  <span className="rounded-full bg-primary-soft px-2.5 py-1 text-[11px] font-semibold text-primary ring-1 ring-primary/10 dark:text-[#f8fafc] dark:ring-[rgba(99,102,241,0.18)]">
+                  <span className="rounded-full bg-primary-soft px-2.5 py-1 text-[11px] font-semibold text-primary ring-1 ring-primary/10">
                     {t("terminalHeader.multiBlocks", { count: resultSummary.higherTimeframeRules })}
                   </span>
                 ) : null}
@@ -472,7 +472,7 @@ export default function ScreenerPage() {
                   screenerFilters={appliedFilters}
                 />
               ) : (
-                <div className="flex min-h-[520px] items-center justify-center rounded-2xl border border-dashed border-border bg-surface-raised px-6 text-center dark:border-white/[0.06] dark:bg-[#111827]">
+                <div className="ui-panel flex min-h-[520px] items-center justify-center rounded-2xl border-dashed px-6 text-center">
                   <div className="max-w-lg space-y-2">
                     <h2 className="text-2xl font-bold text-text">{t("terminalHeader.emptyTitle")}</h2>
                     <p className="text-sm leading-relaxed text-text-secondary">
@@ -493,7 +493,7 @@ export default function ScreenerPage() {
               aria-label={t("mobile.closeFilters")}
               onClick={() => setMobileFiltersOpen(false)}
             />
-            <div className="absolute inset-x-0 bottom-0 top-12 overflow-y-auto rounded-t-[28px] border border-border-strong/70 bg-surface-raised px-4 pb-6 pt-4 shadow-[0_-18px_50px_rgba(15,23,42,0.18)] dark:border-white/[0.05] dark:bg-[#111827] dark:shadow-[0_-12px_32px_rgba(0,0,0,0.28)]">
+            <div className="ui-panel-strong absolute inset-x-0 bottom-0 top-12 overflow-y-auto rounded-t-[28px] px-4 pb-6 pt-4 shadow-[0_-18px_50px_rgba(15,23,42,0.18)]">
               <div className="mb-4 flex items-center justify-between">
                 <div>
                   <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
@@ -537,7 +537,7 @@ export default function ScreenerPage() {
               <button
                 type="button"
                 onClick={() => setMultiFilterGateOpen(false)}
-                className="absolute end-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full bg-surface-raised/90 text-text-secondary shadow-sm ring-1 ring-border transition-colors hover:text-text dark:bg-[#172033] dark:ring-white/[0.05] dark:hover:bg-[#1e293b]"
+                className="ui-control absolute end-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full text-text-secondary shadow-sm transition-colors hover:border-border-strong hover:text-text"
                 aria-label={t("guestLimit.close")}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">

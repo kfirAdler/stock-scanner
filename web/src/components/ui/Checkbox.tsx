@@ -25,13 +25,13 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
           id={checkboxId}
           type="checkbox"
           className={clsx(
-            "h-4 w-4 rounded border-border text-primary",
-            "focus:ring-2 focus:ring-primary focus:ring-offset-2",
+            "h-4 w-4 rounded border border-border bg-surface-raised text-primary",
+            "focus:ring-2 focus:ring-primary/60 focus:ring-offset-2 focus:ring-offset-surface",
             "disabled:cursor-not-allowed"
           )}
           {...props}
         />
-        <span>{label}</span>
+        <span className="text-text-secondary">{label}</span>
       </label>
     );
   }

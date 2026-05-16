@@ -22,13 +22,13 @@ export function Tooltip({
     >
       <button
         type="button"
-        className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-border bg-surface text-[10px] font-bold text-text-muted"
+        className="ui-control inline-flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold text-text-muted"
         aria-label={content}
       >
         ?
       </button>
       {open && (
-        <span className="absolute left-1/2 top-full z-20 mt-2 w-64 -translate-x-1/2 rounded-lg border border-border bg-surface-raised px-3 py-2 text-left text-[11px] font-medium leading-relaxed text-text shadow-lg">
+        <span className="ui-panel-overlay absolute left-1/2 top-full z-20 mt-2 w-64 -translate-x-1/2 rounded-lg px-3 py-2 text-left text-[11px] font-medium leading-relaxed text-text">
           {content}
         </span>
       )}

@@ -17,7 +17,7 @@ export function AdvancedFiltersPanel({
   children,
 }: AdvancedFiltersPanelProps) {
   return (
-    <section className="rounded-2xl bg-surface-alt/55 ring-1 ring-border dark:bg-[#111827] dark:ring-white/[0.05]">
+    <section className="ui-panel-subtle rounded-2xl">
       <button
         type="button"
         onClick={onToggle}
@@ -28,8 +28,7 @@ export function AdvancedFiltersPanel({
         </p>
         <span
           className={clsx(
-            "inline-flex h-7 w-7 items-center justify-center rounded-full bg-surface-raised text-text-muted ring-1 ring-border transition-transform",
-            "dark:bg-[#172033] dark:ring-white/[0.05]",
+            "ui-control inline-flex h-7 w-7 items-center justify-center rounded-full text-text-muted transition-transform",
             open && "rotate-180"
           )}
           aria-hidden="true"
@@ -37,7 +36,7 @@ export function AdvancedFiltersPanel({
           ˅
         </span>
       </button>
-      {open ? <div className="border-t border-border/80 px-4 py-3 dark:border-white/[0.05]">{children}</div> : null}
+      {open ? <div className="border-t border-border/80 px-4 py-3">{children}</div> : null}
     </section>
   );
 }
