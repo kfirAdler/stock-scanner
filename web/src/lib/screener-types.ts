@@ -153,7 +153,57 @@ export interface SnapshotRow {
   market?: string;
 }
 
-export interface ScreenerResultRow extends SnapshotRow {
+export type ScannerResultSnapshot = Pick<
+  SnapshotRow,
+  | "ticker"
+  | "timeframe"
+  | "market"
+  | "last_trade_date"
+  | "close"
+  | "pct_to_bb_upper"
+  | "pct_to_bb_lower"
+  | "atr_14"
+  | "atr_percent"
+  | "bullish_sequence_active"
+  | "bearish_sequence_active"
+  | "strong_up_sequence_context"
+  | "strong_down_sequence_context"
+  | "up_sequence_count"
+  | "down_sequence_count"
+  | "up_sequence_break_bars_ago"
+  | "down_sequence_break_bars_ago"
+  | "up_sequence_broke_recently"
+  | "down_sequence_broke_recently"
+  | "down_sequence_broke_in_strong_up_context"
+  | "up_sequence_broke_in_strong_down_context"
+  | "buy_signal"
+  | "sell_signal"
+  | "strong_buy_signal"
+  | "strong_sell_signal"
+  | "is_above_sma20"
+  | "is_below_sma20"
+  | "is_above_sma50"
+  | "is_below_sma50"
+  | "is_above_sma150"
+  | "is_below_sma150"
+  | "is_above_sma200"
+  | "is_below_sma200"
+>;
+
+export interface ScreenerResultRow extends ScannerResultSnapshot {
   matched_timeframes?: ScreenerTimeframe[];
-  timeframe_snapshots?: Partial<Record<ScreenerTimeframe, SnapshotRow | null>>;
+  timeframe_snapshots?: Partial<Record<ScreenerTimeframe, ScannerResultSnapshot | null>>;
+}
+
+export type ScannerSortKey = "ticker" | "close" | "atr_percent";
+export type ScannerSortDir = "asc" | "desc";
+
+export interface ScreenerResultsPage {
+  rows: ScreenerResultRow[];
+  screen: ScreenerPayload;
+  limit: number;
+  offset: number;
+  hasMore: boolean;
+  sortKey: ScannerSortKey;
+  sortDir: ScannerSortDir;
 }

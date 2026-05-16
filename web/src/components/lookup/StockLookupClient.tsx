@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { PremiumGate } from "@/components/billing/PremiumGate";
 import { screenToQueryString } from "@/lib/screener-query";
-import type { LegacyScreenerFilters, ScreenerPayload, ScreenerResultRow, ScreenerRule, ScreenerTimeframe, SnapshotRow } from "@/lib/screener-types";
+import type { LegacyScreenerFilters, ScreenerPayload, ScreenerResultRow, ScreenerResultsPage, ScreenerRule, ScreenerTimeframe, ScannerResultSnapshot, SnapshotRow } from "@/lib/screener-types";
 import { InsightPanel } from "./InsightPanel";
 import { LookupActionsBar } from "./LookupActionsBar";
 import { MatchedConditionsPanel } from "./MatchedConditionsPanel";
@@ -96,7 +96,19 @@ function computeDailyMovePct(bars: LookupCoveragePayload["recentBars"]): number 
   return ((latest - prev) / prev) * 100;
 }
 
-function trendTone(snapshot: SnapshotRow | null | undefined): TrendTone {
+type TrendSnapshot = Pick<
+  SnapshotRow,
+  | "strong_buy_signal"
+  | "buy_signal"
+  | "bullish_sequence_active"
+  | "strong_up_sequence_context"
+  | "strong_sell_signal"
+  | "sell_signal"
+  | "bearish_sequence_active"
+  | "strong_down_sequence_context"
+>;
+
+function trendTone(snapshot: TrendSnapshot | null | undefined): TrendTone {
   if (!snapshot) return "neutral";
   if (
     snapshot.strong_buy_signal ||
@@ -115,6 +127,48 @@ function trendTone(snapshot: SnapshotRow | null | undefined): TrendTone {
     return "bearish";
   }
   return "neutral";
+}
+
+function comparableFieldValue(
+  snapshot: ScannerResultSnapshot,
+  field: ScreenerRule["field"]
+): number | boolean | string | null | undefined {
+  switch (field) {
+    case "is_above_sma20":
+    case "is_below_sma20":
+    case "is_above_sma50":
+    case "is_below_sma50":
+    case "is_above_sma150":
+    case "is_below_sma150":
+    case "is_above_sma200":
+    case "is_below_sma200":
+    case "down_sequence_broke_recently":
+    case "up_sequence_broke_recently":
+    case "down_sequence_broke_in_strong_up_context":
+    case "up_sequence_broke_in_strong_down_context":
+    case "buy_signal":
+    case "sell_signal":
+    case "strong_buy_signal":
+    case "strong_sell_signal":
+    case "bullish_sequence_active":
+    case "bearish_sequence_active":
+    case "strong_up_sequence_context":
+    case "strong_down_sequence_context":
+    case "pct_to_bb_upper":
+    case "pct_to_bb_lower":
+    case "atr_percent":
+    case "atr_14":
+    case "close":
+    case "up_sequence_count":
+    case "down_sequence_count":
+    case "up_sequence_break_bars_ago":
+    case "down_sequence_break_bars_ago":
+      return snapshot[field];
+    case "fib_zone":
+      return undefined;
+    default:
+      return undefined;
+  }
 }
 
 function conditionKey(rule?: ScreenerRule) {
@@ -171,7 +225,7 @@ function scoreRow(baseRules: ScreenerRule[], reference: LookupCoveragePayload, r
   for (const rule of baseRules) {
     const snapshot = row.timeframe_snapshots?.[rule.timeframe] ?? (rule.timeframe === "1D" ? row : null);
     if (!snapshot) continue;
-    const fieldValue = snapshot[rule.field as keyof SnapshotRow];
+    const fieldValue = comparableFieldValue(snapshot, rule.field);
     if (rule.operator === "is_true" && fieldValue === true) score += 8;
     if (rule.operator === "gt" && typeof fieldValue === "number" && typeof rule.value === "number" && fieldValue > rule.value) score += 6;
     if (rule.operator === "lt" && typeof fieldValue === "number" && typeof rule.value === "number" && fieldValue < rule.value) score += 6;
@@ -411,7 +465,7 @@ export function StockLookupClient() {
         return;
       }
       if (!res.ok) throw new Error("screener");
-      const data = (await res.json()) as { rows?: ScreenerResultRow[] };
+      const data = (await res.json()) as ScreenerResultsPage;
       const rows = (data.rows ?? [])
         .filter((row) => row.ticker !== currentCoverage.ticker)
         .map((row) => scoreRow(payload.rules, currentCoverage, row))

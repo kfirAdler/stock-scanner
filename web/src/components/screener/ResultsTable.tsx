@@ -1,15 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { clsx } from "clsx";
 import { Link } from "@/i18n/navigation";
 import type {
   ScreenerPayload,
+  ScannerSortDir,
+  ScannerSortKey,
   ScreenerResultRow,
   ScreenerRule,
   ScreenerTimeframe,
-  SnapshotRow,
+  ScannerResultSnapshot,
 } from "@/lib/screener-types";
 import {
   countActiveFilters,
@@ -17,13 +19,17 @@ import {
   screenToQueryString,
 } from "@/lib/screener-query";
 
-type SortKey = "ticker" | "close" | "atr_percent";
-type SortDir = "asc" | "desc";
 type DensityMode = "comfortable" | "compact";
 
 interface ResultsTableProps {
   rows: ScreenerResultRow[];
   loading?: boolean;
+  loadingMore?: boolean;
+  hasMore?: boolean;
+  onLoadMore?: () => void;
+  sortKey: ScannerSortKey;
+  sortDir: ScannerSortDir;
+  onSortChange: (key: ScannerSortKey) => void;
   screenerFilters?: ScreenerPayload;
 }
 
@@ -98,7 +104,7 @@ function SignalBadge({ row }: { row: ScreenerResultRow }) {
   return <span className="text-[11px] text-text-muted">—</span>;
 }
 
-function snapshotMatrixTone(snapshot: SnapshotRow | null | undefined) {
+function snapshotMatrixTone(snapshot: ScannerResultSnapshot | null | undefined) {
   if (!snapshot) return "border-border bg-surface-elevated text-text-muted";
   if (snapshot.strong_buy_signal || snapshot.buy_signal || snapshot.bullish_sequence_active) {
     return "border-success/30 bg-success-soft text-success";
@@ -110,7 +116,7 @@ function snapshotMatrixTone(snapshot: SnapshotRow | null | undefined) {
 }
 
 function snapshotMatrixLabel(
-  snapshot: SnapshotRow | null | undefined,
+  snapshot: ScannerResultSnapshot | null | undefined,
   t: ReturnType<typeof useTranslations>
 ) {
   if (!snapshot) return t("workspace.matrix.missing");
@@ -134,7 +140,7 @@ function MatrixCell({
   snapshot,
 }: {
   timeframe: ScreenerTimeframe;
-  snapshot: SnapshotRow | null | undefined;
+  snapshot: ScannerResultSnapshot | null | undefined;
 }) {
   const t = useTranslations("screener");
   return (
@@ -167,21 +173,21 @@ function describeRule(rule: ScreenerRule, t: ReturnType<typeof useTranslations>)
   return label;
 }
 
-export function ResultsTable({ rows, loading, screenerFilters }: ResultsTableProps) {
+export function ResultsTable({
+  rows,
+  loading,
+  loadingMore,
+  hasMore,
+  onLoadMore,
+  sortKey,
+  sortDir,
+  onSortChange,
+  screenerFilters,
+}: ResultsTableProps) {
   const t = useTranslations("screener");
-  const [sortKey, setSortKey] = useState<SortKey>("ticker");
-  const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [density, setDensity] = useState<DensityMode>("compact");
   const [expandedTickers, setExpandedTickers] = useState<Record<string, boolean>>({});
-
-  function handleSort(key: SortKey) {
-    if (sortKey === key) {
-      setSortDir(sortDir === "asc" ? "desc" : "asc");
-      return;
-    }
-    setSortKey(key);
-    setSortDir("asc");
-  }
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   function toggleExpanded(ticker: string) {
     setExpandedTickers((current) => ({
@@ -190,20 +196,25 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
     }));
   }
 
+  useEffect(() => {
+    const node = loadMoreRef.current;
+    if (!node || !hasMore || !onLoadMore) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && !loading && !loadingMore) {
+          onLoadMore();
+        }
+      },
+      { rootMargin: "320px 0px" }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [hasMore, loading, loadingMore, onLoadMore, rows.length]);
+
   const tickerQuery =
     screenerFilters && countActiveFilters(screenerFilters) > 0
       ? screenToQueryString(screenerFilters)
       : "";
-
-  const sorted = useMemo(() => {
-    return [...rows].sort((a, b) => {
-      const av = a[sortKey] ?? 0;
-      const bv = b[sortKey] ?? 0;
-      if (av < bv) return sortDir === "asc" ? -1 : 1;
-      if (av > bv) return sortDir === "asc" ? 1 : -1;
-      return 0;
-    });
-  }, [rows, sortDir, sortKey]);
 
   const resultSummary = useMemo(() => {
     const bullish = rows.filter((row) => row.buy_signal || row.strong_buy_signal).length;
@@ -314,7 +325,7 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
 
       <div className="ui-table-shell overflow-hidden rounded-[20px]">
       <div className="divide-y divide-border lg:hidden">
-        {sorted.map((row) => {
+        {rows.map((row) => {
           const expanded = !!expandedTickers[row.ticker];
           return (
             <div key={row.ticker} className="bg-surface-raised">
@@ -392,13 +403,15 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
           <thead className="ui-table-header sticky top-0 z-10 backdrop-blur">
             <tr className="border-b border-border/80 text-start">
               <th scope="col" className="px-4 py-2.5 text-start text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">
-                <button onClick={() => handleSort("ticker")} className="inline-flex items-center gap-1 transition-colors hover:text-text">
+                <button onClick={() => onSortChange("ticker")} className="inline-flex items-center gap-1 transition-colors hover:text-text">
                   {t("table.ticker")}
+                  {sortKey === "ticker" ? (sortDir === "asc" ? "↑" : "↓") : null}
                 </button>
               </th>
               <th scope="col" className="px-3 py-2.5 text-end text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">
-                <button onClick={() => handleSort("close")} className="inline-flex items-center gap-1 transition-colors hover:text-text">
+                <button onClick={() => onSortChange("close")} className="inline-flex items-center gap-1 transition-colors hover:text-text">
                   {t("table.close")}
+                  {sortKey === "close" ? (sortDir === "asc" ? "↑" : "↓") : null}
                 </button>
               </th>
               <th scope="col" className="px-2 py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">{t("table.sma20")}</th>
@@ -406,8 +419,9 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
               <th scope="col" className="px-2 py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">{t("table.sma150")}</th>
               <th scope="col" className="px-2 py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">{t("table.sma200")}</th>
               <th scope="col" className="px-3 py-2.5 text-end text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">
-                <button onClick={() => handleSort("atr_percent")} className="inline-flex items-center gap-1 transition-colors hover:text-text">
+                <button onClick={() => onSortChange("atr_percent")} className="inline-flex items-center gap-1 transition-colors hover:text-text">
                   {t("table.atrPct")}
+                  {sortKey === "atr_percent" ? (sortDir === "asc" ? "↑" : "↓") : null}
                 </button>
               </th>
               <th scope="col" className="px-3 py-2.5 text-start text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">{t("table.seqState")}</th>
@@ -415,7 +429,7 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {sorted.map((row) => (
+            {rows.map((row) => (
               <tr key={row.ticker} className="ui-table-row align-top transition-colors">
                 <td className={densityTickerClass}>
                   <div className="flex flex-col gap-1">
@@ -450,6 +464,18 @@ export function ResultsTable({ rows, loading, screenerFilters }: ResultsTablePro
         </table>
       </div>
       </div>
+      {(loadingMore || hasMore) && (
+        <div ref={loadMoreRef} className="flex justify-center py-3">
+          {loadingMore ? (
+            <div className="flex items-center gap-2 text-sm text-text-muted">
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
+              <span>{t("results")}…</span>
+            </div>
+          ) : (
+            <div className="h-4" aria-hidden="true" />
+          )}
+        </div>
+      )}
     </section>
   );
 }

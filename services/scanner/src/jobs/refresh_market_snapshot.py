@@ -12,7 +12,7 @@ from ..repositories.market_data_repository import (
     get_ticker_history_for_timeframe,
     log_scan_run,
     upsert_bars,
-    upsert_snapshot,
+    upsert_snapshots,
     upsert_symbol_metadata,
 )
 from .universe import tickers_for_refresh_universe
@@ -79,6 +79,7 @@ def run(
                 enforce_retention(ticker)
 
             mk = _listing_market(ticker)
+            snapshots = []
             for timeframe in SNAPSHOT_TIMEFRAMES:
                 history = get_ticker_history_for_timeframe(ticker, timeframe)
                 snapshot = compute_snapshot(
@@ -88,7 +89,8 @@ def run(
                     timeframe=timeframe,
                 )
                 if snapshot:
-                    upsert_snapshot(snapshot)
+                    snapshots.append(snapshot)
+            upsert_snapshots(ticker, snapshots)
 
             metadata = fetch_symbol_metadata_yfinance(ticker)
             listing_exchange = "TASE" if mk == "TA" else metadata.get("listing_exchange")

@@ -7,7 +7,13 @@ import { FilterPanel } from "@/components/screener/FilterPanel";
 import { ResultsTable } from "@/components/screener/ResultsTable";
 import { PremiumGate } from "@/components/billing/PremiumGate";
 import { Button } from "@/components/ui/Button";
-import type { ScreenerPayload, ScreenerResultRow } from "@/lib/screener-types";
+import type {
+  ScreenerPayload,
+  ScreenerResultRow,
+  ScreenerResultsPage,
+  ScannerSortDir,
+  ScannerSortKey,
+} from "@/lib/screener-types";
 import {
   DEFAULT_SCREENER_PAYLOAD,
   coerceStoredScreen,
@@ -23,6 +29,8 @@ function readInitialFilters(): ScreenerPayload {
   return parseScreenFromSearchParams(new URLSearchParams(window.location.search));
 }
 
+const DEFAULT_LIMIT = 50;
+
 export default function ScreenerPage() {
   const t = useTranslations("screener");
   const locale = useLocale();
@@ -37,7 +45,10 @@ export default function ScreenerPage() {
   const [filterPanelResetKey, setFilterPanelResetKey] = useState(0);
   const [results, setResults] = useState<ScreenerResultRow[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [resultsError, setResultsError] = useState<string | null>(null);
   const [gate, setGate] = useState<Gate>(null);
   const [loggedIn, setLoggedIn] = useState(false);
   const [multiFilterGateOpen, setMultiFilterGateOpen] = useState(false);
@@ -45,14 +56,40 @@ export default function ScreenerPage() {
   const [desktopFiltersOpen, setDesktopFiltersOpen] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [refreshTicker, setRefreshTicker] = useState(() => Date.now());
+  const [sortKey, setSortKey] = useState<ScannerSortKey>("ticker");
+  const [sortDir, setSortDir] = useState<ScannerSortDir>("asc");
+  const requestInFlightRef = useRef(false);
 
-  const fetchResults = useCallback(async (nextFilters: ScreenerPayload = filtersRef.current) => {
+  const fetchResults = useCallback(async ({
+    nextFilters = filtersRef.current,
+    nextOffset = 0,
+    append = false,
+    nextSortKey = sortKey,
+    nextSortDir = sortDir,
+  }: {
+    nextFilters?: ScreenerPayload;
+    nextOffset?: number;
+    append?: boolean;
+    nextSortKey?: ScannerSortKey;
+    nextSortDir?: ScannerSortDir;
+  } = {}) => {
+    if (requestInFlightRef.current) return;
+    requestInFlightRef.current = true;
     const normalizedFilters = coerceStoredScreen(nextFilters) ?? DEFAULT_SCREENER_PAYLOAD;
-    setLoading(true);
+    setResultsError(null);
+    if (append) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+      setResults([]);
+      setHasMore(false);
+    }
     setHasSearched(true);
     setGate(null);
-    setAppliedFilters(normalizedFilters);
-    if (typeof window !== "undefined") {
+    if (!append) {
+      setAppliedFilters(normalizedFilters);
+    }
+    if (!append && typeof window !== "undefined") {
       const query = screenToQueryString(normalizedFilters);
       const pathname = window.location.pathname;
       window.history.replaceState({}, "", query ? `${pathname}${query}` : pathname);
@@ -61,27 +98,52 @@ export default function ScreenerPage() {
       const res = await fetch("/api/screener", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(normalizedFilters),
+        body: JSON.stringify({
+          screen: normalizedFilters,
+          limit: DEFAULT_LIMIT,
+          offset: nextOffset,
+          sortKey: nextSortKey,
+          sortDir: nextSortDir,
+        }),
       });
       if (res.status === 401) {
         setGate("login");
-        setResults([]);
+        if (!append) setResults([]);
         return;
       }
       if (res.status === 403) {
         setGate("subscribe");
-        setResults([]);
+        if (!append) setResults([]);
         return;
       }
       if (!res.ok) throw new Error("Failed to fetch");
-      const data = await res.json();
-      setResults(data.rows ?? []);
+      const data = (await res.json()) as ScreenerResultsPage;
+      const nextRows = data.rows ?? [];
+      setHasMore(!!data.hasMore);
+      setResults((current) => {
+        if (!append) return nextRows;
+        const seen = new Set(current.map((row) => row.ticker));
+        const merged = [...current];
+        for (const row of nextRows) {
+          if (!seen.has(row.ticker)) {
+            merged.push(row);
+            seen.add(row.ticker);
+          }
+        }
+        return merged;
+      });
     } catch {
-      setResults([]);
+      setResultsError(t("resultsError"));
+      if (!append) {
+        setResults([]);
+        setHasMore(false);
+      }
     } finally {
+      requestInFlightRef.current = false;
       setLoading(false);
+      setLoadingMore(false);
     }
-  }, []);
+  }, [sortDir, sortKey, t]);
 
   useEffect(() => {
     let cancelled = false;
@@ -145,7 +207,7 @@ export default function ScreenerPage() {
 
   useEffect(() => {
     if (countActiveFilters(filtersRef.current) > 0) {
-      void fetchResults(filtersRef.current);
+      void fetchResults({ nextFilters: filtersRef.current });
     }
   }, [fetchResults]);
 
@@ -318,7 +380,7 @@ export default function ScreenerPage() {
     filtersRef.current = favoriteFilters;
     setFavoriteStatus(t("favorite.loaded"));
     setMobileFiltersOpen(false);
-    await fetchResults(favoriteFilters);
+    await fetchResults({ nextFilters: favoriteFilters });
   }
 
   async function handleApply() {
@@ -333,6 +395,31 @@ export default function ScreenerPage() {
 
   function handleResetDraft() {
     handleFiltersChange(appliedFilters);
+  }
+
+  function handleSortChange(key: ScannerSortKey) {
+    const nextDir: ScannerSortDir =
+      key === sortKey ? (sortDir === "asc" ? "desc" : "asc") : "asc";
+    setSortKey(key);
+    setSortDir(nextDir);
+    void fetchResults({
+      nextFilters: filtersRef.current,
+      nextOffset: 0,
+      append: false,
+      nextSortKey: key,
+      nextSortDir: nextDir,
+    });
+  }
+
+  function handleLoadMore() {
+    if (loading || loadingMore || !hasMore || gate || requestInFlightRef.current) return;
+    void fetchResults({
+      nextFilters: appliedFilters,
+      nextOffset: results.length,
+      append: true,
+      nextSortKey: sortKey,
+      nextSortDir: sortDir,
+    });
   }
 
   return (
@@ -409,6 +496,12 @@ export default function ScreenerPage() {
 
         {gate && <PremiumGate kind={gate === "login" ? "login" : "subscribe"} />}
 
+        {resultsError ? (
+          <div className="rounded-2xl bg-danger-soft px-4 py-3 text-sm text-danger ring-1 ring-danger/15">
+            {resultsError}
+          </div>
+        ) : null}
+
         {!gate && (
           <div
             className={desktopFiltersOpen
@@ -469,6 +562,12 @@ export default function ScreenerPage() {
                 <ResultsTable
                   rows={results}
                   loading={loading}
+                  loadingMore={loadingMore}
+                  hasMore={hasMore}
+                  onLoadMore={handleLoadMore}
+                  sortKey={sortKey}
+                  sortDir={sortDir}
+                  onSortChange={handleSortChange}
                   screenerFilters={appliedFilters}
                 />
               ) : (

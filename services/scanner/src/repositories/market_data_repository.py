@@ -11,6 +11,7 @@ from ..config.settings import RETENTION_BARS, SUPABASE_SERVICE_KEY, SUPABASE_URL
 from ..models.snapshot import IndicatorSnapshot
 
 logger = logging.getLogger(__name__)
+DEFAULT_BATCH_SIZE = 100
 
 
 @lru_cache(maxsize=1)
@@ -18,6 +19,12 @@ def _get_client() -> Client:
     # Reuse a single Supabase/httpx client per process to avoid exhausting file
     # descriptors during long backfill/recompute runs.
     return create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+
+
+def chunk_rows(rows: list[dict], batch_size: int = DEFAULT_BATCH_SIZE) -> list[list[dict]]:
+    if batch_size <= 0:
+        raise ValueError("batch_size must be positive")
+    return [rows[i : i + batch_size] for i in range(0, len(rows), batch_size)]
 
 
 def get_all_tickers() -> list[str]:
@@ -173,13 +180,17 @@ def upsert_bars(ticker: str, df: pd.DataFrame) -> int:
     if not records:
         return 0
 
-    # Avoid oversized single requests on first-time backfills (hundreds of rows per ticker).
-    chunk_size = 400
-    for i in range(0, len(records), chunk_size):
-        chunk = records[i : i + chunk_size]
+    batches = chunk_rows(records, batch_size=DEFAULT_BATCH_SIZE)
+    for batch_number, chunk in enumerate(batches, start=1):
         client.table("market_raw_data").upsert(
             chunk, on_conflict="ticker,trade_date"
         ).execute()
+        logger.info(
+            "Upserted market_raw_data batch for %s: batch=%d rows=%d",
+            ticker,
+            batch_number,
+            len(chunk),
+        )
     return len(records)
 
 
@@ -211,6 +222,26 @@ def upsert_snapshot(snapshot: IndicatorSnapshot) -> None:
     client.table("symbol_indicator_snapshot").upsert(
         data, on_conflict="ticker,timeframe"
     ).execute()
+
+
+def upsert_snapshots(ticker: str, snapshots: list[IndicatorSnapshot]) -> int:
+    if not snapshots:
+        return 0
+
+    client = _get_client()
+    records = [snapshot.to_dict() for snapshot in snapshots]
+    batches = chunk_rows(records, batch_size=DEFAULT_BATCH_SIZE)
+    for batch_number, chunk in enumerate(batches, start=1):
+        client.table("symbol_indicator_snapshot").upsert(
+            chunk, on_conflict="ticker,timeframe"
+        ).execute()
+        logger.info(
+            "Upserted symbol_indicator_snapshot batch for %s: batch=%d rows=%d",
+            ticker,
+            batch_number,
+            len(chunk),
+        )
+    return len(records)
 
 
 def get_listing_exchange(ticker: str) -> str | None:

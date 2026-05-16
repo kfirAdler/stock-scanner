@@ -411,6 +411,7 @@
       "closeLte": "Close ≤",
       "hint": "Filters last daily close (USD)."
     },
+    "resultsError": "Could not load scanner results. Try running the scan again.",
     "table": {
       "ticker": "Ticker",
       "close": "Close",
