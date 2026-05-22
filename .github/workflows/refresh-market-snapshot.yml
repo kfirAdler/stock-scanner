@@ -8,26 +8,10 @@ on:
   schedule:
     # --- US: NYSE/NASDAQ regular session Mon-Fri ---
     # GitHub Actions schedule is UTC.
-    # Covers US market across DST combinations:
-    # 09:30 ET can be 13:30 or 14:30 UTC.
-    # 16:00 ET can be 20:00 or 21:00 UTC.
-    #
-    # Priority:
-    # - More frequent near market open
-    # - Light polling during the day
-    # - More frequent near market close
-    # - Avoid running every 15m all day to reduce API/Supabase usage
-
-    # Open window: every 15m, 13:30-15:00 UTC
-    - cron: "30,45 13 * * 1-5"
-    - cron: "0,15,30,45 14 * * 1-5"
-    - cron: "0 15 * * 1-5"
-
-    # Mid-session: once per hour
-    - cron: "0 16-19 * * 1-5"
-
-    # Close window: every 15m, 20:00-21:00 UTC
-    - cron: "0,15,30,45 20 * * 1-5"
+    # Simplified 30-minute cadence during US market hours to lower API/Supabase usage.
+    # Roughly 16:30-23:00 Israel time, without extra DST-specific branching.
+    - cron: "30 13 * * 1-5"
+    - cron: "0,30 14-20 * * 1-5"
     - cron: "0 21 * * 1-5"
 
     # --- Israel: TASE regular session Sun-Thu ---
