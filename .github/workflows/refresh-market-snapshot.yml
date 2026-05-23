@@ -13,11 +13,6 @@ on:
     - cron: "30 13 * * 1-5"
     - cron: "0,30 14-20 * * 1-5"
     - cron: "0 21 * * 1-5"
-
-    # --- Israel: TASE regular session Sun-Thu ---
-    # Approx 09:00-17:35 Israel time.
-    # Run hourly to reduce usage.
-    - cron: "0 6-16 * * 0-4"
   workflow_dispatch:
     inputs:
       tickers:
