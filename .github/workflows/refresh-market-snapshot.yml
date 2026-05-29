@@ -11,7 +11,7 @@ on:
     # Simplified 30-minute cadence during US market hours to lower API/Supabase usage.
     # Roughly 16:30-23:00 Israel time, without extra DST-specific branching.
     - cron: "30 13 * * 1-5"
-    - cron: "0,30 14-20 * * 1-5"
+    - cron: "0 14-20 * * 1-5"
     - cron: "0 21 * * 1-5"
   workflow_dispatch:
     inputs:
