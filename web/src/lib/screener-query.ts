@@ -407,3 +407,27 @@ export function tradingViewSymbol(
     "NASDAQ";
   return `${ex}:${t}`;
 }
+
+/**
+ * Build a TradingView symbol page URL for a result row.
+ *
+ * The scanner result rows do not carry a listing exchange, and US tickers can
+ * live on either NASDAQ or NYSE. TradingView's `/symbols/<TICKER>/` page
+ * resolves a bare US ticker to its primary listing automatically, so we let
+ * TradingView pick the correct exchange instead of hard-coding NASDAQ.
+ * Tel Aviv (TASE) symbols are not resolvable from a bare ticker, so we prefix
+ * them explicitly.
+ */
+export function tradingViewUrlForTicker(
+  ticker: string,
+  market?: string | null
+): string {
+  const raw = ticker.trim();
+  const isTase = /\.TA$/i.test(raw) || (market ?? "").toUpperCase() === "TA";
+  if (isTase) {
+    const base = raw.replace(/\.TA$/i, "").replace(/\./g, "-").toUpperCase();
+    return `https://www.tradingview.com/symbols/TASE-${encodeURIComponent(base)}/`;
+  }
+  const symbol = formatTickerForTradingView(raw);
+  return `https://www.tradingview.com/symbols/${encodeURIComponent(symbol)}/`;
+}

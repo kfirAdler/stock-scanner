@@ -107,7 +107,7 @@ export default function TickerDetailPage() {
     <div className="mx-auto max-w-5xl px-4 sm:px-6 py-6 space-y-6">
       {/* Breadcrumb + Title */}
       <div>
-        <Link href="/screener" className="inline-flex items-center gap-1 text-xs text-text-muted hover:text-primary transition-colors font-bold">
+        <Link href="/screener" className="link-hover inline-flex items-center gap-1 text-xs text-text-muted font-bold">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5 rtl:rotate-180">
             <path fillRule="evenodd" d="M12 8a.75.75 0 01-.75.75H5.81l2.72 2.72a.75.75 0 11-1.06 1.06l-4-4a.75.75 0 010-1.06l4-4a.75.75 0 011.06 1.06L5.81 7.25h5.44A.75.75 0 0112 8z" clipRule="evenodd" />
           </svg>

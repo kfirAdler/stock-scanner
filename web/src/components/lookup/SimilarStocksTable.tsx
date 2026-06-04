@@ -75,7 +75,7 @@ export function SimilarStocksTable({
               ].join(" ");
               return (
                 <div key={row.ticker} className="grid gap-2 px-4 py-3 text-sm lg:grid-cols-[120px_110px_110px_100px_150px_minmax(0,1fr)] lg:items-center">
-                  <Link href={`/ticker/${row.ticker}`} className="font-bold text-text hover:text-primary">
+                  <Link href={`/ticker/${row.ticker}`} className="link-hover font-bold text-text">
                     {row.ticker}
                   </Link>
                   <div><SimilarityBadge score={score} /></div>

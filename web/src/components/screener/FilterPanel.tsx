@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { clsx } from "clsx";
+import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/Button";
 import { RULE_DEFINITIONS, activeRuleCountForTimeframe, countActiveFilters, createRule, ruleDefinitionsByField } from "@/lib/screener-query";
 import type { ScreenerPayload, ScreenerRule, ScreenerRuleField, ScreenerTimeframe } from "@/lib/screener-types";
@@ -253,16 +254,6 @@ export function FilterPanel({
                 {t("workspace.resetDraft")}
               </Button>
             ) : null}
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={onLoadFavorite}
-              loading={favoriteLoading}
-              disabled={!favoriteAvailable}
-            >
-              {t("favorite.load")}
-            </Button>
           </div>
           <div className="flex items-center gap-2">
             <Button size="sm" onClick={onApply} loading={loading}>
@@ -272,11 +263,79 @@ export function FilterPanel({
         </div>
       }
     >
+      <section className="ui-panel-subtle space-y-3 rounded-2xl p-3">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-amber-400/15 text-amber-400">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5" aria-hidden="true">
+                <path d="M10 1.5l2.6 5.27 5.82.85-4.21 4.1.99 5.79L10 14.77l-5.2 2.73.99-5.79L1.58 7.62l5.82-.85L10 1.5z" />
+              </svg>
+            </span>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
+              {t("workspace.favoritesTitle")}
+            </p>
+          </div>
+          <Link href="/saved-screens" className="link-hover text-[11px] font-semibold text-text-secondary">
+            {t("workspace.savedScreensLink")}
+          </Link>
+        </div>
+        <p className="text-[12px] leading-relaxed text-text-secondary">
+          {favoriteAvailable ? t("workspace.favoritesReady") : t("workspace.favoritesEmpty")}
+        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            onClick={onLoadFavorite}
+            loading={favoriteLoading}
+            disabled={!favoriteAvailable}
+            className={clsx(
+              favoriteAvailable &&
+                "border-amber-400/30 bg-amber-400/15 text-amber-300 shadow-none hover:bg-amber-400/25"
+            )}
+          >
+            <span className="inline-flex items-center gap-1.5">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5" aria-hidden="true">
+                <path d="M10 1.5l2.6 5.27 5.82.85-4.21 4.1.99 5.79L10 14.77l-5.2 2.73.99-5.79L1.58 7.62l5.82-.85L10 1.5z" />
+              </svg>
+              {t("favorite.load")}
+            </span>
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onSaveFavorite}
+            loading={favoriteSaving}
+            disabled={activeFilterCount === 0}
+          >
+            {favoriteAvailable ? t("favorite.update") : t("favorite.save")}
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onSaveScan}
+            loading={saveScanLoading}
+            disabled={activeFilterCount === 0}
+          >
+            {t("saveScan")}
+          </Button>
+        </div>
+        {favoriteStatus ? (
+          <p className="text-[11px] font-semibold text-text-secondary">{favoriteStatus}</p>
+        ) : null}
+      </section>
+
       <section className="space-y-2.5 rounded-2xl">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-text-muted">
-            {t("workspace.sections.timeframes")}
-          </p>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-text-muted">
+              {t("workspace.sections.timeframes")}
+            </p>
+            <p className="mt-0.5 text-[11px] text-text-muted">{t("workspace.sections.timeframesHint")}</p>
+          </div>
           <div>
             <DensityToggle
               value={density}
@@ -295,6 +354,12 @@ export function FilterPanel({
       </section>
 
       <section className="space-y-2.5 rounded-2xl">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-text-muted">
+            {t("workspace.sections.builder")}
+          </p>
+          <p className="mt-0.5 text-[11px] text-text-muted">{t("workspace.sections.builderHint")}</p>
+        </div>
         <FilterCategoryTabs
           tabs={categorySummary}
           activeTab={activeCategory}
@@ -484,54 +549,16 @@ export function FilterPanel({
             </div>
           ) : null}
 
-          <div className="space-y-2.5">
-            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-text-muted">
-              {t("workspace.quickActions")}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={onSaveScan}
-                loading={saveScanLoading}
-                disabled={activeFilterCount === 0}
-              >
-                {t("saveScan")}
-              </Button>
-              <Button
-                type="button"
-                variant={favoriteAvailable ? "secondary" : "ghost"}
-                size="sm"
-                onClick={onSaveFavorite}
-                loading={favoriteSaving}
-                disabled={activeFilterCount === 0}
-                className={clsx(
-                  favoriteAvailable &&
-                    "border-amber-500/25 bg-amber-500/10 text-amber-200 hover:bg-amber-500/16"
-                )}
-              >
-                {favoriteAvailable ? t("favorite.update") : t("favorite.save")}
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={onLoadFavorite}
-                loading={favoriteLoading}
-                disabled={!favoriteAvailable}
-              >
-                {t("favorite.load")}
-              </Button>
-            </div>
-          </div>
         </div>
       </AdvancedFiltersPanel>
 
       <section className="space-y-2.5 rounded-2xl">
-        <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-text-muted">
-          {t("workspace.sections.active")}
-        </p>
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-text-muted">
+            {t("workspace.sections.active")}
+          </p>
+          <p className="mt-0.5 text-[11px] text-text-muted">{t("workspace.sections.activeHint")}</p>
+        </div>
         <div className={clsx("flex flex-wrap", density === "compact" ? "gap-2" : "gap-2.5")}>
           {activeRulePills.length === 0 &&
           !filters.listing_market &&

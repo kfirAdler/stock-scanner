@@ -40,6 +40,12 @@
   --color-chart-up: #22c55e;
   --color-chart-down: #ef4444;
 
+  /* Neon accent — drives the green hover language across the app.
+     Light mode uses a deep, high-contrast green so hovered text stays readable. */
+  --color-neon: #0f9d58;
+  --color-neon-strong: #0b7a44;
+  --color-neon-soft: rgba(15, 157, 88, 0.12);
+
   --font-sans: var(--font-assistant);
 }
 
@@ -81,6 +87,11 @@
   --color-on-text: #0f172a;
   --color-chart-up: #76cfa7;
   --color-chart-down: #e59a9a;
+
+  /* Dark mode: a bright, saturated neon green that lights up on hover. */
+  --color-neon: #3df5a0;
+  --color-neon-strong: #5dffb4;
+  --color-neon-soft: rgba(61, 245, 160, 0.16);
 }
 
 html {
@@ -197,13 +208,39 @@ button:disabled {
 .ui-icon-button,
 .ui-nav-item {
   color: var(--color-text-secondary);
-  transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+  transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease, text-shadow 200ms ease;
 }
 
-.ui-icon-button:hover,
-.ui-nav-item:hover {
+.ui-icon-button:hover {
   background-color: var(--color-surface-hover);
   color: var(--color-text);
+}
+
+/* Text nav items glow neon-green on hover. */
+.ui-nav-item:hover {
+  background-color: var(--color-surface-hover);
+  color: var(--color-neon);
+}
+
+.dark .ui-nav-item:hover {
+  text-shadow:
+    0 0 8px color-mix(in srgb, var(--color-neon) 45%, transparent),
+    0 0 18px color-mix(in srgb, var(--color-neon) 24%, transparent);
+}
+
+/* Reusable hover for textual links/headings: green in light, neon-glow in dark. */
+.link-hover {
+  transition: color 150ms ease, text-shadow 200ms ease, text-decoration-color 150ms ease;
+}
+
+.link-hover:hover {
+  color: var(--color-neon);
+}
+
+.dark .link-hover:hover {
+  text-shadow:
+    0 0 6px color-mix(in srgb, var(--color-neon) 55%, transparent),
+    0 0 16px color-mix(in srgb, var(--color-neon) 28%, transparent);
 }
 
 .ui-segment {
@@ -257,6 +294,12 @@ button:disabled {
 .ui-table-row:hover,
 .ui-table-row:focus-within {
   background-color: color-mix(in srgb, var(--color-surface-hover) 94%, transparent);
+  box-shadow: inset 2px 0 0 0 color-mix(in srgb, var(--color-neon) 70%, transparent);
+}
+
+.dark .ui-table-row:hover,
+.dark .ui-table-row:focus-within {
+  background-color: color-mix(in srgb, var(--color-neon) 8%, var(--color-surface-hover));
 }
 
 .ui-elevated-hover {
@@ -280,8 +323,8 @@ button:disabled {
 }
 
 .dark ::selection {
-  background-color: var(--color-primary);
-  color: white;
+  background-color: color-mix(in srgb, var(--color-neon) 88%, transparent);
+  color: #05140d;
 }
 
 .market-inline-ltr {

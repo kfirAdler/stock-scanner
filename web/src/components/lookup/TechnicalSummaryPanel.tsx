@@ -65,7 +65,7 @@ export function TechnicalSummaryPanel({
               <div className="mt-3 grid grid-cols-2 gap-2 text-[12px]">
                 <div className="rounded-xl bg-surface-elevated px-2.5 py-2 ring-1 ring-border">
                   <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.atrPct")}</p>
-                  <p className="mt-1 font-semibold text-text">{formatPercent(snapshot?.atr_percent != null ? snapshot.atr_percent / 100 : null)}</p>
+                  <p className="mt-1 font-semibold text-text">{formatPercent(snapshot?.atr_percent)}</p>
                 </div>
                 <div className="rounded-xl bg-surface-elevated px-2.5 py-2 ring-1 ring-border">
                   <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.sequenceCount")}</p>

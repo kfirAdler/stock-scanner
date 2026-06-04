@@ -10,6 +10,7 @@ import { PremiumGate } from "@/components/billing/PremiumGate";
 import { screenToQueryString } from "@/lib/screener-query";
 import type { LegacyScreenerFilters, ScreenerPayload, ScreenerResultRow, ScreenerResultsPage, ScreenerRule, ScreenerTimeframe, ScannerResultSnapshot, SnapshotRow } from "@/lib/screener-types";
 import { InsightPanel } from "./InsightPanel";
+import { KeyMetricsPanel } from "./KeyMetricsPanel";
 import { LookupActionsBar } from "./LookupActionsBar";
 import { MatchedConditionsPanel } from "./MatchedConditionsPanel";
 import { SimilarStocksTable } from "./SimilarStocksTable";
@@ -832,6 +833,11 @@ export function StockLookupClient() {
       .map((row) => `${filterLabel(row.filterKey)} · ${reasonText(row) ?? ""}`);
   }, [coverage, filterLabel, reasonText]);
 
+  const unsupportedIndicators = useMemo(() => {
+    if (!coverage) return [];
+    return coverage.indicators.filter((row) => !row.supported).slice(0, 6);
+  }, [coverage]);
+
   return (
     <div className="mx-auto max-w-[1480px] px-4 py-6">
       <div className="space-y-5">
@@ -1017,41 +1023,46 @@ export function StockLookupClient() {
               t={t}
             />
 
-            <section className="ui-panel rounded-[22px] px-4 py-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.coverageDiagnostics")}</h2>
-                  <p className="mt-1 text-sm text-text-secondary">{t("workspace.coverageDiagnosticsSub")}</p>
+            <KeyMetricsPanel
+              coverage={coverage}
+              formatCurrency={formatCurrency}
+              formatPercent={formatPercent}
+              t={t}
+            />
+
+            {unsupportedIndicators.length > 0 || diagnostics.length > 0 ? (
+              <section className="ui-panel-subtle rounded-[18px] px-4 py-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
+                    {t("workspace.coverageDiagnostics")}
+                  </p>
+                  <Link
+                    href={`/ticker/${coverage.ticker}`}
+                    className="link-hover text-[12px] font-semibold text-text-secondary"
+                  >
+                    {t("openTickerPage")}
+                  </Link>
                 </div>
-                <Link href={`/ticker/${coverage.ticker}`} className="text-sm font-semibold text-primary hover:underline">
-                  {t("openTickerPage")}
-                </Link>
-              </div>
-              <div className="mt-4 grid gap-3 xl:grid-cols-2">
-                <div className="ui-panel-subtle rounded-2xl px-4 py-4">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.unsupportedIndicators")}</p>
-                  <div className="mt-3 space-y-2">
-                    {coverage.indicators
-                      .filter((row) => !row.supported)
-                      .slice(0, 6)
-                      .map((row) => (
-                        <div key={row.id} className="flex items-start justify-between gap-3 text-sm">
-                          <span className="font-medium text-text">{lookupMsg.indicators[row.id] ?? row.id}</span>
-                          <span className="text-right text-[12px] text-text-muted">{reasonText(row) ?? "—"}</span>
-                        </div>
-                      ))}
-                  </div>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {unsupportedIndicators.map((row) => (
+                    <span
+                      key={row.id}
+                      className="rounded-full bg-surface-elevated px-2.5 py-1 text-[11px] text-text-muted ring-1 ring-border"
+                    >
+                      {lookupMsg.indicators[row.id] ?? row.id}
+                    </span>
+                  ))}
+                  {diagnostics.map((entry) => (
+                    <span
+                      key={entry}
+                      className="rounded-full bg-surface-elevated px-2.5 py-1 text-[11px] text-text-muted ring-1 ring-border"
+                    >
+                      {entry}
+                    </span>
+                  ))}
                 </div>
-                <div className="ui-panel-subtle rounded-2xl px-4 py-4">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.unsupportedFilters")}</p>
-                  <div className="mt-3 space-y-2">
-                    {diagnostics.length > 0 ? diagnostics.map((entry) => (
-                      <div key={entry} className="text-sm text-text-secondary">{entry}</div>
-                    )) : <div className="text-sm text-text-secondary">{t("workspace.allCoreFiltersReady")}</div>}
-                  </div>
-                </div>
-              </div>
-            </section>
+              </section>
+            ) : null}
           </>
         ) : null}
       </div>

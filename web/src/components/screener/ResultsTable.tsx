@@ -17,6 +17,7 @@ import {
   countActiveFilters,
   ruleDefinitionsByField,
   screenToQueryString,
+  tradingViewUrlForTicker,
 } from "@/lib/screener-query";
 
 type DensityMode = "comfortable" | "compact";
@@ -385,12 +386,26 @@ export function ResultsTable({
                     </div>
                   </div>
 
-                  <Link
-                    href={`/ticker/${row.ticker}${tickerQuery}`}
-                    className="ui-control inline-flex items-center rounded-lg px-3 py-2 text-xs font-bold uppercase tracking-wide text-text-secondary transition-colors hover:border-border-strong hover:text-text"
-                  >
-                    {t("workspace.openTicker")}
-                  </Link>
+                  <div className="flex flex-wrap gap-2">
+                    <a
+                      href={tradingViewUrlForTicker(row.ticker, row.market)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ui-control inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold uppercase tracking-wide text-text-secondary transition-colors hover:border-border-strong hover:text-text"
+                    >
+                      {t("workspace.openTradingView")}
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5 opacity-60" aria-hidden="true">
+                        <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                        <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                      </svg>
+                    </a>
+                    <Link
+                      href={`/ticker/${row.ticker}${tickerQuery}`}
+                      className="ui-control inline-flex items-center rounded-lg px-3 py-2 text-xs font-bold uppercase tracking-wide text-text-secondary transition-colors hover:border-border-strong hover:text-text"
+                    >
+                      {t("workspace.openTicker")}
+                    </Link>
+                  </div>
                 </div>
               ) : null}
             </div>
@@ -403,13 +418,13 @@ export function ResultsTable({
           <thead className="ui-table-header sticky top-0 z-10 backdrop-blur">
             <tr className="border-b border-border/80 text-start">
               <th scope="col" className="px-4 py-2.5 text-start text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">
-                <button onClick={() => onSortChange("ticker")} className="inline-flex items-center gap-1 transition-colors hover:text-text">
+                <button onClick={() => onSortChange("ticker")} className="link-hover inline-flex items-center gap-1">
                   {t("table.ticker")}
                   {sortKey === "ticker" ? (sortDir === "asc" ? "↑" : "↓") : null}
                 </button>
               </th>
               <th scope="col" className="px-3 py-2.5 text-end text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">
-                <button onClick={() => onSortChange("close")} className="inline-flex items-center gap-1 transition-colors hover:text-text">
+                <button onClick={() => onSortChange("close")} className="link-hover inline-flex items-center gap-1">
                   {t("table.close")}
                   {sortKey === "close" ? (sortDir === "asc" ? "↑" : "↓") : null}
                 </button>
@@ -419,7 +434,7 @@ export function ResultsTable({
               <th scope="col" className="px-2 py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">{t("table.sma150")}</th>
               <th scope="col" className="px-2 py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">{t("table.sma200")}</th>
               <th scope="col" className="px-3 py-2.5 text-end text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">
-                <button onClick={() => onSortChange("atr_percent")} className="inline-flex items-center gap-1 transition-colors hover:text-text">
+                <button onClick={() => onSortChange("atr_percent")} className="link-hover inline-flex items-center gap-1">
                   {t("table.atrPct")}
                   {sortKey === "atr_percent" ? (sortDir === "asc" ? "↑" : "↓") : null}
                 </button>
@@ -433,12 +448,25 @@ export function ResultsTable({
               <tr key={row.ticker} className="ui-table-row align-top transition-colors">
                 <td className={densityTickerClass}>
                   <div className="flex flex-col gap-1">
-                    <Link
-                      href={`/ticker/${row.ticker}${tickerQuery}`}
-                      className="font-bold tracking-[0.01em] text-text hover:text-primary hover:underline decoration-primary/30 underline-offset-2"
+                    <a
+                      href={tradingViewUrlForTicker(row.ticker, row.market)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={t("workspace.openTradingView")}
+                      className="link-hover inline-flex w-fit items-center gap-1 font-bold tracking-[0.01em] text-text decoration-[color:var(--color-neon)]/40 underline-offset-2 hover:underline"
                     >
                       {row.ticker}
-                    </Link>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        className="h-3 w-3 opacity-50"
+                        aria-hidden="true"
+                      >
+                        <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                        <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                      </svg>
+                    </a>
                     <span className="text-[10px] text-text-muted">{row.last_trade_date}</span>
                   </div>
                 </td>

@@ -468,6 +468,23 @@ export default function ScreenerPage() {
               >
                 {t("mobile.openFilters", { count: activeFilterCount })}
               </Button>
+              {hasFavorite ? (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleLoadFavorite}
+                  loading={favoriteLoading}
+                  className="border-amber-400/30 bg-amber-400/15 text-amber-300 shadow-none hover:bg-amber-400/25"
+                >
+                  <span className="inline-flex items-center gap-1.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5" aria-hidden="true">
+                      <path d="M10 1.5l2.6 5.27 5.82.85-4.21 4.1.99 5.79L10 14.77l-5.2 2.73.99-5.79L1.58 7.62l5.82-.85L10 1.5z" />
+                    </svg>
+                    {t("workspace.loadFavoriteShort")}
+                  </span>
+                </Button>
+              ) : null}
               <Button
                 type="button"
                 variant="ghost"

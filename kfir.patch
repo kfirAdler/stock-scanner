@@ -1,0 +1,992 @@
+From c2bc256933a6108d68cbce258813e4479a7f6ef4 Mon Sep 17 00:00:00 2001
+From: kfir adler <kfira@checkpoint.com>
+Date: Thu, 4 Jun 2026 17:48:33 +0300
+Subject: [PATCH] Add neon hover theme, clearer scanner favorites, richer
+ lookup, TradingView links
+
+- Theme: green neon hover system (tokens, .link-hover, nav/table/selection),
+  bright neon in dark, readable deep green in light. Applied to nav, result
+  symbols, sortable headers, breadcrumbs, similar-stocks links.
+- Scanner: consolidated favorites/saved into one prominent star card with
+  one-tap load, plus a top-bar favorite loader; added section hints so editing
+  filters is clearer; removed duplicate quick-actions block.
+- Scanner results: clicking a symbol opens the correct TradingView page,
+  letting TradingView resolve NASDAQ/NYSE (and handling TASE), in a new tab.
+- Lookup: replaced dev-facing coverage diagnostics with a meaningful Key
+  levels & metrics panel (SMA distances, 60-bar range position, ATR/volatility,
+  band proximity, sequence/break context); kept coverage gaps as a slim note.
+- Fix: TechnicalSummaryPanel showed ATR% 100x too small.
+
+Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+---
+ web/src/app/[locale]/screener/page.tsx        |  17 ++
+ web/src/app/[locale]/ticker/[ticker]/page.tsx |   2 +-
+ web/src/app/globals.css                       |  53 +++-
+ web/src/components/layout/Header.tsx          |   2 +-
+ web/src/components/lookup/KeyMetricsPanel.tsx | 233 ++++++++++++++++++
+ .../components/lookup/SimilarStocksTable.tsx  |   2 +-
+ .../components/lookup/StockLookupClient.tsx   |  77 +++---
+ .../lookup/TechnicalSummaryPanel.tsx          |   2 +-
+ web/src/components/screener/FilterPanel.tsx   | 141 ++++++-----
+ web/src/components/screener/ResultsTable.tsx  |  54 +++-
+ web/src/lib/screener-query.ts                 |  24 ++
+ web/src/messages/en.json                      |  37 +++
+ web/src/messages/he.json                      |  37 +++
+ 13 files changed, 569 insertions(+), 112 deletions(-)
+ create mode 100644 web/src/components/lookup/KeyMetricsPanel.tsx
+
+diff --git a/web/src/app/[locale]/screener/page.tsx b/web/src/app/[locale]/screener/page.tsx
+index 8a7cec6..a027623 100644
+--- a/web/src/app/[locale]/screener/page.tsx
++++ b/web/src/app/[locale]/screener/page.tsx
+@@ -468,6 +468,23 @@ export default function ScreenerPage() {
+               >
+                 {t("mobile.openFilters", { count: activeFilterCount })}
+               </Button>
++              {hasFavorite ? (
++                <Button
++                  type="button"
++                  variant="secondary"
++                  size="sm"
++                  onClick={handleLoadFavorite}
++                  loading={favoriteLoading}
++                  className="border-amber-400/30 bg-amber-400/15 text-amber-300 shadow-none hover:bg-amber-400/25"
++                >
++                  <span className="inline-flex items-center gap-1.5">
++                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5" aria-hidden="true">
++                      <path d="M10 1.5l2.6 5.27 5.82.85-4.21 4.1.99 5.79L10 14.77l-5.2 2.73.99-5.79L1.58 7.62l5.82-.85L10 1.5z" />
++                    </svg>
++                    {t("workspace.loadFavoriteShort")}
++                  </span>
++                </Button>
++              ) : null}
+               <Button
+                 type="button"
+                 variant="ghost"
+diff --git a/web/src/app/[locale]/ticker/[ticker]/page.tsx b/web/src/app/[locale]/ticker/[ticker]/page.tsx
+index 678ecfc..3506f46 100644
+--- a/web/src/app/[locale]/ticker/[ticker]/page.tsx
++++ b/web/src/app/[locale]/ticker/[ticker]/page.tsx
+@@ -107,7 +107,7 @@ export default function TickerDetailPage() {
+     <div className="mx-auto max-w-5xl px-4 sm:px-6 py-6 space-y-6">
+       {/* Breadcrumb + Title */}
+       <div>
+-        <Link href="/screener" className="inline-flex items-center gap-1 text-xs text-text-muted hover:text-primary transition-colors font-bold">
++        <Link href="/screener" className="link-hover inline-flex items-center gap-1 text-xs text-text-muted font-bold">
+           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5 rtl:rotate-180">
+             <path fillRule="evenodd" d="M12 8a.75.75 0 01-.75.75H5.81l2.72 2.72a.75.75 0 11-1.06 1.06l-4-4a.75.75 0 010-1.06l4-4a.75.75 0 011.06 1.06L5.81 7.25h5.44A.75.75 0 0112 8z" clipRule="evenodd" />
+           </svg>
+diff --git a/web/src/app/globals.css b/web/src/app/globals.css
+index 67d961f..b959c76 100644
+--- a/web/src/app/globals.css
++++ b/web/src/app/globals.css
+@@ -40,6 +40,12 @@
+   --color-chart-up: #22c55e;
+   --color-chart-down: #ef4444;
+ 
++  /* Neon accent — drives the green hover language across the app.
++     Light mode uses a deep, high-contrast green so hovered text stays readable. */
++  --color-neon: #0f9d58;
++  --color-neon-strong: #0b7a44;
++  --color-neon-soft: rgba(15, 157, 88, 0.12);
++
+   --font-sans: var(--font-assistant);
+ }
+ 
+@@ -81,6 +87,11 @@
+   --color-on-text: #0f172a;
+   --color-chart-up: #76cfa7;
+   --color-chart-down: #e59a9a;
++
++  /* Dark mode: a bright, saturated neon green that lights up on hover. */
++  --color-neon: #3df5a0;
++  --color-neon-strong: #5dffb4;
++  --color-neon-soft: rgba(61, 245, 160, 0.16);
+ }
+ 
+ html {
+@@ -197,15 +208,41 @@ button:disabled {
+ .ui-icon-button,
+ .ui-nav-item {
+   color: var(--color-text-secondary);
+-  transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
++  transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease, text-shadow 200ms ease;
+ }
+ 
+-.ui-icon-button:hover,
+-.ui-nav-item:hover {
++.ui-icon-button:hover {
+   background-color: var(--color-surface-hover);
+   color: var(--color-text);
+ }
+ 
++/* Text nav items glow neon-green on hover. */
++.ui-nav-item:hover {
++  background-color: var(--color-surface-hover);
++  color: var(--color-neon);
++}
++
++.dark .ui-nav-item:hover {
++  text-shadow:
++    0 0 8px color-mix(in srgb, var(--color-neon) 45%, transparent),
++    0 0 18px color-mix(in srgb, var(--color-neon) 24%, transparent);
++}
++
++/* Reusable hover for textual links/headings: green in light, neon-glow in dark. */
++.link-hover {
++  transition: color 150ms ease, text-shadow 200ms ease, text-decoration-color 150ms ease;
++}
++
++.link-hover:hover {
++  color: var(--color-neon);
++}
++
++.dark .link-hover:hover {
++  text-shadow:
++    0 0 6px color-mix(in srgb, var(--color-neon) 55%, transparent),
++    0 0 16px color-mix(in srgb, var(--color-neon) 28%, transparent);
++}
++
+ .ui-segment {
+   background-color: color-mix(in srgb, var(--color-surface-alt) 92%, transparent);
+   border: 1px solid var(--color-border);
+@@ -257,6 +294,12 @@ button:disabled {
+ .ui-table-row:hover,
+ .ui-table-row:focus-within {
+   background-color: color-mix(in srgb, var(--color-surface-hover) 94%, transparent);
++  box-shadow: inset 2px 0 0 0 color-mix(in srgb, var(--color-neon) 70%, transparent);
++}
++
++.dark .ui-table-row:hover,
++.dark .ui-table-row:focus-within {
++  background-color: color-mix(in srgb, var(--color-neon) 8%, var(--color-surface-hover));
+ }
+ 
+ .ui-elevated-hover {
+@@ -280,8 +323,8 @@ button:disabled {
+ }
+ 
+ .dark ::selection {
+-  background-color: var(--color-primary);
+-  color: white;
++  background-color: color-mix(in srgb, var(--color-neon) 88%, transparent);
++  color: #05140d;
+ }
+ 
+ .market-inline-ltr {
+diff --git a/web/src/components/layout/Header.tsx b/web/src/components/layout/Header.tsx
+index 8d32c4a..2bcd8c9 100644
+--- a/web/src/components/layout/Header.tsx
++++ b/web/src/components/layout/Header.tsx
+@@ -127,7 +127,7 @@ export function Header() {
+                 <path fillRule="evenodd" d="M12.577 4.878a.75.75 0 01.919-.53l4.78 1.281a.75.75 0 01.531.919l-1.281 4.78a.75.75 0 01-1.449-.387l.81-3.022a19.407 19.407 0 00-5.594 5.203.75.75 0 01-1.139.093L7 10.06l-4.72 4.72a.75.75 0 01-1.06-1.061l5.25-5.25a.75.75 0 011.06 0l3.074 3.073a20.923 20.923 0 015.545-4.931l-3.042.815a.75.75 0 01-.53-.919z" clipRule="evenodd" />
+               </svg>
+             </div>
+-            <span className="hidden text-base font-bold tracking-tight text-text transition-colors group-hover:text-primary sm:inline">
++            <span className="hidden text-base font-bold tracking-tight text-text transition-colors group-hover:text-[color:var(--color-neon)] sm:inline">
+               {t("common.appName")}
+             </span>
+             {showMemberBadge && (
+diff --git a/web/src/components/lookup/KeyMetricsPanel.tsx b/web/src/components/lookup/KeyMetricsPanel.tsx
+new file mode 100644
+index 0000000..95f63ed
+--- /dev/null
++++ b/web/src/components/lookup/KeyMetricsPanel.tsx
+@@ -0,0 +1,233 @@
++"use client";
++
++import type { ReactNode } from "react";
++import { clsx } from "clsx";
++import type { LookupCoveragePayload } from "./types";
++
++type KeyMetricsPanelProps = {
++  coverage: LookupCoveragePayload;
++  formatCurrency: (value: number | null | undefined) => string;
++  formatPercent: (value: number | null | undefined) => string;
++  t: (key: string, values?: Record<string, string | number>) => string;
++};
++
++function signedPercent(value: number | null | undefined): string {
++  if (value == null || Number.isNaN(value)) return "—";
++  const sign = value > 0 ? "+" : "";
++  return `${sign}${value.toFixed(2)}%`;
++}
++
++function distanceToneClass(value: number | null | undefined): string {
++  if (value == null || Number.isNaN(value)) return "text-text-muted";
++  if (value > 0.05) return "text-success";
++  if (value < -0.05) return "text-danger";
++  return "text-text-secondary";
++}
++
++function MetricRow({
++  label,
++  value,
++  hint,
++  valueClass,
++}: {
++  label: string;
++  value: string;
++  hint?: string | null;
++  valueClass?: string;
++}) {
++  return (
++    <div className="flex items-baseline justify-between gap-3 border-b border-divider-soft py-1.5 last:border-b-0">
++      <div className="min-w-0">
++        <p className="truncate text-[12px] text-text-secondary">{label}</p>
++        {hint ? <p className="text-[10px] text-text-muted">{hint}</p> : null}
++      </div>
++      <p className={clsx("shrink-0 text-sm font-semibold tabular-nums", valueClass ?? "text-text")}>
++        {value}
++      </p>
++    </div>
++  );
++}
++
++function Card({ title, children }: { title: string; children: ReactNode }) {
++  return (
++    <div className="ui-panel-subtle rounded-2xl px-4 py-3.5">
++      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{title}</p>
++      <div className="mt-2">{children}</div>
++    </div>
++  );
++}
++
++export function KeyMetricsPanel({
++  coverage,
++  formatCurrency,
++  formatPercent,
++  t,
++}: KeyMetricsPanelProps) {
++  const daily = coverage.dailySnapshot;
++  const close = Number(daily.close);
++
++  const maRows = (
++    [
++      { period: 20, value: daily.sma_20, above: daily.is_above_sma20 },
++      { period: 50, value: daily.sma_50, above: daily.is_above_sma50 },
++      { period: 150, value: daily.sma_150, above: daily.is_above_sma150 },
++      { period: 200, value: daily.sma_200, above: daily.is_above_sma200 },
++    ] as const
++  ).map((entry) => {
++    const dist =
++      entry.value != null && entry.value !== 0 && Number.isFinite(close)
++        ? ((close - entry.value) / entry.value) * 100
++        : null;
++    const relation =
++      dist == null ? null : dist >= 0 ? t("keyMetrics.above") : t("keyMetrics.below");
++    return {
++      period: entry.period,
++      value: entry.value,
++      dist,
++      relation,
++    };
++  });
++
++  // 60-bar close range position.
++  const closes = coverage.recentBars
++    .map((bar) => Number(bar.close))
++    .filter((value) => Number.isFinite(value));
++  const rangeHigh = closes.length ? Math.max(...closes) : null;
++  const rangeLow = closes.length ? Math.min(...closes) : null;
++  const rangeSpan =
++    rangeHigh != null && rangeLow != null ? Math.max(rangeHigh - rangeLow, 1e-9) : null;
++  const rangePosition =
++    rangeSpan != null && rangeLow != null ? ((close - rangeLow) / rangeSpan) * 100 : null;
++  const fromHigh =
++    rangeHigh != null && rangeHigh !== 0 ? ((close - rangeHigh) / rangeHigh) * 100 : null;
++  const fromLow =
++    rangeLow != null && rangeLow !== 0 ? ((close - rangeLow) / rangeLow) * 100 : null;
++
++  const rangeLabel =
++    rangePosition == null
++      ? null
++      : rangePosition >= 80
++        ? t("keyMetrics.atRangeHigh")
++        : rangePosition <= 20
++          ? t("keyMetrics.atRangeLow")
++          : t("keyMetrics.midRange");
++
++  const atrPct = daily.atr_percent;
++  const volLabel =
++    atrPct == null
++      ? null
++      : atrPct >= 5
++        ? t("keyMetrics.volHigh")
++        : atrPct >= 3
++          ? t("keyMetrics.volElevated")
++          : t("keyMetrics.volCalm");
++
++  const toUpper = daily.pct_to_bb_upper;
++  const toLower = daily.pct_to_bb_lower;
++  const bandLabel =
++    toUpper == null && toLower == null
++      ? null
++      : (toUpper ?? Number.POSITIVE_INFINITY) <= 3
++        ? t("keyMetrics.nearUpper")
++        : (toLower ?? Number.POSITIVE_INFINITY) <= 3
++          ? t("keyMetrics.nearLower")
++          : t("keyMetrics.midBands");
++
++  const strongBuyBarsAgo = daily.strong_buy_signal_bars_ago;
++  const strongSellBarsAgo = daily.strong_sell_signal_bars_ago;
++  const barsAgoLabel = (value: number | null | undefined): string => {
++    if (value == null || Number.isNaN(value)) return t("keyMetrics.none");
++    if (value <= 0) return t("keyMetrics.today");
++    return t("keyMetrics.barsAgo", { count: value });
++  };
++
++  return (
++    <section className="ui-panel rounded-[22px] px-4 py-4">
++      <div className="flex flex-wrap items-center justify-between gap-2">
++        <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-text-muted">
++          {t("keyMetrics.title")}
++        </h2>
++        <p className="text-[12px] text-text-secondary">{t("keyMetrics.subtitle")}</p>
++      </div>
++
++      <div className="mt-4 grid gap-3 lg:grid-cols-3">
++        <Card title={t("keyMetrics.trendStructure")}>
++          {maRows.map((row) => (
++            <MetricRow
++              key={row.period}
++              label={`SMA ${row.period}`}
++              hint={row.value != null ? formatCurrency(row.value) : null}
++              value={row.dist == null ? "—" : `${signedPercent(row.dist)} ${row.relation ?? ""}`.trim()}
++              valueClass={distanceToneClass(row.dist)}
++            />
++          ))}
++        </Card>
++
++        <Card title={t("keyMetrics.rangeVolatility")}>
++          <MetricRow
++            label={t("keyMetrics.rangePosition")}
++            hint={rangeLabel}
++            value={rangePosition == null ? "—" : `${Math.round(rangePosition)}%`}
++          />
++          <div className="my-2 h-1.5 w-full overflow-hidden rounded-full bg-surface-alt">
++            <div
++              className="h-full rounded-full bg-[color:var(--color-neon)]"
++              style={{ width: `${Math.min(100, Math.max(0, rangePosition ?? 0))}%` }}
++            />
++          </div>
++          <MetricRow
++            label={t("keyMetrics.fromHigh")}
++            value={signedPercent(fromHigh)}
++            valueClass={distanceToneClass(fromHigh)}
++          />
++          <MetricRow
++            label={t("keyMetrics.fromLow")}
++            value={signedPercent(fromLow)}
++            valueClass={distanceToneClass(fromLow)}
++          />
++          <MetricRow
++            label={t("keyMetrics.atr")}
++            hint={volLabel}
++            value={formatPercent(atrPct)}
++          />
++        </Card>
++
++        <Card title={t("keyMetrics.bandsMomentum")}>
++          <MetricRow
++            label={t("keyMetrics.toBbUpper")}
++            hint={bandLabel}
++            value={toUpper == null ? "—" : `${toUpper.toFixed(2)}%`}
++          />
++          <MetricRow
++            label={t("keyMetrics.toBbLower")}
++            value={toLower == null ? "—" : `${toLower.toFixed(2)}%`}
++          />
++          <MetricRow
++            label={t("keyMetrics.upSequence")}
++            value={String(daily.up_sequence_count ?? 0)}
++            valueClass={daily.up_sequence_count ? "text-success" : "text-text"}
++          />
++          <MetricRow
++            label={t("keyMetrics.downSequence")}
++            value={String(daily.down_sequence_count ?? 0)}
++            valueClass={daily.down_sequence_count ? "text-danger" : "text-text"}
++          />
++          <MetricRow
++            label={
++              (strongBuyBarsAgo ?? Number.POSITIVE_INFINITY) <=
++              (strongSellBarsAgo ?? Number.POSITIVE_INFINITY)
++                ? t("keyMetrics.lastStrongBuy")
++                : t("keyMetrics.lastStrongSell")
++            }
++            value={barsAgoLabel(
++              (strongBuyBarsAgo ?? Number.POSITIVE_INFINITY) <=
++                (strongSellBarsAgo ?? Number.POSITIVE_INFINITY)
++                ? strongBuyBarsAgo
++                : strongSellBarsAgo
++            )}
++          />
++        </Card>
++      </div>
++    </section>
++  );
++}
+diff --git a/web/src/components/lookup/SimilarStocksTable.tsx b/web/src/components/lookup/SimilarStocksTable.tsx
+index 2e8c090..68804d1 100644
+--- a/web/src/components/lookup/SimilarStocksTable.tsx
++++ b/web/src/components/lookup/SimilarStocksTable.tsx
+@@ -75,7 +75,7 @@ export function SimilarStocksTable({
+               ].join(" ");
+               return (
+                 <div key={row.ticker} className="grid gap-2 px-4 py-3 text-sm lg:grid-cols-[120px_110px_110px_100px_150px_minmax(0,1fr)] lg:items-center">
+-                  <Link href={`/ticker/${row.ticker}`} className="font-bold text-text hover:text-primary">
++                  <Link href={`/ticker/${row.ticker}`} className="link-hover font-bold text-text">
+                     {row.ticker}
+                   </Link>
+                   <div><SimilarityBadge score={score} /></div>
+diff --git a/web/src/components/lookup/StockLookupClient.tsx b/web/src/components/lookup/StockLookupClient.tsx
+index 49fe424..4aefe3c 100644
+--- a/web/src/components/lookup/StockLookupClient.tsx
++++ b/web/src/components/lookup/StockLookupClient.tsx
+@@ -10,6 +10,7 @@ import { PremiumGate } from "@/components/billing/PremiumGate";
+ import { screenToQueryString } from "@/lib/screener-query";
+ import type { LegacyScreenerFilters, ScreenerPayload, ScreenerResultRow, ScreenerResultsPage, ScreenerRule, ScreenerTimeframe, ScannerResultSnapshot, SnapshotRow } from "@/lib/screener-types";
+ import { InsightPanel } from "./InsightPanel";
++import { KeyMetricsPanel } from "./KeyMetricsPanel";
+ import { LookupActionsBar } from "./LookupActionsBar";
+ import { MatchedConditionsPanel } from "./MatchedConditionsPanel";
+ import { SimilarStocksTable } from "./SimilarStocksTable";
+@@ -832,6 +833,11 @@ export function StockLookupClient() {
+       .map((row) => `${filterLabel(row.filterKey)} · ${reasonText(row) ?? ""}`);
+   }, [coverage, filterLabel, reasonText]);
+ 
++  const unsupportedIndicators = useMemo(() => {
++    if (!coverage) return [];
++    return coverage.indicators.filter((row) => !row.supported).slice(0, 6);
++  }, [coverage]);
++
+   return (
+     <div className="mx-auto max-w-[1480px] px-4 py-6">
+       <div className="space-y-5">
+@@ -1017,41 +1023,46 @@ export function StockLookupClient() {
+               t={t}
+             />
+ 
+-            <section className="ui-panel rounded-[22px] px-4 py-4">
+-              <div className="flex flex-wrap items-center justify-between gap-3">
+-                <div>
+-                  <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.coverageDiagnostics")}</h2>
+-                  <p className="mt-1 text-sm text-text-secondary">{t("workspace.coverageDiagnosticsSub")}</p>
+-                </div>
+-                <Link href={`/ticker/${coverage.ticker}`} className="text-sm font-semibold text-primary hover:underline">
+-                  {t("openTickerPage")}
+-                </Link>
+-              </div>
+-              <div className="mt-4 grid gap-3 xl:grid-cols-2">
+-                <div className="ui-panel-subtle rounded-2xl px-4 py-4">
+-                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.unsupportedIndicators")}</p>
+-                  <div className="mt-3 space-y-2">
+-                    {coverage.indicators
+-                      .filter((row) => !row.supported)
+-                      .slice(0, 6)
+-                      .map((row) => (
+-                        <div key={row.id} className="flex items-start justify-between gap-3 text-sm">
+-                          <span className="font-medium text-text">{lookupMsg.indicators[row.id] ?? row.id}</span>
+-                          <span className="text-right text-[12px] text-text-muted">{reasonText(row) ?? "—"}</span>
+-                        </div>
+-                      ))}
+-                  </div>
++            <KeyMetricsPanel
++              coverage={coverage}
++              formatCurrency={formatCurrency}
++              formatPercent={formatPercent}
++              t={t}
++            />
++
++            {unsupportedIndicators.length > 0 || diagnostics.length > 0 ? (
++              <section className="ui-panel-subtle rounded-[18px] px-4 py-3">
++                <div className="flex flex-wrap items-center justify-between gap-2">
++                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
++                    {t("workspace.coverageDiagnostics")}
++                  </p>
++                  <Link
++                    href={`/ticker/${coverage.ticker}`}
++                    className="link-hover text-[12px] font-semibold text-text-secondary"
++                  >
++                    {t("openTickerPage")}
++                  </Link>
+                 </div>
+-                <div className="ui-panel-subtle rounded-2xl px-4 py-4">
+-                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.unsupportedFilters")}</p>
+-                  <div className="mt-3 space-y-2">
+-                    {diagnostics.length > 0 ? diagnostics.map((entry) => (
+-                      <div key={entry} className="text-sm text-text-secondary">{entry}</div>
+-                    )) : <div className="text-sm text-text-secondary">{t("workspace.allCoreFiltersReady")}</div>}
+-                  </div>
++                <div className="mt-2 flex flex-wrap gap-1.5">
++                  {unsupportedIndicators.map((row) => (
++                    <span
++                      key={row.id}
++                      className="rounded-full bg-surface-elevated px-2.5 py-1 text-[11px] text-text-muted ring-1 ring-border"
++                    >
++                      {lookupMsg.indicators[row.id] ?? row.id}
++                    </span>
++                  ))}
++                  {diagnostics.map((entry) => (
++                    <span
++                      key={entry}
++                      className="rounded-full bg-surface-elevated px-2.5 py-1 text-[11px] text-text-muted ring-1 ring-border"
++                    >
++                      {entry}
++                    </span>
++                  ))}
+                 </div>
+-              </div>
+-            </section>
++              </section>
++            ) : null}
+           </>
+         ) : null}
+       </div>
+diff --git a/web/src/components/lookup/TechnicalSummaryPanel.tsx b/web/src/components/lookup/TechnicalSummaryPanel.tsx
+index 27bed44..ae53f22 100644
+--- a/web/src/components/lookup/TechnicalSummaryPanel.tsx
++++ b/web/src/components/lookup/TechnicalSummaryPanel.tsx
+@@ -65,7 +65,7 @@ export function TechnicalSummaryPanel({
+               <div className="mt-3 grid grid-cols-2 gap-2 text-[12px]">
+                 <div className="rounded-xl bg-surface-elevated px-2.5 py-2 ring-1 ring-border">
+                   <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.atrPct")}</p>
+-                  <p className="mt-1 font-semibold text-text">{formatPercent(snapshot?.atr_percent != null ? snapshot.atr_percent / 100 : null)}</p>
++                  <p className="mt-1 font-semibold text-text">{formatPercent(snapshot?.atr_percent)}</p>
+                 </div>
+                 <div className="rounded-xl bg-surface-elevated px-2.5 py-2 ring-1 ring-border">
+                   <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.sequenceCount")}</p>
+diff --git a/web/src/components/screener/FilterPanel.tsx b/web/src/components/screener/FilterPanel.tsx
+index d7f9b33..0b582d8 100644
+--- a/web/src/components/screener/FilterPanel.tsx
++++ b/web/src/components/screener/FilterPanel.tsx
+@@ -3,6 +3,7 @@
+ import { useEffect, useMemo, useState } from "react";
+ import { useTranslations } from "next-intl";
+ import { clsx } from "clsx";
++import { Link } from "@/i18n/navigation";
+ import { Button } from "@/components/ui/Button";
+ import { RULE_DEFINITIONS, activeRuleCountForTimeframe, countActiveFilters, createRule, ruleDefinitionsByField } from "@/lib/screener-query";
+ import type { ScreenerPayload, ScreenerRule, ScreenerRuleField, ScreenerTimeframe } from "@/lib/screener-types";
+@@ -253,16 +254,6 @@ export function FilterPanel({
+                 {t("workspace.resetDraft")}
+               </Button>
+             ) : null}
+-            <Button
+-              type="button"
+-              variant="secondary"
+-              size="sm"
+-              onClick={onLoadFavorite}
+-              loading={favoriteLoading}
+-              disabled={!favoriteAvailable}
+-            >
+-              {t("favorite.load")}
+-            </Button>
+           </div>
+           <div className="flex items-center gap-2">
+             <Button size="sm" onClick={onApply} loading={loading}>
+@@ -272,11 +263,79 @@ export function FilterPanel({
+         </div>
+       }
+     >
++      <section className="ui-panel-subtle space-y-3 rounded-2xl p-3">
++        <div className="flex items-center justify-between gap-2">
++          <div className="flex items-center gap-2">
++            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-amber-400/15 text-amber-400">
++              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5" aria-hidden="true">
++                <path d="M10 1.5l2.6 5.27 5.82.85-4.21 4.1.99 5.79L10 14.77l-5.2 2.73.99-5.79L1.58 7.62l5.82-.85L10 1.5z" />
++              </svg>
++            </span>
++            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
++              {t("workspace.favoritesTitle")}
++            </p>
++          </div>
++          <Link href="/saved-screens" className="link-hover text-[11px] font-semibold text-text-secondary">
++            {t("workspace.savedScreensLink")}
++          </Link>
++        </div>
++        <p className="text-[12px] leading-relaxed text-text-secondary">
++          {favoriteAvailable ? t("workspace.favoritesReady") : t("workspace.favoritesEmpty")}
++        </p>
++        <div className="flex flex-wrap items-center gap-2">
++          <Button
++            type="button"
++            size="sm"
++            variant="secondary"
++            onClick={onLoadFavorite}
++            loading={favoriteLoading}
++            disabled={!favoriteAvailable}
++            className={clsx(
++              favoriteAvailable &&
++                "border-amber-400/30 bg-amber-400/15 text-amber-300 shadow-none hover:bg-amber-400/25"
++            )}
++          >
++            <span className="inline-flex items-center gap-1.5">
++              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5" aria-hidden="true">
++                <path d="M10 1.5l2.6 5.27 5.82.85-4.21 4.1.99 5.79L10 14.77l-5.2 2.73.99-5.79L1.58 7.62l5.82-.85L10 1.5z" />
++              </svg>
++              {t("favorite.load")}
++            </span>
++          </Button>
++          <Button
++            type="button"
++            variant="ghost"
++            size="sm"
++            onClick={onSaveFavorite}
++            loading={favoriteSaving}
++            disabled={activeFilterCount === 0}
++          >
++            {favoriteAvailable ? t("favorite.update") : t("favorite.save")}
++          </Button>
++          <Button
++            type="button"
++            variant="ghost"
++            size="sm"
++            onClick={onSaveScan}
++            loading={saveScanLoading}
++            disabled={activeFilterCount === 0}
++          >
++            {t("saveScan")}
++          </Button>
++        </div>
++        {favoriteStatus ? (
++          <p className="text-[11px] font-semibold text-text-secondary">{favoriteStatus}</p>
++        ) : null}
++      </section>
++
+       <section className="space-y-2.5 rounded-2xl">
+         <div className="flex items-center justify-between gap-3">
+-          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-text-muted">
+-            {t("workspace.sections.timeframes")}
+-          </p>
++          <div>
++            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-text-muted">
++              {t("workspace.sections.timeframes")}
++            </p>
++            <p className="mt-0.5 text-[11px] text-text-muted">{t("workspace.sections.timeframesHint")}</p>
++          </div>
+           <div>
+             <DensityToggle
+               value={density}
+@@ -295,6 +354,12 @@ export function FilterPanel({
+       </section>
+ 
+       <section className="space-y-2.5 rounded-2xl">
++        <div>
++          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-text-muted">
++            {t("workspace.sections.builder")}
++          </p>
++          <p className="mt-0.5 text-[11px] text-text-muted">{t("workspace.sections.builderHint")}</p>
++        </div>
+         <FilterCategoryTabs
+           tabs={categorySummary}
+           activeTab={activeCategory}
+@@ -484,54 +549,16 @@ export function FilterPanel({
+             </div>
+           ) : null}
+ 
+-          <div className="space-y-2.5">
+-            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-text-muted">
+-              {t("workspace.quickActions")}
+-            </p>
+-            <div className="flex flex-wrap gap-2">
+-              <Button
+-                type="button"
+-                variant="secondary"
+-                size="sm"
+-                onClick={onSaveScan}
+-                loading={saveScanLoading}
+-                disabled={activeFilterCount === 0}
+-              >
+-                {t("saveScan")}
+-              </Button>
+-              <Button
+-                type="button"
+-                variant={favoriteAvailable ? "secondary" : "ghost"}
+-                size="sm"
+-                onClick={onSaveFavorite}
+-                loading={favoriteSaving}
+-                disabled={activeFilterCount === 0}
+-                className={clsx(
+-                  favoriteAvailable &&
+-                    "border-amber-500/25 bg-amber-500/10 text-amber-200 hover:bg-amber-500/16"
+-                )}
+-              >
+-                {favoriteAvailable ? t("favorite.update") : t("favorite.save")}
+-              </Button>
+-              <Button
+-                type="button"
+-                variant="ghost"
+-                size="sm"
+-                onClick={onLoadFavorite}
+-                loading={favoriteLoading}
+-                disabled={!favoriteAvailable}
+-              >
+-                {t("favorite.load")}
+-              </Button>
+-            </div>
+-          </div>
+         </div>
+       </AdvancedFiltersPanel>
+ 
+       <section className="space-y-2.5 rounded-2xl">
+-        <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-text-muted">
+-          {t("workspace.sections.active")}
+-        </p>
++        <div>
++          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-text-muted">
++            {t("workspace.sections.active")}
++          </p>
++          <p className="mt-0.5 text-[11px] text-text-muted">{t("workspace.sections.activeHint")}</p>
++        </div>
+         <div className={clsx("flex flex-wrap", density === "compact" ? "gap-2" : "gap-2.5")}>
+           {activeRulePills.length === 0 &&
+           !filters.listing_market &&
+diff --git a/web/src/components/screener/ResultsTable.tsx b/web/src/components/screener/ResultsTable.tsx
+index 0775325..59fd57e 100644
+--- a/web/src/components/screener/ResultsTable.tsx
++++ b/web/src/components/screener/ResultsTable.tsx
+@@ -17,6 +17,7 @@ import {
+   countActiveFilters,
+   ruleDefinitionsByField,
+   screenToQueryString,
++  tradingViewUrlForTicker,
+ } from "@/lib/screener-query";
+ 
+ type DensityMode = "comfortable" | "compact";
+@@ -385,12 +386,26 @@ export function ResultsTable({
+                     </div>
+                   </div>
+ 
+-                  <Link
+-                    href={`/ticker/${row.ticker}${tickerQuery}`}
+-                    className="ui-control inline-flex items-center rounded-lg px-3 py-2 text-xs font-bold uppercase tracking-wide text-text-secondary transition-colors hover:border-border-strong hover:text-text"
+-                  >
+-                    {t("workspace.openTicker")}
+-                  </Link>
++                  <div className="flex flex-wrap gap-2">
++                    <a
++                      href={tradingViewUrlForTicker(row.ticker, row.market)}
++                      target="_blank"
++                      rel="noopener noreferrer"
++                      className="ui-control inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold uppercase tracking-wide text-text-secondary transition-colors hover:border-border-strong hover:text-text"
++                    >
++                      {t("workspace.openTradingView")}
++                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5 opacity-60" aria-hidden="true">
++                        <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
++                        <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
++                      </svg>
++                    </a>
++                    <Link
++                      href={`/ticker/${row.ticker}${tickerQuery}`}
++                      className="ui-control inline-flex items-center rounded-lg px-3 py-2 text-xs font-bold uppercase tracking-wide text-text-secondary transition-colors hover:border-border-strong hover:text-text"
++                    >
++                      {t("workspace.openTicker")}
++                    </Link>
++                  </div>
+                 </div>
+               ) : null}
+             </div>
+@@ -403,13 +418,13 @@ export function ResultsTable({
+           <thead className="ui-table-header sticky top-0 z-10 backdrop-blur">
+             <tr className="border-b border-border/80 text-start">
+               <th scope="col" className="px-4 py-2.5 text-start text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">
+-                <button onClick={() => onSortChange("ticker")} className="inline-flex items-center gap-1 transition-colors hover:text-text">
++                <button onClick={() => onSortChange("ticker")} className="link-hover inline-flex items-center gap-1">
+                   {t("table.ticker")}
+                   {sortKey === "ticker" ? (sortDir === "asc" ? "↑" : "↓") : null}
+                 </button>
+               </th>
+               <th scope="col" className="px-3 py-2.5 text-end text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">
+-                <button onClick={() => onSortChange("close")} className="inline-flex items-center gap-1 transition-colors hover:text-text">
++                <button onClick={() => onSortChange("close")} className="link-hover inline-flex items-center gap-1">
+                   {t("table.close")}
+                   {sortKey === "close" ? (sortDir === "asc" ? "↑" : "↓") : null}
+                 </button>
+@@ -419,7 +434,7 @@ export function ResultsTable({
+               <th scope="col" className="px-2 py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">{t("table.sma150")}</th>
+               <th scope="col" className="px-2 py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">{t("table.sma200")}</th>
+               <th scope="col" className="px-3 py-2.5 text-end text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">
+-                <button onClick={() => onSortChange("atr_percent")} className="inline-flex items-center gap-1 transition-colors hover:text-text">
++                <button onClick={() => onSortChange("atr_percent")} className="link-hover inline-flex items-center gap-1">
+                   {t("table.atrPct")}
+                   {sortKey === "atr_percent" ? (sortDir === "asc" ? "↑" : "↓") : null}
+                 </button>
+@@ -433,12 +448,25 @@ export function ResultsTable({
+               <tr key={row.ticker} className="ui-table-row align-top transition-colors">
+                 <td className={densityTickerClass}>
+                   <div className="flex flex-col gap-1">
+-                    <Link
+-                      href={`/ticker/${row.ticker}${tickerQuery}`}
+-                      className="font-bold tracking-[0.01em] text-text hover:text-primary hover:underline decoration-primary/30 underline-offset-2"
++                    <a
++                      href={tradingViewUrlForTicker(row.ticker, row.market)}
++                      target="_blank"
++                      rel="noopener noreferrer"
++                      title={t("workspace.openTradingView")}
++                      className="link-hover inline-flex w-fit items-center gap-1 font-bold tracking-[0.01em] text-text decoration-[color:var(--color-neon)]/40 underline-offset-2 hover:underline"
+                     >
+                       {row.ticker}
+-                    </Link>
++                      <svg
++                        xmlns="http://www.w3.org/2000/svg"
++                        viewBox="0 0 20 20"
++                        fill="currentColor"
++                        className="h-3 w-3 opacity-50"
++                        aria-hidden="true"
++                      >
++                        <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
++                        <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
++                      </svg>
++                    </a>
+                     <span className="text-[10px] text-text-muted">{row.last_trade_date}</span>
+                   </div>
+                 </td>
+diff --git a/web/src/lib/screener-query.ts b/web/src/lib/screener-query.ts
+index cae4986..caac9d0 100644
+--- a/web/src/lib/screener-query.ts
++++ b/web/src/lib/screener-query.ts
+@@ -407,3 +407,27 @@ export function tradingViewSymbol(
+     "NASDAQ";
+   return `${ex}:${t}`;
+ }
++
++/**
++ * Build a TradingView symbol page URL for a result row.
++ *
++ * The scanner result rows do not carry a listing exchange, and US tickers can
++ * live on either NASDAQ or NYSE. TradingView's `/symbols/<TICKER>/` page
++ * resolves a bare US ticker to its primary listing automatically, so we let
++ * TradingView pick the correct exchange instead of hard-coding NASDAQ.
++ * Tel Aviv (TASE) symbols are not resolvable from a bare ticker, so we prefix
++ * them explicitly.
++ */
++export function tradingViewUrlForTicker(
++  ticker: string,
++  market?: string | null
++): string {
++  const raw = ticker.trim();
++  const isTase = /\.TA$/i.test(raw) || (market ?? "").toUpperCase() === "TA";
++  if (isTase) {
++    const base = raw.replace(/\.TA$/i, "").replace(/\./g, "-").toUpperCase();
++    return `https://www.tradingview.com/symbols/TASE-${encodeURIComponent(base)}/`;
++  }
++  const symbol = formatTickerForTradingView(raw);
++  return `https://www.tradingview.com/symbols/${encodeURIComponent(symbol)}/`;
++}
+diff --git a/web/src/messages/en.json b/web/src/messages/en.json
+index acf0167..2f796ab 100644
+--- a/web/src/messages/en.json
++++ b/web/src/messages/en.json
+@@ -460,8 +460,14 @@
+       "activeScanHint": "These are the rules applied to every symbol in the current result list.",
+       "noRulesForTimeframe": "No active rules in this timeframe.",
+       "openTicker": "Open symbol page",
++      "openTradingView": "Open on TradingView",
+       "bottomHintDirty": "Apply when you're ready. Your result set is still showing the previous scan.",
+       "bottomHintReady": "You are looking at the latest applied scan.",
++      "favoritesTitle": "Saved & favorites",
++      "favoritesReady": "Your favorite filter is ready — load it with one tap.",
++      "favoritesEmpty": "Save the current filter as your favorite to reuse it instantly next time.",
++      "savedScreensLink": "Manage saved scans",
++      "loadFavoriteShort": "Favorite",
+       "sections": {
+         "universe": "Universe",
+         "universeHint": "Market and size limits",
+@@ -692,6 +698,37 @@
+       "openTicker": "Open ticker",
+       "currentMatchesHeader": "Current matches"
+     },
++    "keyMetrics": {
++      "title": "Key levels & metrics",
++      "subtitle": "The numbers that explain where price sits right now.",
++      "trendStructure": "Trend structure",
++      "rangeVolatility": "Range & volatility",
++      "bandsMomentum": "Bands & momentum",
++      "above": "above",
++      "below": "below",
++      "rangePosition": "60-bar range position",
++      "fromHigh": "From 60-bar high",
++      "fromLow": "From 60-bar low",
++      "atr": "ATR % (daily)",
++      "toBbUpper": "% to upper band",
++      "toBbLower": "% to lower band",
++      "upSequence": "Up-sequence length",
++      "downSequence": "Down-sequence length",
++      "lastStrongBuy": "Last strong buy",
++      "lastStrongSell": "Last strong sell",
++      "barsAgo": "{count} bars ago",
++      "today": "today",
++      "none": "—",
++      "volHigh": "High volatility",
++      "volElevated": "Elevated",
++      "volCalm": "Calm",
++      "nearUpper": "Pressing the upper band",
++      "midBands": "Mid-band",
++      "nearLower": "Near the lower band",
++      "atRangeHigh": "At range highs",
++      "atRangeLow": "At range lows",
++      "midRange": "Mid-range"
++    },
+     "indicators": {
+       "sma_20": "SMA 20",
+       "sma_50": "SMA 50",
+diff --git a/web/src/messages/he.json b/web/src/messages/he.json
+index cae8058..c57c0da 100644
+--- a/web/src/messages/he.json
++++ b/web/src/messages/he.json
+@@ -460,8 +460,14 @@
+       "activeScanHint": "אלה החוקים שמופעלים על כל הסימבולים ברשימת התוצאות הנוכחית.",
+       "noRulesForTimeframe": "אין חוקים פעילים בטיימפריים הזה.",
+       "openTicker": "פתח עמוד סימבול",
++      "openTradingView": "פתח ב‑TradingView",
+       "bottomHintDirty": "כשתהיו מוכנים הפעילו את הסריקה. כרגע מוצגות תוצאות מהסריקה הקודמת.",
+       "bottomHintReady": "אתם צופים בסריקה האחרונה שהופעלה.",
++      "favoritesTitle": "שמורים ומועדפים",
++      "favoritesReady": "המסנן המועדף שלכם מוכן — טענו אותו בלחיצה אחת.",
++      "favoritesEmpty": "שמרו את המסנן הנוכחי כמועדף כדי לטעון אותו מיד בפעם הבאה.",
++      "savedScreensLink": "ניהול סריקות שמורות",
++      "loadFavoriteShort": "מועדף",
+       "sections": {
+         "universe": "יוניברס",
+         "universeHint": "שוק וטווחי שווי שוק",
+@@ -692,6 +698,37 @@
+       "openTicker": "פתח מניה",
+       "currentMatchesHeader": "התאמות נוכחיות"
+     },
++    "keyMetrics": {
++      "title": "רמות ומדדים מרכזיים",
++      "subtitle": "המספרים שמסבירים היכן המחיר נמצא כרגע.",
++      "trendStructure": "מבנה מגמה",
++      "rangeVolatility": "טווח ותנודתיות",
++      "bandsMomentum": "רצועות ומומנטום",
++      "above": "מעל",
++      "below": "מתחת",
++      "rangePosition": "מיקום בטווח 60 ברים",
++      "fromHigh": "מהשיא ב‑60 ברים",
++      "fromLow": "מהשפל ב‑60 ברים",
++      "atr": "ATR % (יומי)",
++      "toBbUpper": "% לרצועה העליונה",
++      "toBbLower": "% לרצועה התחתונה",
++      "upSequence": "אורך רצף עולה",
++      "downSequence": "אורך רצף יורד",
++      "lastStrongBuy": "קנייה חזקה אחרונה",
++      "lastStrongSell": "מכירה חזקה אחרונה",
++      "barsAgo": "לפני {count} ברים",
++      "today": "היום",
++      "none": "—",
++      "volHigh": "תנודתיות גבוהה",
++      "volElevated": "מוגברת",
++      "volCalm": "רגועה",
++      "nearUpper": "לוחץ על הרצועה העליונה",
++      "midBands": "אמצע הרצועות",
++      "nearLower": "קרוב לרצועה התחתונה",
++      "atRangeHigh": "בשיאי הטווח",
++      "atRangeLow": "בשפלי הטווח",
++      "midRange": "אמצע הטווח"
++    },
+     "indicators": {
+       "sma_20": "SMA 20",
+       "sma_50": "SMA 50",
+-- 
+2.50.1 (Apple Git-155)
