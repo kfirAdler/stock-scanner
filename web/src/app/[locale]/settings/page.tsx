@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useEffect, useState, useSyncExternalStore } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 import { useRouter } from "@/i18n/navigation";
 import { Button } from "@/components/ui/Button";
@@ -15,16 +15,23 @@ type ClientEntitlement = {
   expiresAt: string | null;
 };
 
+function useIsClient() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+}
+
 export default function SettingsPage() {
   const t = useTranslations("settings");
   const tp = useTranslations("premium");
   const { theme, setTheme } = useTheme();
+  const locale = useLocale();
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
+  const isClient = useIsClient();
   const [saving, setSaving] = useState(false);
   const [entitlement, setEntitlement] = useState<ClientEntitlement | null>(null);
-
-  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     fetch("/api/me/entitlement")
@@ -59,7 +66,7 @@ export default function SettingsPage() {
     }
   }
 
-  if (!mounted) return null;
+  if (!isClient) return null;
 
   const themes = [
     { value: "light", label: t("themeLight") },
@@ -78,10 +85,12 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-xl space-y-8 px-4 py-6">
-      <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
+    <div className="page-shell page-stack max-w-3xl">
+      <div className="page-hero">
+        <h1 className="text-3xl font-bold tracking-tight text-text">{t("title")}</h1>
+      </div>
 
-      <section className="space-y-3 rounded-2xl border border-border-strong bg-surface-raised p-5 shadow-sm">
+      <section className="page-card space-y-3">
         <h2 className="text-sm font-bold uppercase tracking-wider text-text-muted">
           {t("membershipTitle")}
         </h2>
@@ -115,8 +124,11 @@ export default function SettingsPage() {
         )}
       </section>
 
-      <section className="space-y-3">
-        <h2 className="font-bold">{t("theme")}</h2>
+      <section className="page-card space-y-4">
+        <div>
+          <h2 className="font-bold text-text">{t("theme")}</h2>
+          <p className="mt-1 text-sm text-text-secondary">{t("themeSystem")}</p>
+        </div>
         <div className="flex gap-2">
           {themes.map((opt) => (
             <Button
@@ -125,7 +137,7 @@ export default function SettingsPage() {
               size="sm"
               onClick={() => {
                 setTheme(opt.value);
-                void savePreferences("en", opt.value);
+                void savePreferences(locale, opt.value);
               }}
               disabled={saving}
             >
@@ -135,8 +147,8 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      <section className="space-y-3">
-        <h2 className="font-bold">{t("language")}</h2>
+      <section className="page-card space-y-3">
+        <h2 className="font-bold text-text">{t("language")}</h2>
         <div className="flex gap-2">
           <Button
             variant="secondary"

@@ -83,10 +83,10 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center px-4">
-      <div className="w-full max-w-xl space-y-6">
+    <div className="page-auth-shell">
+      <div className="page-auth-card max-w-xl space-y-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold">{t("auth.registerTitle")}</h1>
+          <h1 className="text-2xl font-bold text-text">{t("auth.registerTitle")}</h1>
           <p className="mt-2 text-sm text-text-secondary">{t("auth.planHelp")}</p>
         </div>
 
@@ -101,8 +101,8 @@ export default function RegisterPage() {
                 className={clsx(
                   "rounded-2xl border p-4 text-start transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                   selected
-                    ? "border-primary bg-primary-soft shadow-sm"
-                    : "border-border bg-surface hover:border-border-strong hover:bg-surface-alt"
+                    ? "border-primary/45 bg-primary-soft shadow-[0_16px_30px_rgba(37,99,235,0.12)]"
+                    : "border-border bg-surface-elevated hover:border-border-strong hover:bg-surface-hover"
                 )}
                 aria-pressed={selected}
               >
@@ -142,13 +142,8 @@ export default function RegisterPage() {
           {t("auth.googleSignIn")}
         </Button>
 
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-border" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-surface px-2 text-text-secondary">{t("common.or")}</span>
-          </div>
+        <div className="page-divider-label">
+          <span>{t("common.or")}</span>
         </div>
 
         <form onSubmit={handleRegister} className="space-y-4">
@@ -178,7 +173,7 @@ export default function RegisterPage() {
               checked={termsAccepted}
               onChange={(e) => setTermsAccepted(e.target.checked)}
             />
-            <Link href="/terms" className="block text-xs text-primary hover:underline">
+            <Link href="/terms" className="link-hover block text-xs text-primary hover:underline">
               {t("nav.terms")}
             </Link>
           </div>
@@ -194,7 +189,7 @@ export default function RegisterPage() {
 
         <p className="text-center text-sm text-text-secondary">
           {t("auth.hasAccount")}{" "}
-          <Link href="/auth/login" className="font-bold text-primary hover:underline">
+          <Link href="/auth/login" className="link-hover font-bold text-primary hover:underline">
             {t("common.signIn")}
           </Link>
         </p>

@@ -43,10 +43,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center px-4">
-      <div className="w-full max-w-sm space-y-6">
+    <div className="page-auth-shell">
+      <div className="page-auth-card max-w-sm space-y-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold">{t("auth.loginTitle")}</h1>
+          <h1 className="text-2xl font-bold text-text">{t("auth.loginTitle")}</h1>
         </div>
 
         <Button
@@ -63,13 +63,8 @@ export default function LoginPage() {
           {t("auth.googleSignIn")}
         </Button>
 
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-border" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-surface px-2 text-text-secondary">{t("common.or")}</span>
-          </div>
+        <div className="page-divider-label">
+          <span>{t("common.or")}</span>
         </div>
 
         <form onSubmit={handleEmailLogin} className="space-y-4">
@@ -103,7 +98,7 @@ export default function LoginPage() {
 
         <p className="text-center text-sm text-text-secondary">
           {t("auth.noAccount")}{" "}
-          <Link href="/auth/register" className="text-primary hover:underline font-bold">
+          <Link href="/auth/register" className="link-hover font-bold text-primary hover:underline">
             {t("common.signUp")}
           </Link>
         </p>

@@ -59,15 +59,15 @@ const LIGHT_THEME = {
 const SMA_LINE_COLORS = ["#3b82f6", "#22c55e", "#ef4444", "#eab308"];
 
 const DARK_THEME = {
-  background: "#0b1120",
-  text: "#a8b9cf",
-  grid: "#1e293b",
-  border: "#1e293b",
-  crosshair: "#475569",
-  upColor: "#4ade80",
-  downColor: "#f87171",
-  upWick: "#22c55e",
-  downWick: "#ef4444",
+  background: "#101a2b",
+  text: "#c3cfde",
+  grid: "#25344b",
+  border: "#2b3950",
+  crosshair: "#607089",
+  upColor: "#76cfa7",
+  downColor: "#f1aaaa",
+  upWick: "#4ec890",
+  downWick: "#e99090",
 };
 
 export function CandlestickChart({

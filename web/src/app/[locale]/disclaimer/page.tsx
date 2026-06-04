@@ -10,8 +10,8 @@ export default async function DisclaimerPage({
   const t = await getTranslations("disclaimer");
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8 px-4 py-10 sm:px-6">
-      <div className="space-y-3">
+    <div className="page-shell page-stack max-w-4xl">
+      <div className="page-hero">
         <h1 className="text-3xl font-bold tracking-tight text-text">{t("title")}</h1>
         <p className="max-w-3xl text-base leading-relaxed text-text-secondary">
           {t("intro")}
@@ -21,7 +21,7 @@ export default async function DisclaimerPage({
       {["education", "responsibility", "noGuarantee"].map((key) => (
         <section
           key={key}
-          className="rounded-[24px] border border-border-strong/70 bg-surface-raised p-6 shadow-sm"
+          className="page-card"
         >
           <h2 className="text-xl font-bold text-text">{t(`sections.${key}.title`)}</h2>
           <p className="mt-3 text-sm leading-relaxed text-text-secondary">

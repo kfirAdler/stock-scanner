@@ -94,7 +94,7 @@ export function HomePageClient() {
   })();
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6">
+    <div className="page-shell max-w-7xl">
       <section className="relative py-14 sm:py-20">
         <div
           className="pointer-events-none absolute inset-x-0 top-0 h-96 opacity-90"
@@ -106,7 +106,7 @@ export function HomePageClient() {
         <div className="pointer-events-none absolute inset-x-0 top-14 mx-auto h-72 max-w-5xl rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.05),transparent_68%)] blur-3xl" />
 
         <div className="relative mx-auto max-w-4xl text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-border-strong bg-surface-overlay px-5 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-secondary shadow-[0_16px_32px_rgba(0,0,0,0.22)] backdrop-blur-md">
+          <div className="page-inline-badge border border-border-strong bg-surface-overlay text-text-secondary shadow-[0_16px_32px_rgba(0,0,0,0.18)] backdrop-blur-md">
             <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
             {t("badge")}
           </div>
@@ -197,7 +197,7 @@ export function HomePageClient() {
                       {t("preview.filtersTitle")}
                     </h3>
                   </div>
-                  <div className="rounded-full border border-primary/20 bg-primary-soft px-3 py-1 text-xs font-bold text-primary">
+                  <div className="page-inline-badge page-inline-badge-primary">
                     {t("preview.strategyBadge")}
                   </div>
                 </div>
@@ -282,7 +282,7 @@ export function HomePageClient() {
                       {t("preview.resultsTitle")}
                     </h3>
                   </div>
-                  <div className="rounded-full border border-success/30 bg-success-soft px-3 py-1 text-xs font-bold text-success">
+                  <div className="page-inline-badge page-inline-badge-success">
                     {t("preview.fastTag")}
                   </div>
                 </div>
@@ -437,7 +437,7 @@ export function HomePageClient() {
           </div>
 
           <div className="ui-panel rounded-[28px] p-8">
-            <div className="inline-flex items-center rounded-full border border-warning/30 bg-warning-soft px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-warning">
+            <div className="page-inline-badge page-inline-badge-warning">
               {t("saved.comingSoon")}
             </div>
             <div className="mt-6 rounded-3xl border border-border bg-surface-raised p-5 shadow-sm">

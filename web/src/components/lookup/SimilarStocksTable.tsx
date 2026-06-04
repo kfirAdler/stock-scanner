@@ -23,7 +23,7 @@ export function SimilarStocksTable({
   t,
 }: SimilarStocksTableProps) {
   return (
-    <section className="ui-panel rounded-[22px] px-4 py-4">
+    <section className="page-card space-y-4">
       <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
         <div>
           <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.similarSetups")}</h2>
@@ -48,7 +48,7 @@ export function SimilarStocksTable({
         </div>
       </div>
 
-      <div className="ui-panel-subtle mt-4 overflow-hidden rounded-[18px]">
+      <div className="ui-panel-subtle overflow-hidden rounded-[18px]">
         <div className="ui-table-header hidden grid-cols-[120px_110px_110px_100px_150px_minmax(0,1fr)] gap-0 border-b border-border/80 px-4 py-2.5 text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted lg:grid">
           <div>{t("workspace.ticker")}</div>
           <div>{t("workspace.similarity")}</div>

@@ -13,7 +13,7 @@ function useIsClient() {
 }
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const t = useTranslations("settings");
   const isClient = useIsClient();
 
@@ -21,7 +21,7 @@ export function ThemeToggle() {
     return <div className="h-8 w-8" aria-hidden="true" />;
   }
 
-  const isDark = theme === "dark";
+  const isDark = resolvedTheme === "dark";
   const nextTheme = isDark ? "light" : "dark";
   const label = isDark ? t("themeLight") : t("themeDark");
 

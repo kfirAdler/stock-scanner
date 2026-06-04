@@ -17,7 +17,7 @@ import {
   countActiveFilters,
   ruleDefinitionsByField,
   screenToQueryString,
-  tradingViewUrlForTicker,
+  tradingViewFullChartUrlForTicker,
 } from "@/lib/screener-query";
 
 type DensityMode = "comfortable" | "compact";
@@ -388,7 +388,7 @@ export function ResultsTable({
 
                   <div className="flex flex-wrap gap-2">
                     <a
-                      href={tradingViewUrlForTicker(row.ticker, row.market)}
+                      href={tradingViewFullChartUrlForTicker(row.ticker, row.market)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="ui-control inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold uppercase tracking-wide text-text-secondary transition-colors hover:border-border-strong hover:text-text"
@@ -449,7 +449,7 @@ export function ResultsTable({
                 <td className={densityTickerClass}>
                   <div className="flex flex-col gap-1">
                     <a
-                      href={tradingViewUrlForTicker(row.ticker, row.market)}
+                      href={tradingViewFullChartUrlForTicker(row.ticker, row.market)}
                       target="_blank"
                       rel="noopener noreferrer"
                       title={t("workspace.openTradingView")}

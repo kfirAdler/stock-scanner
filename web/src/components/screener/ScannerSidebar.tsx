@@ -22,7 +22,7 @@ export function ScannerSidebar({
   footer,
 }: ScannerSidebarProps) {
   return (
-    <aside className="ui-panel-strong overflow-hidden rounded-[22px]">
+    <aside className="page-card-strong overflow-hidden !p-0">
       <div className="border-b border-border/70 px-4 py-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">

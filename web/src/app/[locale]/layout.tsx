@@ -51,7 +51,7 @@ export default async function LocaleLayout({
             <TermsAcceptanceGate />
             <Header />
             <main className="flex-1">{children}</main>
-            <footer className="border-t border-border-strong/40 bg-surface">
+            <footer className="border-t border-border-strong/50 bg-[color:color-mix(in_srgb,var(--color-surface-raised)_82%,var(--color-surface))]">
               <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
                 <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                   <div className="max-w-2xl space-y-2">
@@ -61,16 +61,16 @@ export default async function LocaleLayout({
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-bold text-text-secondary">
-                    <Link href="/terms" className="hover:text-text">
+                    <Link href="/terms" className="link-hover">
                       {messages.footer.terms}
                     </Link>
-                    <Link href="/privacy" className="hover:text-text">
+                    <Link href="/privacy" className="link-hover">
                       {messages.footer.privacy}
                     </Link>
-                    <Link href="/disclaimer" className="hover:text-text">
+                    <Link href="/disclaimer" className="link-hover">
                       {messages.footer.disclaimerLink}
                     </Link>
-                    <Link href="/contact" className="hover:text-text">
+                    <Link href="/contact" className="link-hover">
                       {messages.footer.contact}
                     </Link>
                   </div>

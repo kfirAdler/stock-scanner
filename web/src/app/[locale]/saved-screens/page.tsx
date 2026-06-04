@@ -79,25 +79,27 @@ export default function SavedScreensPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 px-4 py-6">
-      <h1 className="text-2xl font-bold">{t("savedScreens.title")}</h1>
-      <p className="max-w-2xl text-sm text-text-secondary">
-        {t("savedScreens.subtitle")}
-      </p>
+    <div className="page-shell page-stack max-w-4xl">
+      <div className="page-hero">
+        <h1 className="text-3xl font-bold tracking-tight text-text">{t("savedScreens.title")}</h1>
+        <p className="max-w-2xl text-sm text-text-secondary">
+          {t("savedScreens.subtitle")}
+        </p>
+      </div>
 
       {screens.length === 0 ? (
-        <p className="py-12 text-center text-text-secondary">
+        <div className="page-empty-state text-center text-text-secondary">
           {t("savedScreens.empty")}
-        </p>
+        </div>
       ) : (
         <div className="space-y-3">
           {screens.map((screen) => (
             <div
               key={screen.id}
-              className="ui-panel flex flex-col gap-4 rounded-xl p-4 sm:flex-row sm:items-center sm:justify-between"
+              className="page-card flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
             >
               <div>
-                <h3 className="font-bold">{screen.name}</h3>
+                <h3 className="font-bold text-text">{screen.name}</h3>
                 <p className="mt-1 text-xs text-text-secondary">
                   {new Date(screen.updated_at).toLocaleDateString()}
                   {" · "}
@@ -113,11 +115,11 @@ export default function SavedScreensPage() {
                     size="sm"
                     variant="ghost"
                     disabled
-                    className="w-full justify-center border border-dashed border-amber-400/20 bg-amber-500/10 text-amber-200 hover:bg-amber-500/14 sm:w-auto"
+                    className="w-full justify-center border border-dashed border-amber-400/20 bg-warning-soft/55 text-warning hover:bg-warning-soft/70 sm:w-auto"
                   >
                     <PremiumStar />
                     {t("savedScreens.enableAlerts")}
-                    <span className="rounded-full border border-amber-400/25 bg-amber-500/12 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-200">
+                    <span className="rounded-full border border-amber-400/25 bg-warning-soft/70 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-warning">
                       {t("savedScreens.alertsPremium")}
                     </span>
                   </Button>

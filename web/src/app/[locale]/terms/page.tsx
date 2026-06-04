@@ -52,17 +52,19 @@ export default function TermsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6 space-y-6">
-      <h1 className="text-2xl font-bold">{t("title")}</h1>
-      <p className="text-xs text-text-secondary">{t("version", { version: CURRENT_TERMS_VERSION })}</p>
+    <div className="page-shell page-stack max-w-3xl">
+      <div className="page-hero">
+        <h1 className="text-3xl font-bold tracking-tight text-text">{t("title")}</h1>
+        <p className="text-xs text-text-secondary">{t("version", { version: CURRENT_TERMS_VERSION })}</p>
+      </div>
 
-      <div className="rounded-2xl border border-warning/30 bg-warning-soft/40 p-5 text-sm leading-relaxed text-text-secondary">
+      <div className="page-card-muted text-sm leading-relaxed text-text-secondary">
         <p className="font-bold text-text">{t("summaryTitle")}</p>
         <p className="mt-2">{t("summaryBody")}</p>
       </div>
 
-      <div className="rounded-2xl border border-border bg-surface-alt p-6 space-y-6">
-        <p className="text-sm leading-relaxed text-text-secondary">{t("intro")}</p>
+      <div className="page-card space-y-6">
+        <p className="page-prose text-sm">{t("intro")}</p>
         {visibleSections.map((section) => (
           <section key={section} className="space-y-2">
             <h2 className="text-sm font-bold uppercase tracking-wider text-text-muted">
@@ -76,7 +78,7 @@ export default function TermsPage() {
       </div>
 
       {!done ? (
-        <div className="space-y-4">
+        <div className="page-card space-y-4">
           <Checkbox
             label={t("accept")}
             checked={accepted}
@@ -87,7 +89,7 @@ export default function TermsPage() {
           </Button>
         </div>
       ) : (
-        <p className="text-success font-bold">{t("acceptedSuccess")}</p>
+        <p className="font-bold text-success">{t("acceptedSuccess")}</p>
       )}
     </div>
   );

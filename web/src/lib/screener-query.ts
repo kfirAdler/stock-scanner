@@ -431,3 +431,16 @@ export function tradingViewUrlForTicker(
   const symbol = formatTickerForTradingView(raw);
   return `https://www.tradingview.com/symbols/${encodeURIComponent(symbol)}/`;
 }
+
+export function tradingViewFullChartUrlForTicker(
+  ticker: string,
+  market?: string | null
+): string {
+  const raw = ticker.trim();
+  const isTase = /\.TA$/i.test(raw) || (market ?? "").toUpperCase() === "TA";
+  if (isTase) {
+    const base = raw.replace(/\.TA$/i, "").replace(/\./g, "-").toUpperCase();
+    return `https://www.tradingview.com/chart/?symbol=${encodeURIComponent(`TASE:${base}`)}`;
+  }
+  return `https://www.tradingview.com/chart/?symbol=${encodeURIComponent(formatTickerForTradingView(raw))}`;
+}

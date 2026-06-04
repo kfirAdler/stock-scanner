@@ -83,14 +83,14 @@ export default function TickerDetailPage() {
 
   if (error || !snapshot) {
     return (
-      <div className="mx-auto max-w-4xl px-4 py-16 text-center space-y-4">
+      <div className="page-shell max-w-4xl py-16 text-center space-y-4">
         <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-danger-soft mb-2">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-7 h-7 text-danger">
             <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
           </svg>
         </div>
         <p className="text-text-secondary">{error || "Ticker not found"}</p>
-        <Link href="/screener" className="inline-flex items-center gap-1 text-sm text-primary hover:underline font-bold">
+        <Link href="/screener" className="link-hover inline-flex items-center gap-1 text-sm text-primary hover:underline font-bold">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-4 h-4 rtl:rotate-180">
             <path fillRule="evenodd" d="M12 8a.75.75 0 01-.75.75H5.81l2.72 2.72a.75.75 0 11-1.06 1.06l-4-4a.75.75 0 010-1.06l4-4a.75.75 0 011.06 1.06L5.81 7.25h5.44A.75.75 0 0112 8z" clipRule="evenodd" />
           </svg>
@@ -104,9 +104,9 @@ export default function TickerDetailPage() {
     v === null || v === undefined ? "—" : v.toFixed(d);
 
   return (
-    <div className="mx-auto max-w-5xl px-4 sm:px-6 py-6 space-y-6">
+    <div className="page-shell page-stack max-w-5xl">
       {/* Breadcrumb + Title */}
-      <div>
+      <div className="page-hero">
         <Link href="/screener" className="link-hover inline-flex items-center gap-1 text-xs text-text-muted font-bold">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5 rtl:rotate-180">
             <path fillRule="evenodd" d="M12 8a.75.75 0 01-.75.75H5.81l2.72 2.72a.75.75 0 11-1.06 1.06l-4-4a.75.75 0 010-1.06l4-4a.75.75 0 011.06 1.06L5.81 7.25h5.44A.75.75 0 0112 8z" clipRule="evenodd" />
@@ -114,8 +114,8 @@ export default function TickerDetailPage() {
           {t("nav.screener")}
         </Link>
         <div className="flex items-baseline gap-4 mt-2">
-          <h1 className="text-3xl font-bold">{ticker.toUpperCase()}</h1>
-          <span className="text-2xl font-bold tabular-nums">${fmt(snapshot.close)}</span>
+          <h1 className="text-3xl font-bold text-text">{ticker.toUpperCase()}</h1>
+          <span className="text-2xl font-bold tabular-nums text-text">${fmt(snapshot.close)}</span>
         </div>
         <p className="text-xs text-text-muted mt-1">
           Last trade: {snapshot.last_trade_date}
@@ -141,7 +141,7 @@ export default function TickerDetailPage() {
       </Suspense>
 
       {/* Indicators Grid */}
-      <section>
+      <section className="space-y-3">
         <h2 className="text-sm font-bold text-text-muted uppercase tracking-wider mb-3">
           {t("ticker.indicators")}
         </h2>
@@ -178,14 +178,14 @@ export default function TickerDetailPage() {
       </section>
 
       {/* Recent Bars Table */}
-      <section>
+      <section className="space-y-3">
         <h2 className="text-sm font-bold text-text-muted uppercase tracking-wider mb-3">
           {t("ticker.recentBars")}
         </h2>
-        <div className="overflow-x-auto rounded-2xl border border-border shadow-sm">
+        <div className="ui-table-shell overflow-x-auto rounded-2xl">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-border bg-surface-alt">
+              <tr className="ui-table-header border-b border-border">
                 <th scope="col" className="px-4 py-2.5 text-start text-xs font-bold text-text-muted">{t("ticker.date")}</th>
                 <th scope="col" className="px-3 py-2.5 text-end text-xs font-bold text-text-muted">{t("ticker.open")}</th>
                 <th scope="col" className="px-3 py-2.5 text-end text-xs font-bold text-text-muted">{t("ticker.high")}</th>
@@ -198,7 +198,7 @@ export default function TickerDetailPage() {
               {bars.slice(-30).reverse().map((bar) => {
                 const isUp = Number(bar.close) >= Number(bar.open);
                 return (
-                  <tr key={bar.trade_date} className="hover:bg-surface-alt/50 transition-colors">
+                  <tr key={bar.trade_date} className="ui-table-row transition-colors">
                     <td className="px-4 py-2 text-xs text-text-secondary">{bar.trade_date}</td>
                     <td className="px-3 py-2 text-end tabular-nums">{Number(bar.open).toFixed(2)}</td>
                     <td className="px-3 py-2 text-end tabular-nums">{Number(bar.high).toFixed(2)}</td>
@@ -226,10 +226,10 @@ function StatCard({ label, value, relation, signal }: {
 }) {
   return (
     <div className={clsx(
-      "rounded-xl border p-3.5 transition-colors",
+      "page-card-muted rounded-xl p-3.5 transition-colors",
       signal === "buy" ? "border-success/30 bg-success-soft" :
       signal === "sell" ? "border-danger/30 bg-danger-soft" :
-      "border-border bg-surface-raised"
+      ""
     )}>
       <div className="flex items-center justify-between">
         <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider">{label}</p>
