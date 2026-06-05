@@ -839,7 +839,7 @@ export function StockLookupClient() {
   }, [coverage]);
 
   return (
-    <div className="mx-auto max-w-[1480px] px-4 py-6">
+    <div className="page-shell max-w-[1480px]">
       <div className="space-y-5">
         <section className="ui-panel-overlay sticky top-[4.75rem] z-20 rounded-[24px] px-4 py-4">
           <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">

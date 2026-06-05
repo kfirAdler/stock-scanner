@@ -475,7 +475,7 @@ export default function ScreenerPage() {
                   size="sm"
                   onClick={handleLoadFavorite}
                   loading={favoriteLoading}
-                  className="border-amber-400/30 bg-amber-400/15 text-amber-300 shadow-none hover:bg-amber-400/25"
+                  className="border-warning/30 bg-warning-soft text-warning shadow-none hover:bg-warning-soft/80"
                 >
                   <span className="inline-flex items-center gap-1.5">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5" aria-hidden="true">
