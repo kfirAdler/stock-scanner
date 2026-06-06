@@ -39,6 +39,7 @@ interface FilterPanelProps {
   filters: ScreenerPayload;
   onChange: (filters: ScreenerPayload) => void;
   onApply: () => void;
+  onApplyTurningPointPreset: () => void;
   onResetDraft?: () => void;
   loading?: boolean;
   onSaveScan: () => void;
@@ -59,6 +60,7 @@ export function FilterPanel({
   filters,
   onChange,
   onApply,
+  onApplyTurningPointPreset,
   onResetDraft,
   loading,
   onSaveScan,
@@ -263,6 +265,26 @@ export function FilterPanel({
         </div>
       }
     >
+      <section className="ui-panel-subtle space-y-3 rounded-2xl p-3">
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
+            {t("workspace.presetsTitle")}
+          </p>
+          <p className="mt-1 text-[12px] leading-relaxed text-text-secondary">
+            {t("workspace.presetsHint")}
+          </p>
+        </div>
+        <Button
+          type="button"
+          size="sm"
+          variant="secondary"
+          onClick={onApplyTurningPointPreset}
+          className="w-full justify-start"
+        >
+          {t("workspace.presets.turningPoint")}
+        </Button>
+      </section>
+
       <section className="ui-panel-subtle space-y-3 rounded-2xl p-3">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">

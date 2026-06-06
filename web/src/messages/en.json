@@ -325,6 +325,7 @@
       "bearish_sequence_active": "Down sequence active",
       "strong_up_sequence_context": "Strong up sequence context",
       "strong_down_sequence_context": "Strong down sequence context",
+      "is_up_day": "Change is up",
       "down_sequence_broke_recently": "Down sequence broke recently",
       "up_sequence_broke_recently": "Up sequence broke recently",
       "down_sequence_broke_in_strong_up_context": "Down sequence broke in strong up context",
@@ -333,6 +334,8 @@
       "pct_to_bb_lower": "% distance to BB lower",
       "atr_percent": "ATR %",
       "atr_14": "ATR 14",
+      "rsi_14": "RSI 14",
+      "relative_volume_20": "Relative volume 20",
       "close": "Close",
       "up_sequence_count": "Up sequence length",
       "down_sequence_count": "Down sequence length",
@@ -354,6 +357,9 @@
       "strong_sell_signal": "A strong bearish break would be the bearish mirror signal. It is kept for model symmetry even if it appears less often.",
       "bullish_sequence_active": "The current candles still satisfy the up-sequence rules.",
       "bearish_sequence_active": "The current candles still satisfy the down-sequence rules.",
+      "rsi_14": "RSI 14 helps find oversold or overbought conditions on the latest bar.",
+      "relative_volume_20": "Relative volume compares today’s volume with the 20-bar average. Values above 1 mean participation is elevated.",
+      "is_up_day": "Change is up means the latest close finished above the previous close.",
       "down_sequence_broke_recently": "A down sequence failed within the recent-candle threshold. This is a sequence event, not a standalone reversal call.",
       "up_sequence_broke_recently": "An up sequence failed within the recent-candle threshold. This is a sequence event, not a standalone reversal call."
     },
@@ -468,6 +474,11 @@
       "favoritesEmpty": "Save the current filter as your favorite to reuse it instantly next time.",
       "savedScreensLink": "Manage saved scans",
       "loadFavoriteShort": "Favorite",
+      "presetsTitle": "Preset ideas",
+      "presetsHint": "Start from a ready-made scan, then adjust any rule you want.",
+      "presets": {
+        "turningPoint": "Turning Point: Oversold bounce + volume"
+      },
       "sections": {
         "universe": "Universe",
         "universeHint": "Market and size limits",

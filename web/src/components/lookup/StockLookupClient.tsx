@@ -159,6 +159,9 @@ function comparableFieldValue(
     case "pct_to_bb_lower":
     case "atr_percent":
     case "atr_14":
+    case "rsi_14":
+    case "relative_volume_20":
+    case "is_up_day":
     case "close":
     case "up_sequence_count":
     case "down_sequence_count":

@@ -38,6 +38,10 @@ export const SCREENER_NUMERIC_FILTER_KEYS: (keyof LegacyScreenerFilters)[] = [
   "atr_percent_gt",
   "atr_14_lt",
   "atr_14_gt",
+  "rsi_14_lte",
+  "rsi_14_gte",
+  "relative_volume_20_gt",
+  "relative_volume_20_lt",
   "close_gte",
   "close_lte",
   "up_sequence_count_gte",
@@ -91,6 +95,9 @@ export const RULE_DEFINITIONS: RuleDefinition[] = [
   { field: "pct_to_bb_lower", labelKey: "rules.pct_to_bb_lower", category: "location", operators: ["lte", "gte"], input: "number" },
   { field: "atr_percent", labelKey: "rules.atr_percent", category: "volatility", operators: ["lt", "gt"], input: "number" },
   { field: "atr_14", labelKey: "rules.atr_14", category: "volatility", operators: ["lt", "gt"], input: "number" },
+  { field: "rsi_14", labelKey: "rules.rsi_14", category: "signals", descriptionKey: "tooltips.rsi_14", operators: ["lte", "gte"], input: "number" },
+  { field: "relative_volume_20", labelKey: "rules.relative_volume_20", category: "volatility", descriptionKey: "tooltips.relative_volume_20", operators: ["gt", "lt"], input: "number" },
+  { field: "is_up_day", labelKey: "rules.is_up_day", category: "signals", descriptionKey: "tooltips.is_up_day", operators: ["is_true"], input: "none" },
   { field: "close", labelKey: "rules.close", category: "location", operators: ["gte", "lte"], input: "number" },
   { field: "up_sequence_count", labelKey: "rules.up_sequence_count", category: "sequence", operators: ["gte"], input: "number" },
   { field: "down_sequence_count", labelKey: "rules.down_sequence_count", category: "sequence", operators: ["gte"], input: "number" },
@@ -133,6 +140,7 @@ const LEGACY_BOOLEAN_FIELDS: Record<string, ScreenerRuleField> = {
   bearish_sequence_active: "bearish_sequence_active",
   strong_up_sequence_context: "strong_up_sequence_context",
   strong_down_sequence_context: "strong_down_sequence_context",
+  is_up_day: "is_up_day",
 };
 
 const LEGACY_NUMERIC_FIELDS: Record<
@@ -147,6 +155,10 @@ const LEGACY_NUMERIC_FIELDS: Record<
   atr_percent_gt: { field: "atr_percent", operator: "gt" },
   atr_14_lt: { field: "atr_14", operator: "lt" },
   atr_14_gt: { field: "atr_14", operator: "gt" },
+  rsi_14_lte: { field: "rsi_14", operator: "lte" },
+  rsi_14_gte: { field: "rsi_14", operator: "gte" },
+  relative_volume_20_gt: { field: "relative_volume_20", operator: "gt" },
+  relative_volume_20_lt: { field: "relative_volume_20", operator: "lt" },
   close_gte: { field: "close", operator: "gte" },
   close_lte: { field: "close", operator: "lte" },
   up_sequence_count_gte: { field: "up_sequence_count", operator: "gte" },
@@ -349,6 +361,9 @@ export function filtersToTvStudies(payload: ScreenerPayload): TvStudySpec[] {
   if (dailyRules.some((rule) => rule.field === "atr_percent" || rule.field === "atr_14")) {
     studies.push({ id: "ATR@tv-basicstudies", inputs: { length: 14 } });
   }
+  if (dailyRules.some((rule) => rule.field === "rsi_14")) {
+    studies.push({ id: "RSI@tv-basicstudies", inputs: { length: 14 } });
+  }
   return studies;
 }
 
@@ -367,10 +382,13 @@ export function hasSequenceFilters(payload: ScreenerPayload): boolean {
       "bearish_sequence_active",
       "strong_up_sequence_context",
       "strong_down_sequence_context",
+      "is_up_day",
       "up_sequence_count",
       "down_sequence_count",
       "up_sequence_break_bars_ago",
       "down_sequence_break_bars_ago",
+      "rsi_14",
+      "relative_volume_20",
       "fib_zone",
     ].includes(rule.field)
   );

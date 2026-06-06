@@ -30,6 +30,15 @@ function readInitialFilters(): ScreenerPayload {
 }
 
 const DEFAULT_LIMIT = 50;
+const TURNING_POINT_PRESET: ScreenerPayload = {
+  version: 1,
+  rules: [
+    { id: "preset-close-gte-5", timeframe: "1D", field: "close", operator: "gte", value: 5 },
+    { id: "preset-rsi-14-lte-30", timeframe: "1D", field: "rsi_14", operator: "lte", value: 30 },
+    { id: "preset-is-up-day", timeframe: "1D", field: "is_up_day", operator: "is_true" },
+    { id: "preset-relative-volume-20-gt-2", timeframe: "1D", field: "relative_volume_20", operator: "gt", value: 2 },
+  ],
+};
 
 export default function ScreenerPage() {
   const t = useTranslations("screener");
@@ -297,6 +306,22 @@ export default function ScreenerPage() {
     setFilters(nextFilters);
   }
 
+  async function handleApplyTurningPointPreset() {
+    const preset = coerceStoredScreen(TURNING_POINT_PRESET) ?? TURNING_POINT_PRESET;
+    setFilterPanelResetKey((current) => current + 1);
+    setFavoriteStatus(null);
+    setFilters(preset);
+    filtersRef.current = preset;
+
+    if (!loggedIn && countActiveFilters(preset) > 1) {
+      setMultiFilterGateOpen(true);
+      return;
+    }
+
+    setMobileFiltersOpen(false);
+    await fetchResults({ nextFilters: preset });
+  }
+
   async function handleSaveFavorite() {
     if (activeFilterCount === 0) {
       setFavoriteStatus(t("favorite.emptySave"));
@@ -538,6 +563,7 @@ export default function ScreenerPage() {
                 filters={filters}
                 onChange={handleFiltersChange}
                 onApply={handleApply}
+                onApplyTurningPointPreset={handleApplyTurningPointPreset}
                 loading={loading}
                 onSaveScan={handleSaveScan}
                 saveScanLoading={saveScanLoading}
@@ -628,6 +654,7 @@ export default function ScreenerPage() {
                 filters={filters}
                 onChange={handleFiltersChange}
                 onApply={handleApply}
+                onApplyTurningPointPreset={handleApplyTurningPointPreset}
                 loading={loading}
                 onSaveScan={handleSaveScan}
                 saveScanLoading={saveScanLoading}

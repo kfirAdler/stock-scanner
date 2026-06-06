@@ -26,6 +26,9 @@ export type ScreenerRuleField =
   | "pct_to_bb_lower"
   | "atr_percent"
   | "atr_14"
+  | "rsi_14"
+  | "relative_volume_20"
+  | "is_up_day"
   | "close"
   | "up_sequence_count"
   | "down_sequence_count"
@@ -87,6 +90,11 @@ export type LegacyScreenerFilters = {
   atr_percent_gt?: number;
   atr_14_lt?: number;
   atr_14_gt?: number;
+  rsi_14_lte?: number;
+  rsi_14_gte?: number;
+  relative_volume_20_gt?: number;
+  relative_volume_20_lt?: number;
+  is_up_day?: boolean;
   close_gte?: number;
   close_lte?: number;
   up_sequence_count_gte?: number;
@@ -111,6 +119,9 @@ export interface SnapshotRow {
   pct_to_bb_lower: number | null;
   atr_14: number | null;
   atr_percent: number | null;
+  rsi_14: number | null;
+  relative_volume_20: number | null;
+  is_up_day: boolean;
   bullish_sequence_active: boolean;
   bearish_sequence_active: boolean;
   strong_up_sequence_context: boolean;
@@ -164,6 +175,9 @@ export type ScannerResultSnapshot = Pick<
   | "pct_to_bb_lower"
   | "atr_14"
   | "atr_percent"
+  | "rsi_14"
+  | "relative_volume_20"
+  | "is_up_day"
   | "bullish_sequence_active"
   | "bearish_sequence_active"
   | "strong_up_sequence_context"

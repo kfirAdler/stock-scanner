@@ -325,6 +325,7 @@
       "bearish_sequence_active": "רצף ירידה פעיל",
       "strong_up_sequence_context": "הקשר רצף עלייה חזק",
       "strong_down_sequence_context": "הקשר רצף ירידה חזק",
+      "is_up_day": "השינוי בעלייה",
       "down_sequence_broke_recently": "רצף ירידה נשבר לאחרונה",
       "up_sequence_broke_recently": "רצף עלייה נשבר לאחרונה",
       "down_sequence_broke_in_strong_up_context": "רצף ירידה נשבר בהקשר עלייה חזק",
@@ -333,6 +334,8 @@
       "pct_to_bb_lower": "% מרחק לרצועה תחתונה",
       "atr_percent": "ATR %",
       "atr_14": "ATR 14",
+      "rsi_14": "RSI 14",
+      "relative_volume_20": "מחזור יחסי 20",
       "close": "סגירה",
       "up_sequence_count": "אורך רצף עלייה",
       "down_sequence_count": "אורך רצף ירידה",
@@ -354,6 +357,9 @@
       "strong_sell_signal": "שבירה דובית חזקה נשמרת כסימטריה של המודל גם אם היא נדירה יותר.",
       "bullish_sequence_active": "הנרות הנוכחיים עדיין עומדים בכללי רצף העלייה.",
       "bearish_sequence_active": "הנרות הנוכחיים עדיין עומדים בכללי רצף הירידה.",
+      "rsi_14": "RSI 14 עוזר למצוא מצבי מכור יתר או קנוי יתר בנר האחרון.",
+      "relative_volume_20": "מחזור יחסי משווה את המחזור הנוכחי לממוצע 20 הנרות האחרונים. ערך מעל 1 מצביע על השתתפות גבוהה יותר.",
+      "is_up_day": "השינוי בעלייה אומר שהסגירה האחרונה גבוהה מהסגירה הקודמת.",
       "down_sequence_broke_recently": "רצף ירידה נכשל בתוך סף הנרות האחרונים. זהו אירוע רצף, לא קריאת היפוך עצמאית.",
       "up_sequence_broke_recently": "רצף עלייה נכשל בתוך סף הנרות האחרונים. זהו אירוע רצף, לא קריאת היפוך עצמאית."
     },
@@ -468,6 +474,11 @@
       "favoritesEmpty": "שמרו את המסנן הנוכחי כמועדף כדי לטעון אותו מיד בפעם הבאה.",
       "savedScreensLink": "ניהול סריקות שמורות",
       "loadFavoriteShort": "מועדף",
+      "presetsTitle": "רעיונות מוכנים",
+      "presetsHint": "התחילו מסריקה מוכנה ואז שנו כל חוק שתרצו.",
+      "presets": {
+        "turningPoint": "נקודת מפנה: קפיצה ממצב מכור יתר עם מחזור"
+      },
       "sections": {
         "universe": "יוניברס",
         "universeHint": "שוק וטווחי שווי שוק",
