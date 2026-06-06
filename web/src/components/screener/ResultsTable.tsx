@@ -42,14 +42,14 @@ function fmt(val: number | null | undefined, decimals = 2): string {
 function SmaPill({ above, below }: { above: boolean | null; below: boolean | null }) {
   if (above) {
     return (
-      <span className="inline-flex min-w-7 items-center justify-center rounded-full bg-success-soft px-2 py-0.5 text-[10px] font-bold text-success">
+      <span className="inline-flex min-w-7 items-center justify-center rounded-full bg-success-soft px-2 py-0.5 text-[10px] font-bold text-success ring-1 ring-success/20 dark:border dark:border-[#7ed8a9]/35 dark:bg-[#dff7e7] dark:text-[#0f9d58]">
         ↑
       </span>
     );
   }
   if (below) {
     return (
-      <span className="inline-flex min-w-7 items-center justify-center rounded-full bg-danger-soft px-2 py-0.5 text-[10px] font-bold text-danger">
+      <span className="inline-flex min-w-7 items-center justify-center rounded-full bg-danger-soft px-2 py-0.5 text-[10px] font-bold text-danger ring-1 ring-danger/20 dark:border dark:border-[#ffb4b4]/35 dark:bg-[#ffe0e0] dark:text-[#ef3b2d]">
         ↓
       </span>
     );
@@ -62,28 +62,28 @@ function SignalBadge({ row }: { row: ScreenerResultRow }) {
 
   if (row.strong_buy_signal) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-success ring-1 ring-success/15">
+      <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-success ring-1 ring-success/15 dark:border dark:border-[#7ed8a9]/40 dark:bg-[#dff7e7] dark:text-[#0f9d58]">
         ▲▲ {t("workspace.cards.strongBullish")}
       </span>
     );
   }
   if (row.buy_signal) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-success ring-1 ring-success/15">
+      <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-success ring-1 ring-success/15 dark:border dark:border-[#7ed8a9]/40 dark:bg-[#dff7e7] dark:text-[#0f9d58]">
         ▲ {t("workspace.cards.bullishBreak")}
       </span>
     );
   }
   if (row.strong_sell_signal) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-danger-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-danger ring-1 ring-danger/15">
+      <span className="inline-flex items-center gap-1 rounded-full bg-danger-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-danger ring-1 ring-danger/15 dark:border dark:border-[#ffb4b4]/40 dark:bg-[#ffe0e0] dark:text-[#ef3b2d]">
         ▼▼ {t("workspace.cards.strongBearish")}
       </span>
     );
   }
   if (row.sell_signal) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-danger-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-danger ring-1 ring-danger/15">
+      <span className="inline-flex items-center gap-1 rounded-full bg-danger-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-danger ring-1 ring-danger/15 dark:border dark:border-[#ffb4b4]/40 dark:bg-[#ffe0e0] dark:text-[#ef3b2d]">
         ▼ {t("workspace.cards.bearishBreak")}
       </span>
     );
@@ -108,10 +108,10 @@ function SignalBadge({ row }: { row: ScreenerResultRow }) {
 function snapshotMatrixTone(snapshot: ScannerResultSnapshot | null | undefined) {
   if (!snapshot) return "border-border bg-surface-elevated text-text-muted";
   if (snapshot.strong_buy_signal || snapshot.buy_signal || snapshot.bullish_sequence_active) {
-    return "border-success/30 bg-success-soft text-success";
+    return "border-success/30 bg-success-soft text-success dark:border-[#7ed8a9]/40 dark:bg-[#dff7e7] dark:text-[#0f9d58]";
   }
   if (snapshot.strong_sell_signal || snapshot.sell_signal || snapshot.bearish_sequence_active) {
-    return "border-danger/30 bg-danger-soft text-danger";
+    return "border-danger/30 bg-danger-soft text-danger dark:border-[#ffb4b4]/40 dark:bg-[#ffe0e0] dark:text-[#ef3b2d]";
   }
   return "border-border-strong bg-surface-alt text-text-secondary";
 }
