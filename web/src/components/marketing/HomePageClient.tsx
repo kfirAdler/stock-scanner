@@ -135,7 +135,7 @@ export function HomePageClient() {
             </Link>
           </div>
 
-          <p className="mt-4 text-sm text-text-secondary">{t("microcopy")}</p>
+          <p className="mt-4 text-sm text-text-secondary dark:text-slate-100">{t("microcopy")}</p>
 
           <div className="mx-auto mt-8 grid max-w-4xl gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {stats.map((stat) => (
@@ -143,10 +143,10 @@ export function HomePageClient() {
                 key={stat.label}
                 className="ui-panel-strong ui-elevated-hover rounded-2xl px-4 py-4 text-start backdrop-blur-sm"
               >
-                <strong className="block text-lg font-bold text-text sm:text-xl">
+                <strong className="block text-lg font-bold text-text dark:text-white sm:text-xl">
                   {stat.value}
                 </strong>
-                <span className="mt-1 block text-xs font-medium text-text-muted sm:text-sm">
+                <span className="mt-1 block text-xs font-medium text-text-muted dark:text-slate-200 sm:text-sm">
                   {stat.label}
                 </span>
               </div>

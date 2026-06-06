@@ -66,9 +66,9 @@
   --color-border: rgba(255, 255, 255, 0.12);
   --color-border-strong: rgba(255, 255, 255, 0.22);
   --color-divider-soft: rgba(255, 255, 255, 0.09);
-  --color-text: #f7fbff;
-  --color-text-secondary: #edf3fb;
-  --color-text-muted: #c9d4e2;
+  --color-text: #fbfdff;
+  --color-text-secondary: #f2f7ff;
+  --color-text-muted: #d5deea;
   --color-focus-ring: rgba(91, 124, 255, 0.34);
   --color-disabled-surface: #142032;
   --color-disabled-text: #a2b0c3;
@@ -121,6 +121,18 @@ html {
 
 html.dark {
   color-scheme: dark;
+}
+
+.dark .text-text {
+  color: #fbfdff !important;
+}
+
+.dark .text-text-secondary {
+  color: #f2f7ff !important;
+}
+
+.dark .text-text-muted {
+  color: #d5deea !important;
 }
 
 button,
