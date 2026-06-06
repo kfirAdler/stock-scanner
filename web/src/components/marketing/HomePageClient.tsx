@@ -111,7 +111,7 @@ export function HomePageClient() {
             {t("badge")}
           </div>
 
-          <h1 className="mt-6 text-4xl font-bold tracking-tight text-text sm:text-5xl md:text-6xl">
+          <h1 className="mt-6 text-4xl font-bold tracking-tight text-text dark:text-white sm:text-5xl md:text-6xl">
             {t("headline")}
           </h1>
 
@@ -160,7 +160,7 @@ export function HomePageClient() {
           <p className="text-[12px] font-bold uppercase tracking-[0.18em] text-primary">
             {t("preview.eyebrow")}
           </p>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight text-text sm:text-4xl">
+          <h2 className="mt-3 text-3xl font-bold tracking-tight text-text dark:text-white sm:text-4xl">
             {t("preview.title")}
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-text-secondary">
@@ -193,7 +193,7 @@ export function HomePageClient() {
                     <p className="text-xs font-bold uppercase tracking-[0.18em] text-text-muted">
                       {t("preview.filtersLabel")}
                     </p>
-                    <h3 className="mt-2 text-xl font-bold text-text">
+                    <h3 className="mt-2 text-xl font-bold text-text dark:text-white">
                       {t("preview.filtersTitle")}
                     </h3>
                   </div>
@@ -278,7 +278,7 @@ export function HomePageClient() {
                     <p className="text-xs font-bold uppercase tracking-[0.18em] text-text-muted">
                       {t("preview.resultsLabel")}
                     </p>
-                    <h3 className="mt-2 text-xl font-bold text-text">
+                    <h3 className="mt-2 text-xl font-bold text-text dark:text-white">
                       {t("preview.resultsTitle")}
                     </h3>
                   </div>
@@ -390,7 +390,7 @@ export function HomePageClient() {
           <p className="text-[12px] font-bold uppercase tracking-[0.18em] text-primary">
             {t("features.eyebrow")}
           </p>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight text-text sm:text-4xl">
+          <h2 className="mt-3 text-3xl font-bold tracking-tight text-text dark:text-white sm:text-4xl">
             {t("features.title")}
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-text-secondary">
@@ -417,7 +417,7 @@ export function HomePageClient() {
             <p className="text-[12px] font-bold uppercase tracking-[0.18em] text-primary">
               {t("saved.eyebrow")}
             </p>
-            <h2 className="mt-3 text-3xl font-bold tracking-tight text-text sm:text-4xl">
+            <h2 className="mt-3 text-3xl font-bold tracking-tight text-text dark:text-white sm:text-4xl">
               {t("saved.title")}
             </h2>
             <p className="mt-4 max-w-2xl text-base leading-relaxed text-text-secondary">
@@ -463,7 +463,7 @@ export function HomePageClient() {
       <section className="pb-16 pt-10 sm:pb-24 sm:pt-16">
         <div className="ui-panel-strong rounded-[32px] px-6 py-10 sm:px-10">
           <div className="mx-auto max-w-3xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-text sm:text-4xl">
+            <h2 className="text-3xl font-bold tracking-tight text-text dark:text-white sm:text-4xl">
               {t("finalCta.title")}
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-text-secondary">
@@ -504,7 +504,7 @@ function FeatureCard({
       <div className={`inline-flex h-11 w-11 items-center justify-center rounded-xl ring-1 ring-white/10 ${colorMap[color]}`}>
         {icon}
       </div>
-      <h3 className="mt-4 font-bold tracking-tight text-text">{title}</h3>
+      <h3 className="mt-4 font-bold tracking-tight text-text dark:text-white">{title}</h3>
       <p className="mt-3 text-sm leading-relaxed text-text-secondary">{description}</p>
     </div>
   );
