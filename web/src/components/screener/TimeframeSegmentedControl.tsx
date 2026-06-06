@@ -35,7 +35,7 @@ export function TimeframeSegmentedControl({
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-alt",
             density === "compact" ? "px-3 py-2" : "px-3.5 py-2.5",
             value === item.id
-              ? "bg-primary-soft text-primary shadow-sm ring-1 ring-primary/10"
+              ? "ui-segment-item-active text-text ring-1 ring-primary/20"
               : "ui-segment-item text-text-secondary hover:text-text"
           )}
         >
@@ -45,7 +45,7 @@ export function TimeframeSegmentedControl({
               className={clsx(
                 "rounded-full px-1.5 py-0.5 text-[10px] font-bold",
                 value === item.id
-                  ? "bg-primary text-on-primary"
+                  ? "bg-primary/90 text-on-primary"
                   : "ui-badge-default"
               )}
             >

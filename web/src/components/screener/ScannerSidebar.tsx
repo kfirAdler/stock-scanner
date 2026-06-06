@@ -22,8 +22,8 @@ export function ScannerSidebar({
   footer,
 }: ScannerSidebarProps) {
   return (
-    <aside className="page-card-strong overflow-hidden !p-0">
-      <div className="border-b border-border/70 px-4 py-3">
+    <aside className="overflow-hidden rounded-[24px] border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-raised)] shadow-[var(--color-shadow-panel-strong)]">
+      <div className="border-b border-border/70 bg-[color:var(--color-surface-raised)] px-4 py-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-text-muted">
@@ -52,13 +52,13 @@ export function ScannerSidebar({
         </div>
       </div>
 
-      <div className="sticky top-0 z-10 border-b border-border/60 bg-surface-overlay px-4 py-2.5 backdrop-blur-xl">
+      <div className="sticky top-0 z-10 border-b border-border/60 bg-[color:var(--color-surface-raised)] px-4 py-2.5">
         {statusBar}
       </div>
 
-      <div className="space-y-4 bg-transparent px-4 py-3.5">{children}</div>
+      <div className="space-y-4 bg-[color:var(--color-surface-raised)] px-4 py-3.5">{children}</div>
 
-      <div className="sticky bottom-0 border-t border-border/70 bg-surface-overlay px-4 py-2.5 backdrop-blur-xl">
+      <div className="sticky bottom-0 border-t border-border/70 bg-[color:var(--color-surface-raised)] px-4 py-2.5">
         {footer}
       </div>
     </aside>

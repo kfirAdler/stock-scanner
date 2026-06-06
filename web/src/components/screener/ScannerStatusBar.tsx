@@ -46,7 +46,7 @@ export function ScannerStatusBar({
   statusMessage,
 }: ScannerStatusBarProps) {
   return (
-    <div className="ui-panel-subtle rounded-2xl p-3">
+    <div className="rounded-2xl border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-alt)] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
       <div className="flex flex-wrap items-center gap-2">
         <StatusBadge
           label={syncLabel}

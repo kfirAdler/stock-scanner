@@ -46,7 +46,7 @@ export function FilterCategoryTabs({
                 className={clsx(
                   "rounded-full px-1.5 py-0.5 text-[10px] font-bold",
                   active
-                    ? "bg-primary-soft text-primary"
+                    ? "bg-primary/90 text-on-primary"
                     : "ui-badge-default"
                 )}
               >

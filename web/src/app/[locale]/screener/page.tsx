@@ -423,9 +423,9 @@ export default function ScreenerPage() {
   }
 
   return (
-    <div className="mx-auto max-w-[1580px] px-4 py-4">
+    <div className="page-shell max-w-[1580px]">
       <div className="space-y-3">
-        <section className="ui-panel-overlay sticky top-3 z-30 rounded-[20px] px-4 py-3">
+        <section className="page-card-strong sticky top-3 z-30 !p-4">
           <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
             <div className="flex flex-wrap items-center gap-2.5">
               <h1 className="text-[17px] font-bold tracking-tight text-text">{t("title")}</h1>
@@ -444,7 +444,7 @@ export default function ScreenerPage() {
                 {hasPendingChanges ? t("workspace.draftPending") : t("workspace.draftSynced")}
               </span>
               {relativeLastUpdated ? (
-                <span className="ui-badge-default rounded-full px-2.5 py-1 text-[11px] font-semibold text-text-muted">
+                <span className="ui-badge-default rounded-full px-2.5 py-1 text-[11px] font-semibold text-text-secondary">
                   {t("workspace.statusUpdated")} {relativeLastUpdated}
                 </span>
               ) : null}
@@ -501,12 +501,12 @@ export default function ScreenerPage() {
           </div>
         </section>
 
-        <div className="ui-panel-subtle flex items-center gap-2 rounded-2xl px-3 py-2 text-[11px] text-text-muted">
+        <div className="ui-panel-subtle flex items-center gap-2 rounded-2xl px-3 py-2 text-[11px] text-text-secondary">
           <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-warning-soft text-[10px] text-warning">
             i
           </span>
           <span>{t("legalNotice.inlineShort")}</span>
-          <Link href="/terms" className="font-semibold text-primary hover:underline">
+          <Link href="/terms" className="link-hover font-semibold text-primary hover:underline">
             {t("legalNotice.link")}
           </Link>
         </div>
@@ -556,7 +556,7 @@ export default function ScreenerPage() {
             </div>
 
             <div className="space-y-3">
-              <div className="ui-panel-subtle flex flex-wrap items-center gap-2 rounded-2xl px-3.5 py-2.5">
+              <div className="ui-panel-subtle flex flex-wrap items-center gap-2 rounded-2xl px-3.5 py-2.5 text-text-secondary">
                 <span className="ui-badge-default rounded-full px-2.5 py-1 text-[11px] font-semibold">
                   {t("workspace.appliedCount", { count: appliedFilterCount })}
                 </span>
