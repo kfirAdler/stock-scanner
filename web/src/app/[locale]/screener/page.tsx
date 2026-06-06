@@ -53,6 +53,21 @@ const BREAKOUT_LEADER_PRESET: ScreenerPayload = {
   ],
 };
 
+const GETTING_UP_PRESET: ScreenerPayload = {
+  version: 1,
+  rules: [
+    { id: "preset-weekly-above-sma150", timeframe: "1W", field: "is_above_sma150", operator: "is_true" },
+    { id: "preset-weekly-above-sma200", timeframe: "1W", field: "is_above_sma200", operator: "is_true" },
+    { id: "preset-weekly-up-sequence", timeframe: "1W", field: "bullish_sequence_active", operator: "is_true" },
+    { id: "preset-monthly-above-sma150", timeframe: "1M", field: "is_above_sma150", operator: "is_true" },
+    { id: "preset-monthly-above-sma200", timeframe: "1M", field: "is_above_sma200", operator: "is_true" },
+    { id: "preset-monthly-up-sequence", timeframe: "1M", field: "bullish_sequence_active", operator: "is_true" },
+    { id: "preset-daily-down-sequence", timeframe: "1D", field: "bearish_sequence_active", operator: "is_true" },
+    { id: "preset-daily-above-sma20", timeframe: "1D", field: "is_above_sma20", operator: "is_true" },
+    { id: "preset-daily-above-sma50", timeframe: "1D", field: "is_above_sma50", operator: "is_true" },
+  ],
+};
+
 export default function ScreenerPage() {
   const t = useTranslations("screener");
   const locale = useLocale();
@@ -351,6 +366,22 @@ export default function ScreenerPage() {
     await fetchResults({ nextFilters: preset });
   }
 
+  async function handleApplyGettingUpPreset() {
+    const preset = coerceStoredScreen(GETTING_UP_PRESET) ?? GETTING_UP_PRESET;
+    setFilterPanelResetKey((current) => current + 1);
+    setFavoriteStatus(null);
+    setFilters(preset);
+    filtersRef.current = preset;
+
+    if (!loggedIn && countActiveFilters(preset) > 1) {
+      setMultiFilterGateOpen(true);
+      return;
+    }
+
+    setMobileFiltersOpen(false);
+    await fetchResults({ nextFilters: preset });
+  }
+
   async function handleSaveFavorite() {
     if (activeFilterCount === 0) {
       setFavoriteStatus(t("favorite.emptySave"));
@@ -594,6 +625,7 @@ export default function ScreenerPage() {
                 onApply={handleApply}
                 onApplyTurningPointPreset={handleApplyTurningPointPreset}
                 onApplyBreakoutPreset={handleApplyBreakoutPreset}
+                onApplyGettingUpPreset={handleApplyGettingUpPreset}
                 loading={loading}
                 onSaveScan={handleSaveScan}
                 saveScanLoading={saveScanLoading}
@@ -613,10 +645,10 @@ export default function ScreenerPage() {
 
             <div className="space-y-3">
               <div className="ui-panel-subtle flex flex-wrap items-center gap-2 rounded-2xl px-3.5 py-2.5 text-text-secondary">
-                <span className="ui-badge-default rounded-full px-2.5 py-1 text-[11px] font-semibold">
+                <span className="ui-badge-default rounded-full px-2.5 py-1 text-[11px] font-semibold text-text">
                   {t("workspace.appliedCount", { count: appliedFilterCount })}
                 </span>
-                <span className="ui-badge-default rounded-full px-2.5 py-1 text-[11px] font-semibold">
+                <span className="ui-badge-default rounded-full px-2.5 py-1 text-[11px] font-semibold text-text">
                   {t("terminalHeader.appliedRules", { count: appliedFilters.rules.length })}
                 </span>
                 {resultSummary.strongSignals > 0 ? (
@@ -625,7 +657,7 @@ export default function ScreenerPage() {
                   </span>
                 ) : null}
                 {resultSummary.higherTimeframeRules > 0 ? (
-                  <span className="rounded-full bg-primary-soft px-2.5 py-1 text-[11px] font-semibold text-primary ring-1 ring-primary/10">
+                  <span className="rounded-full bg-primary-soft px-2.5 py-1 text-[11px] font-semibold text-primary ring-1 ring-primary/20 dark:text-[#dbe6ff]">
                     {t("terminalHeader.multiBlocks", { count: resultSummary.higherTimeframeRules })}
                   </span>
                 ) : null}
@@ -686,6 +718,7 @@ export default function ScreenerPage() {
                 onApply={handleApply}
                 onApplyTurningPointPreset={handleApplyTurningPointPreset}
                 onApplyBreakoutPreset={handleApplyBreakoutPreset}
+                onApplyGettingUpPreset={handleApplyGettingUpPreset}
                 loading={loading}
                 onSaveScan={handleSaveScan}
                 saveScanLoading={saveScanLoading}

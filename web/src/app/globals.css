@@ -428,8 +428,8 @@ button:disabled {
 
 .dark .ui-badge-default {
   background-color: rgba(20, 33, 52, 0.96);
-  color: var(--color-text-secondary);
-  border-color: rgba(255, 255, 255, 0.14);
+  color: var(--color-text);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .ui-table-shell {
@@ -441,6 +441,10 @@ button:disabled {
 .ui-table-header {
   background-color: color-mix(in srgb, var(--color-surface-elevated) 78%, var(--color-surface-alt));
   border-bottom-color: var(--color-divider-soft);
+}
+
+.dark .ui-table-header {
+  background-color: color-mix(in srgb, var(--color-surface-elevated) 92%, var(--color-surface-alt));
 }
 
 .ui-table-row:nth-child(odd) {

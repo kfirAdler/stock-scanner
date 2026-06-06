@@ -487,7 +487,8 @@
       "presetsHint": "Start from a ready-made scan, then adjust any rule you want.",
       "presets": {
         "turningPoint": "Turning Point: Oversold bounce + volume",
-        "breakoutLeader": "Breakout Leader: Quality + trend + new high"
+        "breakoutLeader": "Breakout Leader: Quality + trend + new high",
+        "gettingUp": "Getting Up: Higher-timeframe uptrend, daily pullback"
       },
       "sections": {
         "universe": "Universe",

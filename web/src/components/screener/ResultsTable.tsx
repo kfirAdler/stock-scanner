@@ -151,7 +151,7 @@ function MatrixCell({
       </p>
       <div
         className={clsx(
-          "rounded-lg border px-2 py-2 text-[10px] font-bold uppercase tracking-wide",
+          "rounded-lg border px-2 py-2 text-[10px] font-bold uppercase tracking-wide shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]",
           snapshotMatrixTone(snapshot)
         )}
       >
@@ -281,10 +281,10 @@ export function ResultsTable({
             {activeScanSummary.map((block) => (
               <span
                 key={block.timeframe}
-                className="ui-badge-default inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px]"
+                className="ui-badge-default inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium"
               >
                 <span className="font-semibold text-text">{t(`timeframes.${block.timeframe}`)}</span>
-                <span className="truncate">{block.labels.join(" · ")}</span>
+                <span className="truncate text-text-secondary">{block.labels.join(" · ")}</span>
               </span>
             ))}
           </div>
@@ -417,30 +417,30 @@ export function ResultsTable({
         <table className="min-w-full text-sm">
           <thead className="ui-table-header sticky top-0 z-10 backdrop-blur">
             <tr className="border-b border-border/80 text-start">
-              <th scope="col" className="px-4 py-2.5 text-start text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">
+              <th scope="col" className="px-4 py-2.5 text-start text-[10px] font-bold uppercase tracking-[0.2em] text-text-secondary">
                 <button onClick={() => onSortChange("ticker")} className="link-hover inline-flex items-center gap-1">
                   {t("table.ticker")}
                   {sortKey === "ticker" ? (sortDir === "asc" ? "↑" : "↓") : null}
                 </button>
               </th>
-              <th scope="col" className="px-3 py-2.5 text-end text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">
+              <th scope="col" className="px-3 py-2.5 text-end text-[10px] font-bold uppercase tracking-[0.2em] text-text-secondary">
                 <button onClick={() => onSortChange("close")} className="link-hover inline-flex items-center gap-1">
                   {t("table.close")}
                   {sortKey === "close" ? (sortDir === "asc" ? "↑" : "↓") : null}
                 </button>
               </th>
-              <th scope="col" className="px-2 py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">{t("table.sma20")}</th>
-              <th scope="col" className="px-2 py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">{t("table.sma50")}</th>
-              <th scope="col" className="px-2 py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">{t("table.sma150")}</th>
-              <th scope="col" className="px-2 py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">{t("table.sma200")}</th>
-              <th scope="col" className="px-3 py-2.5 text-end text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">
+              <th scope="col" className="px-2 py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-text-secondary">{t("table.sma20")}</th>
+              <th scope="col" className="px-2 py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-text-secondary">{t("table.sma50")}</th>
+              <th scope="col" className="px-2 py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-text-secondary">{t("table.sma150")}</th>
+              <th scope="col" className="px-2 py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-text-secondary">{t("table.sma200")}</th>
+              <th scope="col" className="px-3 py-2.5 text-end text-[10px] font-bold uppercase tracking-[0.2em] text-text-secondary">
                 <button onClick={() => onSortChange("atr_percent")} className="link-hover inline-flex items-center gap-1">
                   {t("table.atrPct")}
                   {sortKey === "atr_percent" ? (sortDir === "asc" ? "↑" : "↓") : null}
                 </button>
               </th>
-              <th scope="col" className="px-3 py-2.5 text-start text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">{t("table.seqState")}</th>
-              <th scope="col" className="px-3 py-2.5 text-start text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">{t("workspace.columns.matrix")}</th>
+              <th scope="col" className="px-3 py-2.5 text-start text-[10px] font-bold uppercase tracking-[0.2em] text-text-secondary">{t("table.seqState")}</th>
+              <th scope="col" className="px-3 py-2.5 text-start text-[10px] font-bold uppercase tracking-[0.2em] text-text-secondary">{t("workspace.columns.matrix")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">

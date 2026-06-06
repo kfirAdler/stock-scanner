@@ -41,6 +41,7 @@ interface FilterPanelProps {
   onApply: () => void;
   onApplyTurningPointPreset: () => void;
   onApplyBreakoutPreset: () => void;
+  onApplyGettingUpPreset: () => void;
   onResetDraft?: () => void;
   loading?: boolean;
   onSaveScan: () => void;
@@ -63,6 +64,7 @@ export function FilterPanel({
   onApply,
   onApplyTurningPointPreset,
   onApplyBreakoutPreset,
+  onApplyGettingUpPreset,
   onResetDraft,
   loading,
   onSaveScan,
@@ -293,6 +295,15 @@ export function FilterPanel({
           className="w-full justify-start"
         >
           {t("workspace.presets.breakoutLeader")}
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="secondary"
+          onClick={onApplyGettingUpPreset}
+          className="w-full justify-start"
+        >
+          {t("workspace.presets.gettingUp")}
         </Button>
       </section>
 
