@@ -18,6 +18,7 @@ from ..repositories.market_data_repository import (
 from .universe import tickers_for_refresh_universe
 from ..utils.market_data_fetcher import fetch_bars
 from ..utils.symbol_metadata import fetch_symbol_metadata_yfinance
+from ..utils.timeframe_aggregation import aggregate_bars
 
 logger = logging.getLogger(__name__)
 
@@ -79,9 +80,10 @@ def run(
                 enforce_retention(ticker)
 
             mk = _listing_market(ticker)
+            daily_history = get_ticker_history_for_timeframe(ticker, "1D")
             snapshots = []
             for timeframe in SNAPSHOT_TIMEFRAMES:
-                history = get_ticker_history_for_timeframe(ticker, timeframe)
+                history = aggregate_bars(daily_history, timeframe, market=mk)
                 snapshot = compute_snapshot(
                     ticker,
                     history,

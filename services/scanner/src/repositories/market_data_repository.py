@@ -262,40 +262,19 @@ def get_listing_exchange(ticker: str) -> str | None:
 def upsert_symbol_market(ticker: str, market: str) -> None:
     client = _get_client()
     now = datetime.utcnow().isoformat()
-    existing = (
-        client.table("symbol_metadata")
-        .select("ticker")
-        .eq("ticker", ticker)
-        .limit(1)
-        .execute()
-    )
-    if existing.data:
-        client.table("symbol_metadata").update({
-            "market": market,
-            "updated_at": now,
-        }).eq("ticker", ticker).execute()
-    else:
-        client.table("symbol_metadata").insert({
-            "ticker": ticker,
-            "market": market,
-            "updated_at": now,
-        }).execute()
+    client.table("symbol_metadata").upsert({
+        "ticker": ticker,
+        "market": market,
+        "updated_at": now,
+    }, on_conflict="ticker").execute()
 
 
 def persist_listing_exchange(ticker: str, exchange: str) -> None:
     client = _get_client()
-    existing = (
-        client.table("symbol_metadata")
-        .select("ticker")
-        .eq("ticker", ticker)
-        .limit(1)
-        .execute()
-    )
-    row = {"ticker": ticker, "listing_exchange": exchange}
-    if existing.data:
-        client.table("symbol_metadata").update(row).eq("ticker", ticker).execute()
-    else:
-        client.table("symbol_metadata").insert(row).execute()
+    client.table("symbol_metadata").upsert({
+        "ticker": ticker,
+        "listing_exchange": exchange,
+    }, on_conflict="ticker").execute()
 
 
 def upsert_symbol_metadata(
@@ -322,17 +301,7 @@ def upsert_symbol_metadata(
         row["return_on_equity"] = return_on_equity
     if debt_to_equity is not None:
         row["debt_to_equity"] = debt_to_equity
-    existing = (
-        client.table("symbol_metadata")
-        .select("ticker")
-        .eq("ticker", ticker)
-        .limit(1)
-        .execute()
-    )
-    if existing.data:
-        client.table("symbol_metadata").update(row).eq("ticker", ticker).execute()
-    else:
-        client.table("symbol_metadata").insert(row).execute()
+    client.table("symbol_metadata").upsert(row, on_conflict="ticker").execute()
 
 
 def log_scan_run(
