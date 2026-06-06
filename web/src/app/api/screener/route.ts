@@ -16,64 +16,22 @@ const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 100;
 const DEFAULT_SORT_KEY: ScannerSortKey = "ticker";
 const DEFAULT_SORT_DIR: ScannerSortDir = "asc";
-const SNAPSHOT_SELECT = [
-  "ticker",
-  "timeframe",
-  "market",
-  "last_trade_date",
-  "close",
-  "pct_to_bb_upper",
-  "pct_to_bb_lower",
-  "atr_14",
-  "atr_percent",
-  "rsi_14",
-  "avg_volume_20",
-  "relative_volume_20",
-  "is_up_day",
-  "is_new_high_50",
-  "bullish_sequence_active",
-  "bearish_sequence_active",
-  "strong_up_sequence_context",
-  "strong_down_sequence_context",
-  "up_sequence_count",
-  "down_sequence_count",
-  "up_sequence_break_bars_ago",
-  "down_sequence_break_bars_ago",
-  "up_sequence_broke_recently",
-  "down_sequence_broke_recently",
-  "down_sequence_broke_in_strong_up_context",
-  "up_sequence_broke_in_strong_down_context",
-  "buy_signal",
-  "sell_signal",
-  "strong_buy_signal",
-  "strong_sell_signal",
-  "is_above_sma20",
-  "is_below_sma20",
-  "is_above_sma50",
-  "is_below_sma50",
-  "is_above_sma150",
-  "is_below_sma150",
-  "is_above_sma200",
-  "is_below_sma200",
-].join(",");
-
 function resultTimeframes(payload: ScreenerPayload) {
   const set = new Set(payload.rules.map((rule) => rule.timeframe));
   set.add("1D");
   return [...set];
 }
 
-function groupSnapshotsByTicker(
-  rows: ScannerResultSnapshot[]
-): Record<string, Partial<Record<ScreenerTimeframe, ScannerResultSnapshot | null>>> {
-  const grouped: Record<string, Partial<Record<ScreenerTimeframe, ScannerResultSnapshot | null>>> = {};
-  for (const row of rows) {
-    const timeframe = row.timeframe as ScreenerTimeframe;
-    if (timeframe !== "1D" && timeframe !== "1W" && timeframe !== "1M") continue;
-    if (!grouped[row.ticker]) grouped[row.ticker] = {};
-    grouped[row.ticker][timeframe] = row;
-  }
-  return grouped;
+type ScreenerRpcRow = ScannerResultSnapshot & {
+  weekly_snapshot?: unknown;
+  monthly_snapshot?: unknown;
+};
+
+function coerceCompanionSnapshot(value: unknown): ScannerResultSnapshot | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const row = value as Partial<ScannerResultSnapshot>;
+  if (typeof row.ticker !== "string" || typeof row.timeframe !== "string") return null;
+  return row as ScannerResultSnapshot;
 }
 
 function parsePositiveInt(
@@ -122,37 +80,20 @@ async function runScreener(
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
   const matched_timeframes = resultTimeframes(payload);
-  const rawRows = (data ?? []) as unknown as ScannerResultSnapshot[];
+  const rawRows = (data ?? []) as unknown as ScreenerRpcRow[];
   const hasMore = rawRows.length > limit;
-  const dailyRows = rawRows.slice(0, limit) as ScreenerResultRow[];
-  const tickers = dailyRows.map((row) => row.ticker);
-
-  let groupedSnapshots: Record<string, Partial<Record<ScreenerTimeframe, ScannerResultSnapshot | null>>> =
-    {};
-  if (tickers.length > 0) {
-    const { data: companionSnapshots, error: companionError } = await supabase
-      .from("symbol_indicator_snapshot")
-      .select(SNAPSHOT_SELECT)
-      .in("ticker", tickers)
-      .in("timeframe", ["1W", "1M"])
-      .range(0, Math.max(tickers.length * 2 - 1, 0));
-
-    if (companionError) {
-      return NextResponse.json({ error: companionError.message }, { status: 500 });
-    }
-
-    groupedSnapshots = groupSnapshotsByTicker((companionSnapshots ?? []) as unknown as ScannerResultSnapshot[]);
-  }
-
-  const rows = dailyRows.map((row) => ({
-    ...row,
-    matched_timeframes,
-    timeframe_snapshots: {
-      "1D": row,
-      "1W": groupedSnapshots[row.ticker]?.["1W"] ?? null,
-      "1M": groupedSnapshots[row.ticker]?.["1M"] ?? null,
-    },
-  }));
+  const rows: ScreenerResultRow[] = rawRows.slice(0, limit).map((row) => {
+    const { weekly_snapshot, monthly_snapshot, ...dailyRow } = row;
+    return {
+      ...dailyRow,
+      matched_timeframes,
+      timeframe_snapshots: {
+        "1D": dailyRow,
+        "1W": coerceCompanionSnapshot(weekly_snapshot),
+        "1M": coerceCompanionSnapshot(monthly_snapshot),
+      },
+    };
+  });
   const response: ScreenerResultsPage = {
     rows,
     screen: payload,
