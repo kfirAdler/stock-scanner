@@ -55,6 +55,11 @@ class IndicatorSnapshot:
 
     atr_14: Optional[float] = None
     atr_percent: Optional[float] = None
+    rsi_14: Optional[float] = None
+    avg_volume_20: Optional[float] = None
+    relative_volume_20: Optional[float] = None
+    is_up_day: bool = False
+    is_new_high_50: bool = False
 
     bullish_sequence_active: bool = False
     bearish_sequence_active: bool = False

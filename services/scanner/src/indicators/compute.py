@@ -3,9 +3,13 @@
 import pandas as pd
 
 from ..config.settings import (
+    AVERAGE_VOLUME_PERIOD,
     ATR_PERIOD,
     BB_PERIOD,
     BB_STD_DEV,
+    NEW_HIGH_LOOKBACK,
+    RELATIVE_VOLUME_PERIOD,
+    RSI_PERIOD,
     SEQUENCE_RECENT_THRESHOLD,
     SUPPORTED_SMA_LENGTHS,
     TIMEFRAME,
@@ -16,6 +20,7 @@ from .atr import atr, atr_percent
 from .bollinger import bollinger_bands, pct_distance_to_band
 from .fibonacci import compute_fibonacci_state
 from .moving_averages import ema, sma
+from .rsi import rsi
 
 
 def compute_snapshot(
@@ -32,6 +37,7 @@ def compute_snapshot(
     close = df["close"].astype(float)
     high = df["high"].astype(float)
     low = df["low"].astype(float)
+    volume = df["volume"].astype(float)
 
     sma_values: dict[int, pd.Series] = {}
     for length in SUPPORTED_SMA_LENGTHS:
@@ -45,6 +51,9 @@ def compute_snapshot(
 
     atr_series = atr(high, low, close, ATR_PERIOD)
     atr_pct = atr_percent(atr_series, close)
+    rsi_series = rsi(close, RSI_PERIOD)
+    average_volume = sma(volume, AVERAGE_VOLUME_PERIOD)
+    relative_volume = volume / sma(volume, RELATIVE_VOLUME_PERIOD)
 
     seq_state = compute_sequence_state(df)
     fib_state = compute_fibonacci_state(seq_state, float(close.iloc[-1]))
@@ -62,6 +71,14 @@ def compute_snapshot(
 
     def _below(price: float, ma_val: float | None) -> bool | None:
         return price < ma_val if ma_val is not None else None
+
+    prev_close = float(close.iloc[-2]) if len(close) >= 2 else None
+    previous_high_window = high.iloc[-(NEW_HIGH_LOOKBACK + 1) : -1]
+    prior_high = (
+        float(previous_high_window.max())
+        if len(previous_high_window) >= NEW_HIGH_LOOKBACK
+        else None
+    )
 
     sma20 = _latest(sma_values[20])
     sma50 = _latest(sma_values[50])
@@ -87,6 +104,11 @@ def compute_snapshot(
         pct_to_bb_lower=_latest(pct_bb_lower),
         atr_14=_latest(atr_series),
         atr_percent=_latest(atr_pct),
+        rsi_14=_latest(rsi_series),
+        avg_volume_20=_latest(average_volume),
+        relative_volume_20=_latest(relative_volume),
+        is_up_day=bool(prev_close is not None and last_close > prev_close),
+        is_new_high_50=bool(prior_high is not None and float(high.iloc[-1]) >= prior_high),
         # Sequence state
         bullish_sequence_active=seq_state.bullish_sequence_active,
         bearish_sequence_active=seq_state.bearish_sequence_active,

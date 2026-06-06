@@ -304,6 +304,8 @@ def upsert_symbol_metadata(
     market: str,
     listing_exchange: str | None = None,
     market_cap: float | None = None,
+    return_on_equity: float | None = None,
+    debt_to_equity: float | None = None,
 ) -> None:
     client = _get_client()
     now = datetime.utcnow().isoformat()
@@ -316,6 +318,10 @@ def upsert_symbol_metadata(
         row["listing_exchange"] = listing_exchange
     if market_cap is not None:
         row["market_cap"] = market_cap
+    if return_on_equity is not None:
+        row["return_on_equity"] = return_on_equity
+    if debt_to_equity is not None:
+        row["debt_to_equity"] = debt_to_equity
     existing = (
         client.table("symbol_metadata")
         .select("ticker")

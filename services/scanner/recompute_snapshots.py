@@ -5,6 +5,13 @@ This script does NOT fetch new bars from external APIs.
 It reads the historical bars already in the database and computes
 indicator snapshots for every ticker.
 
+Default behavior is optimized to use:
+1. one Supabase read per ticker (daily history from market_raw_data)
+2. one Supabase write per ticker (batched snapshot upsert)
+
+Weekly and monthly bars are derived locally from daily history.
+Symbol metadata is not updated here.
+
 Usage:
     python3 recompute_snapshots.py
     python3 recompute_snapshots.py --tickers AAPL MSFT GOOG
@@ -13,7 +20,6 @@ Usage:
 import argparse
 import logging
 import sys
-import time
 
 logging.basicConfig(
     level=logging.INFO,
@@ -33,11 +39,11 @@ def main():
     from src.repositories.market_data_repository import (
         get_all_tickers,
         get_ticker_history_for_timeframe,
-        upsert_snapshot,
-        upsert_symbol_metadata,
+        upsert_snapshots,
     )
     from src.indicators.compute import compute_snapshot
     from src.config.settings import SNAPSHOT_TIMEFRAMES
+    from src.utils.timeframe_aggregation import aggregate_bars
 
     if args.tickers:
         tickers = [t.upper() for t in args.tickers]
@@ -58,13 +64,9 @@ def main():
                 continue
 
             mk = "TA" if ticker.upper().endswith(".TA") else "US"
-            wrote_any = False
+            snapshots = []
             for timeframe in SNAPSHOT_TIMEFRAMES:
-                history = (
-                    daily_history
-                    if timeframe == "1D"
-                    else get_ticker_history_for_timeframe(ticker, timeframe)
-                )
+                history = aggregate_bars(daily_history, timeframe, market=mk)
                 snapshot = compute_snapshot(
                     ticker,
                     history,
@@ -73,9 +75,8 @@ def main():
                 )
                 if snapshot is None:
                     continue
-                upsert_snapshot(snapshot)
-                wrote_any = True
-            if not wrote_any:
+                snapshots.append(snapshot)
+            if not snapshots:
                 logger.warning(
                     "[%d/%d] %s: not enough bars (%d), skipping",
                     i + 1,
@@ -84,11 +85,7 @@ def main():
                     len(daily_history),
                 )
                 continue
-            upsert_symbol_metadata(
-                ticker,
-                market=mk,
-                listing_exchange="TASE" if mk == "TA" else None,
-            )
+            upsert_snapshots(ticker, snapshots)
             processed += 1
 
             if processed % 25 == 0 or i == total - 1:

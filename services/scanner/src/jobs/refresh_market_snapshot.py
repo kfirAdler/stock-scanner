@@ -99,6 +99,8 @@ def run(
                 market=mk,
                 listing_exchange=listing_exchange,
                 market_cap=metadata.get("market_cap"),
+                return_on_equity=metadata.get("return_on_equity"),
+                debt_to_equity=metadata.get("debt_to_equity"),
             )
             logger.info("Snapshots updated for %s", ticker)
 

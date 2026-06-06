@@ -82,7 +82,7 @@ def get_symbol_metadata_row(ticker: str) -> dict | None:
     client = _get_client()
     result = (
         client.table("symbol_metadata")
-        .select("listing_exchange,market_cap")
+        .select("listing_exchange,market_cap,return_on_equity,debt_to_equity")
         .eq("ticker", ticker)
         .limit(1)
         .execute()
@@ -119,8 +119,14 @@ def recompute_ticker(ticker: str, market: str) -> bool:
     metadata_row = get_symbol_metadata_row(ticker) or {}
     listing_exchange = metadata_row.get("listing_exchange")
     market_cap = metadata_row.get("market_cap")
+    return_on_equity = metadata_row.get("return_on_equity")
+    debt_to_equity = metadata_row.get("debt_to_equity")
     should_refresh_metadata = market == "US" and (
-        not isinstance(listing_exchange, str) or not listing_exchange.strip() or market_cap is None
+        not isinstance(listing_exchange, str)
+        or not listing_exchange.strip()
+        or market_cap is None
+        or return_on_equity is None
+        or debt_to_equity is None
     )
     metadata = fetch_symbol_metadata_yfinance(ticker) if should_refresh_metadata else {}
     upsert_symbol_metadata(
@@ -128,6 +134,16 @@ def recompute_ticker(ticker: str, market: str) -> bool:
         market=market,
         listing_exchange="TASE" if market == "TA" else (metadata.get("listing_exchange") or listing_exchange),
         market_cap=metadata.get("market_cap") if metadata.get("market_cap") is not None else market_cap,
+        return_on_equity=(
+            metadata.get("return_on_equity")
+            if metadata.get("return_on_equity") is not None
+            else return_on_equity
+        ),
+        debt_to_equity=(
+            metadata.get("debt_to_equity")
+            if metadata.get("debt_to_equity") is not None
+            else debt_to_equity
+        ),
     )
     return wrote_any
 

@@ -86,3 +86,27 @@ def test_fibonacci_zone_for_completed_up_sequence():
     assert fib.level_500 == 150
     assert fib.zone_500_618
     assert not fib.zone_382_500
+
+
+def test_snapshot_includes_rsi_relative_volume_and_up_day():
+    start = date(2025, 1, 1)
+    rows = []
+    close = 50.0
+    for i in range(35):
+        close = close - 0.7 if i < 30 else close + 1.2
+        rows.append({
+            "trade_date": start + timedelta(days=i),
+            "open": close - 0.4,
+            "high": close + 0.8,
+            "low": close - 1.0,
+            "close": close,
+            "volume": 1000 if i < 34 else 3200,
+            "bar_time": pd.Timestamp(start + timedelta(days=i)),
+        })
+    df = pd.DataFrame(rows)
+    snapshot = compute_snapshot("TEST", df, market="US", timeframe="1D")
+    assert snapshot is not None
+    assert snapshot.rsi_14 is not None
+    assert snapshot.relative_volume_20 is not None
+    assert snapshot.relative_volume_20 > 2
+    assert snapshot.is_up_day
