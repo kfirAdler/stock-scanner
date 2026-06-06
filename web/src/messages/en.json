@@ -274,7 +274,8 @@
       "signals": "Signals",
       "trend": "Trend",
       "location": "Location",
-      "volatility": "Volatility"
+      "volatility": "Volatility",
+      "quality": "Quality"
     },
     "timeframes": {
       "1D": "Daily",
@@ -335,8 +336,12 @@
       "atr_percent": "ATR %",
       "atr_14": "ATR 14",
       "rsi_14": "RSI 14",
+      "avg_volume_20": "Average volume 20",
       "relative_volume_20": "Relative volume 20",
+      "is_new_high_50": "New 50-day high",
       "close": "Close",
+      "return_on_equity": "Return on equity %",
+      "debt_to_equity": "Debt / equity",
       "up_sequence_count": "Up sequence length",
       "down_sequence_count": "Down sequence length",
       "up_sequence_break_bars_ago": "Up-sequence break within N bars",
@@ -358,8 +363,12 @@
       "bullish_sequence_active": "The current candles still satisfy the up-sequence rules.",
       "bearish_sequence_active": "The current candles still satisfy the down-sequence rules.",
       "rsi_14": "RSI 14 helps find oversold or overbought conditions on the latest bar.",
+      "avg_volume_20": "Average volume 20 is the rolling 20-bar average share volume.",
       "relative_volume_20": "Relative volume compares today’s volume with the 20-bar average. Values above 1 mean participation is elevated.",
       "is_up_day": "Change is up means the latest close finished above the previous close.",
+      "is_new_high_50": "New 50-day high means the latest high exceeded the highest high from the previous 50 bars.",
+      "return_on_equity": "Return on equity is stored as a percent. A value above 20 means the company generated more than 20% ROE.",
+      "debt_to_equity": "Debt to equity is stored as a ratio. Values under 1 mean debt is lower than shareholder equity.",
       "down_sequence_broke_recently": "A down sequence failed within the recent-candle threshold. This is a sequence event, not a standalone reversal call.",
       "up_sequence_broke_recently": "An up sequence failed within the recent-candle threshold. This is a sequence event, not a standalone reversal call."
     },
@@ -477,7 +486,8 @@
       "presetsTitle": "Preset ideas",
       "presetsHint": "Start from a ready-made scan, then adjust any rule you want.",
       "presets": {
-        "turningPoint": "Turning Point: Oversold bounce + volume"
+        "turningPoint": "Turning Point: Oversold bounce + volume",
+        "breakoutLeader": "Breakout Leader: Quality + trend + new high"
       },
       "sections": {
         "universe": "Universe",

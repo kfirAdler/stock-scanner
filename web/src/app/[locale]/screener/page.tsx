@@ -40,6 +40,19 @@ const TURNING_POINT_PRESET: ScreenerPayload = {
   ],
 };
 
+const BREAKOUT_LEADER_PRESET: ScreenerPayload = {
+  version: 1,
+  rules: [
+    { id: "preset-roe-gt-20", timeframe: "1D", field: "return_on_equity", operator: "gt", value: 20 },
+    { id: "preset-dte-lt-1", timeframe: "1D", field: "debt_to_equity", operator: "lt", value: 1 },
+    { id: "preset-above-sma200", timeframe: "1D", field: "is_above_sma200", operator: "is_true" },
+    { id: "preset-avg-volume-20-gt-100k", timeframe: "1D", field: "avg_volume_20", operator: "gt", value: 100000 },
+    { id: "preset-above-sma20", timeframe: "1D", field: "is_above_sma20", operator: "is_true" },
+    { id: "preset-above-sma50", timeframe: "1D", field: "is_above_sma50", operator: "is_true" },
+    { id: "preset-new-high-50", timeframe: "1D", field: "is_new_high_50", operator: "is_true" },
+  ],
+};
+
 export default function ScreenerPage() {
   const t = useTranslations("screener");
   const locale = useLocale();
@@ -322,6 +335,22 @@ export default function ScreenerPage() {
     await fetchResults({ nextFilters: preset });
   }
 
+  async function handleApplyBreakoutPreset() {
+    const preset = coerceStoredScreen(BREAKOUT_LEADER_PRESET) ?? BREAKOUT_LEADER_PRESET;
+    setFilterPanelResetKey((current) => current + 1);
+    setFavoriteStatus(null);
+    setFilters(preset);
+    filtersRef.current = preset;
+
+    if (!loggedIn && countActiveFilters(preset) > 1) {
+      setMultiFilterGateOpen(true);
+      return;
+    }
+
+    setMobileFiltersOpen(false);
+    await fetchResults({ nextFilters: preset });
+  }
+
   async function handleSaveFavorite() {
     if (activeFilterCount === 0) {
       setFavoriteStatus(t("favorite.emptySave"));
@@ -564,6 +593,7 @@ export default function ScreenerPage() {
                 onChange={handleFiltersChange}
                 onApply={handleApply}
                 onApplyTurningPointPreset={handleApplyTurningPointPreset}
+                onApplyBreakoutPreset={handleApplyBreakoutPreset}
                 loading={loading}
                 onSaveScan={handleSaveScan}
                 saveScanLoading={saveScanLoading}
@@ -655,6 +685,7 @@ export default function ScreenerPage() {
                 onChange={handleFiltersChange}
                 onApply={handleApply}
                 onApplyTurningPointPreset={handleApplyTurningPointPreset}
+                onApplyBreakoutPreset={handleApplyBreakoutPreset}
                 loading={loading}
                 onSaveScan={handleSaveScan}
                 saveScanLoading={saveScanLoading}

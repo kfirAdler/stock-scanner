@@ -27,9 +27,13 @@ export type ScreenerRuleField =
   | "atr_percent"
   | "atr_14"
   | "rsi_14"
+  | "avg_volume_20"
   | "relative_volume_20"
   | "is_up_day"
+  | "is_new_high_50"
   | "close"
+  | "return_on_equity"
+  | "debt_to_equity"
   | "up_sequence_count"
   | "down_sequence_count"
   | "up_sequence_break_bars_ago"
@@ -92,11 +96,16 @@ export type LegacyScreenerFilters = {
   atr_14_gt?: number;
   rsi_14_lte?: number;
   rsi_14_gte?: number;
+  avg_volume_20_gt?: number;
+  avg_volume_20_lt?: number;
   relative_volume_20_gt?: number;
   relative_volume_20_lt?: number;
   is_up_day?: boolean;
+  is_new_high_50?: boolean;
   close_gte?: number;
   close_lte?: number;
+  return_on_equity_gt?: number;
+  debt_to_equity_lt?: number;
   up_sequence_count_gte?: number;
   down_sequence_count_gte?: number;
   up_sequence_break_bars_ago_lte?: number;
@@ -120,8 +129,12 @@ export interface SnapshotRow {
   atr_14: number | null;
   atr_percent: number | null;
   rsi_14: number | null;
+  avg_volume_20: number | null;
   relative_volume_20: number | null;
   is_up_day: boolean;
+  is_new_high_50: boolean;
+  return_on_equity?: number | null;
+  debt_to_equity?: number | null;
   bullish_sequence_active: boolean;
   bearish_sequence_active: boolean;
   strong_up_sequence_context: boolean;
@@ -176,8 +189,12 @@ export type ScannerResultSnapshot = Pick<
   | "atr_14"
   | "atr_percent"
   | "rsi_14"
+  | "avg_volume_20"
   | "relative_volume_20"
   | "is_up_day"
+  | "is_new_high_50"
+  | "return_on_equity"
+  | "debt_to_equity"
   | "bullish_sequence_active"
   | "bearish_sequence_active"
   | "strong_up_sequence_context"

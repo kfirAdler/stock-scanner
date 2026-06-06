@@ -16,10 +16,10 @@ import { ScannerSidebar } from "./ScannerSidebar";
 import { ScannerStatusBar } from "./ScannerStatusBar";
 import { TimeframeSegmentedControl } from "./TimeframeSegmentedControl";
 
-type CategoryTab = "sequence" | "signals" | "trend" | "location" | "volatility";
+type CategoryTab = "sequence" | "signals" | "trend" | "location" | "volatility" | "quality";
 
 const TIMEFRAME_TABS: ScreenerTimeframe[] = ["1D", "1W", "1M"];
-const CATEGORY_TABS: CategoryTab[] = ["sequence", "trend", "signals", "location", "volatility"];
+const CATEGORY_TABS: CategoryTab[] = ["sequence", "trend", "signals", "location", "volatility", "quality"];
 
 function firstActiveTabState(
   filters: ScreenerPayload,
@@ -40,6 +40,7 @@ interface FilterPanelProps {
   onChange: (filters: ScreenerPayload) => void;
   onApply: () => void;
   onApplyTurningPointPreset: () => void;
+  onApplyBreakoutPreset: () => void;
   onResetDraft?: () => void;
   loading?: boolean;
   onSaveScan: () => void;
@@ -61,6 +62,7 @@ export function FilterPanel({
   onChange,
   onApply,
   onApplyTurningPointPreset,
+  onApplyBreakoutPreset,
   onResetDraft,
   loading,
   onSaveScan,
@@ -282,6 +284,15 @@ export function FilterPanel({
           className="w-full justify-start"
         >
           {t("workspace.presets.turningPoint")}
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="secondary"
+          onClick={onApplyBreakoutPreset}
+          className="w-full justify-start"
+        >
+          {t("workspace.presets.breakoutLeader")}
         </Button>
       </section>
 

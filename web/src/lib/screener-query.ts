@@ -27,6 +27,7 @@ export const SCREENER_BOOLEAN_FILTER_KEYS: (keyof LegacyScreenerFilters)[] = [
   "bearish_sequence_active",
   "strong_up_sequence_context",
   "strong_down_sequence_context",
+  "is_new_high_50",
 ];
 
 export const SCREENER_NUMERIC_FILTER_KEYS: (keyof LegacyScreenerFilters)[] = [
@@ -40,10 +41,14 @@ export const SCREENER_NUMERIC_FILTER_KEYS: (keyof LegacyScreenerFilters)[] = [
   "atr_14_gt",
   "rsi_14_lte",
   "rsi_14_gte",
+  "avg_volume_20_gt",
+  "avg_volume_20_lt",
   "relative_volume_20_gt",
   "relative_volume_20_lt",
   "close_gte",
   "close_lte",
+  "return_on_equity_gt",
+  "debt_to_equity_lt",
   "up_sequence_count_gte",
   "down_sequence_count_gte",
   "up_sequence_break_bars_ago_lte",
@@ -63,7 +68,7 @@ export const DEFAULT_SCREENER_PAYLOAD: ScreenerPayload = {
 export type RuleDefinition = {
   field: ScreenerRuleField;
   labelKey: string;
-  category: "sequence" | "signals" | "trend" | "location" | "volatility";
+  category: "sequence" | "signals" | "trend" | "location" | "volatility" | "quality";
   descriptionKey?: string;
   operators: string[];
   input: "none" | "number" | "select";
@@ -95,10 +100,14 @@ export const RULE_DEFINITIONS: RuleDefinition[] = [
   { field: "pct_to_bb_lower", labelKey: "rules.pct_to_bb_lower", category: "location", operators: ["lte", "gte"], input: "number" },
   { field: "atr_percent", labelKey: "rules.atr_percent", category: "volatility", operators: ["lt", "gt"], input: "number" },
   { field: "atr_14", labelKey: "rules.atr_14", category: "volatility", operators: ["lt", "gt"], input: "number" },
+  { field: "avg_volume_20", labelKey: "rules.avg_volume_20", category: "volatility", descriptionKey: "tooltips.avg_volume_20", operators: ["gt", "lt"], input: "number" },
   { field: "rsi_14", labelKey: "rules.rsi_14", category: "signals", descriptionKey: "tooltips.rsi_14", operators: ["lte", "gte"], input: "number" },
   { field: "relative_volume_20", labelKey: "rules.relative_volume_20", category: "volatility", descriptionKey: "tooltips.relative_volume_20", operators: ["gt", "lt"], input: "number" },
   { field: "is_up_day", labelKey: "rules.is_up_day", category: "signals", descriptionKey: "tooltips.is_up_day", operators: ["is_true"], input: "none" },
+  { field: "is_new_high_50", labelKey: "rules.is_new_high_50", category: "trend", descriptionKey: "tooltips.is_new_high_50", operators: ["is_true"], input: "none" },
   { field: "close", labelKey: "rules.close", category: "location", operators: ["gte", "lte"], input: "number" },
+  { field: "return_on_equity", labelKey: "rules.return_on_equity", category: "quality", descriptionKey: "tooltips.return_on_equity", operators: ["gt"], input: "number" },
+  { field: "debt_to_equity", labelKey: "rules.debt_to_equity", category: "quality", descriptionKey: "tooltips.debt_to_equity", operators: ["lt"], input: "number" },
   { field: "up_sequence_count", labelKey: "rules.up_sequence_count", category: "sequence", operators: ["gte"], input: "number" },
   { field: "down_sequence_count", labelKey: "rules.down_sequence_count", category: "sequence", operators: ["gte"], input: "number" },
   { field: "up_sequence_break_bars_ago", labelKey: "rules.up_sequence_break_bars_ago", category: "sequence", operators: ["lte"], input: "number" },
@@ -141,6 +150,7 @@ const LEGACY_BOOLEAN_FIELDS: Record<string, ScreenerRuleField> = {
   strong_up_sequence_context: "strong_up_sequence_context",
   strong_down_sequence_context: "strong_down_sequence_context",
   is_up_day: "is_up_day",
+  is_new_high_50: "is_new_high_50",
 };
 
 const LEGACY_NUMERIC_FIELDS: Record<
@@ -157,10 +167,14 @@ const LEGACY_NUMERIC_FIELDS: Record<
   atr_14_gt: { field: "atr_14", operator: "gt" },
   rsi_14_lte: { field: "rsi_14", operator: "lte" },
   rsi_14_gte: { field: "rsi_14", operator: "gte" },
+  avg_volume_20_gt: { field: "avg_volume_20", operator: "gt" },
+  avg_volume_20_lt: { field: "avg_volume_20", operator: "lt" },
   relative_volume_20_gt: { field: "relative_volume_20", operator: "gt" },
   relative_volume_20_lt: { field: "relative_volume_20", operator: "lt" },
   close_gte: { field: "close", operator: "gte" },
   close_lte: { field: "close", operator: "lte" },
+  return_on_equity_gt: { field: "return_on_equity", operator: "gt" },
+  debt_to_equity_lt: { field: "debt_to_equity", operator: "lt" },
   up_sequence_count_gte: { field: "up_sequence_count", operator: "gte" },
   down_sequence_count_gte: { field: "down_sequence_count", operator: "gte" },
   up_sequence_break_bars_ago_lte: { field: "up_sequence_break_bars_ago", operator: "lte" },
