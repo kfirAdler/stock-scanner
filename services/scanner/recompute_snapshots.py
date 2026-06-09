@@ -6,8 +6,8 @@ It reads the historical bars already in the database and computes
 indicator snapshots for every ticker.
 
 Default behavior is optimized to use:
-1. one Supabase read per ticker (daily history from market_raw_data)
-2. one Supabase write per ticker (batched snapshot upsert)
+1. one bulk Supabase read from market_raw_data
+2. one bulk Supabase write to symbol_indicator_snapshot (chunked internally)
 
 Weekly and monthly bars are derived locally from daily history.
 Symbol metadata is not updated here.
@@ -38,8 +38,8 @@ def main():
 
     from src.repositories.market_data_repository import (
         get_all_tickers,
-        get_ticker_history_for_timeframe,
-        upsert_snapshots,
+        get_all_daily_histories,
+        upsert_snapshots_bulk,
     )
     from src.indicators.compute import compute_snapshot
     from src.config.settings import SNAPSHOT_TIMEFRAMES
@@ -53,12 +53,19 @@ def main():
     total = len(tickers)
     logger.info("Recomputing snapshots for %d tickers", total)
 
+    histories = get_all_daily_histories(tickers if args.tickers else None)
+    logger.info("Loaded daily history for %d tickers in one DB sweep", len(histories))
+
     processed = 0
     failed = 0
+    all_snapshots = []
 
     for i, ticker in enumerate(tickers):
         try:
-            daily_history = get_ticker_history_for_timeframe(ticker, "1D")
+            daily_history = histories.get(ticker)
+            if daily_history is None:
+                logger.warning("[%d/%d] %s: no history, skipping", i + 1, total, ticker)
+                continue
             if daily_history.empty:
                 logger.warning("[%d/%d] %s: no history, skipping", i + 1, total, ticker)
                 continue
@@ -85,7 +92,7 @@ def main():
                     len(daily_history),
                 )
                 continue
-            upsert_snapshots(ticker, snapshots)
+            all_snapshots.extend(snapshots)
             processed += 1
 
             if processed % 25 == 0 or i == total - 1:
@@ -101,6 +108,8 @@ def main():
             failed += 1
             logger.error("[%d/%d] %s failed: %s", i + 1, total, ticker, e)
 
+    written = upsert_snapshots_bulk(all_snapshots)
+    logger.info("Bulk snapshot write complete: %d rows", written)
     logger.info("Done: %d processed, %d failed out of %d total", processed, failed, total)
     return 0 if failed == 0 else 1
 

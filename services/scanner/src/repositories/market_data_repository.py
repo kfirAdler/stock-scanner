@@ -85,6 +85,61 @@ def get_ticker_history(ticker: str) -> pd.DataFrame:
     return df
 
 
+def get_all_daily_histories(tickers: list[str] | None = None) -> dict[str, pd.DataFrame]:
+    client = _get_client()
+    all_rows: list[dict] = []
+    # Supabase/PostgREST commonly caps a single response at 1000 rows even if a
+    # larger range is requested. Keep pagination aligned with that ceiling so we
+    # don't stop after the first truncated page.
+    page_size = 1000
+
+    normalized_tickers = sorted({ticker.upper() for ticker in tickers}) if tickers else None
+
+    def _fetch_rows(batch_tickers: list[str] | None = None) -> list[dict]:
+        rows: list[dict] = []
+        offset = 0
+        while True:
+            query = (
+                client.table("market_raw_data")
+                .select("ticker,trade_date,open,high,low,close,volume")
+                .order("ticker", desc=False)
+                .order("trade_date", desc=False)
+            )
+            if batch_tickers:
+                query = query.in_("ticker", batch_tickers)
+            result = query.range(offset, offset + page_size - 1).execute()
+            if not result.data:
+                break
+            rows.extend(result.data)
+            if len(result.data) < page_size:
+                break
+            offset += page_size
+        return rows
+
+    if normalized_tickers is None:
+        all_rows = _fetch_rows()
+    else:
+        # Keep the IN() filter short enough for PostgREST and avoid odd parsing
+        # behavior on very large ticker lists.
+        ticker_batch_size = 50
+        for i in range(0, len(normalized_tickers), ticker_batch_size):
+            all_rows.extend(_fetch_rows(normalized_tickers[i : i + ticker_batch_size]))
+
+    if not all_rows:
+        return {}
+
+    df = pd.DataFrame(all_rows)
+    df["ticker"] = df["ticker"].astype(str).str.upper()
+    df["trade_date"] = pd.to_datetime(df["trade_date"]).dt.date
+    for col in ["open", "high", "low", "close", "volume"]:
+        df[col] = pd.to_numeric(df[col], errors="coerce")
+
+    histories: dict[str, pd.DataFrame] = {}
+    for ticker, group in df.groupby("ticker", sort=True):
+        histories[ticker] = group.drop(columns=["ticker"]).reset_index(drop=True)
+    return histories
+
+
 def get_ticker_history_for_timeframe(ticker: str, timeframe: str) -> pd.DataFrame:
     if timeframe == "1D":
         return get_ticker_history(ticker)
@@ -238,6 +293,25 @@ def upsert_snapshots(ticker: str, snapshots: list[IndicatorSnapshot]) -> int:
         logger.info(
             "Upserted symbol_indicator_snapshot batch for %s: batch=%d rows=%d",
             ticker,
+            batch_number,
+            len(chunk),
+        )
+    return len(records)
+
+
+def upsert_snapshots_bulk(snapshots: list[IndicatorSnapshot]) -> int:
+    if not snapshots:
+        return 0
+
+    client = _get_client()
+    records = [snapshot.to_dict() for snapshot in snapshots]
+    batches = chunk_rows(records, batch_size=DEFAULT_BATCH_SIZE)
+    for batch_number, chunk in enumerate(batches, start=1):
+        client.table("symbol_indicator_snapshot").upsert(
+            chunk, on_conflict="ticker,timeframe"
+        ).execute()
+        logger.info(
+            "Upserted bulk symbol_indicator_snapshot batch: batch=%d rows=%d",
             batch_number,
             len(chunk),
         )
