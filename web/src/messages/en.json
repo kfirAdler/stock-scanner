@@ -481,6 +481,8 @@
       "favoritesTitle": "Saved & favorites",
       "favoritesReady": "Your favorite filter is ready — load it with one tap.",
       "favoritesEmpty": "Save the current filter as your favorite to reuse it instantly next time.",
+      "filterUnavailable": "{timeframe} data is not deep enough for this filter yet.",
+      "presetUnavailable": "One or more rules in this preset do not have enough data yet.",
       "savedScreensLink": "Manage saved scans",
       "loadFavoriteShort": "Favorite",
       "presetsTitle": "Preset ideas",

@@ -6,7 +6,13 @@ import { clsx } from "clsx";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/Button";
 import { RULE_DEFINITIONS, activeRuleCountForTimeframe, countActiveFilters, createRule, ruleDefinitionsByField } from "@/lib/screener-query";
-import type { ScreenerPayload, ScreenerRule, ScreenerRuleField, ScreenerTimeframe } from "@/lib/screener-types";
+import type {
+  ScreenerFilterAvailability,
+  ScreenerPayload,
+  ScreenerRule,
+  ScreenerRuleField,
+  ScreenerTimeframe,
+} from "@/lib/screener-types";
 import { ActiveFilterPill } from "./ActiveFilterPill";
 import { AdvancedFiltersPanel } from "./AdvancedFiltersPanel";
 import { DensityToggle, type DensityMode } from "./DensityToggle";
@@ -42,6 +48,11 @@ interface FilterPanelProps {
   onApplyTurningPointPreset: () => void;
   onApplyBreakoutPreset: () => void;
   onApplyGettingUpPreset: () => void;
+  canApplyTurningPointPreset?: boolean;
+  canApplyBreakoutPreset?: boolean;
+  canApplyGettingUpPreset?: boolean;
+  presetDisabledReason?: string | null;
+  filterAvailability?: ScreenerFilterAvailability;
   onResetDraft?: () => void;
   loading?: boolean;
   onSaveScan: () => void;
@@ -65,6 +76,11 @@ export function FilterPanel({
   onApplyTurningPointPreset,
   onApplyBreakoutPreset,
   onApplyGettingUpPreset,
+  canApplyTurningPointPreset = true,
+  canApplyBreakoutPreset = true,
+  canApplyGettingUpPreset = true,
+  presetDisabledReason,
+  filterAvailability,
   onResetDraft,
   loading,
   onSaveScan,
@@ -187,6 +203,10 @@ export function FilterPanel({
     });
   }
 
+  function isFilterAvailable(timeframe: ScreenerTimeframe, field: ScreenerRuleField) {
+    return filterAvailability?.[timeframe]?.[field] ?? true;
+  }
+
   const currentDefinitions = RULE_DEFINITIONS.filter(
     (definition) => definition.category === activeCategory
   );
@@ -284,6 +304,8 @@ export function FilterPanel({
           variant="secondary"
           onClick={onApplyTurningPointPreset}
           className="w-full justify-start"
+          disabled={!canApplyTurningPointPreset}
+          title={!canApplyTurningPointPreset ? presetDisabledReason ?? undefined : undefined}
         >
           {t("workspace.presets.turningPoint")}
         </Button>
@@ -293,6 +315,8 @@ export function FilterPanel({
           variant="secondary"
           onClick={onApplyBreakoutPreset}
           className="w-full justify-start"
+          disabled={!canApplyBreakoutPreset}
+          title={!canApplyBreakoutPreset ? presetDisabledReason ?? undefined : undefined}
         >
           {t("workspace.presets.breakoutLeader")}
         </Button>
@@ -302,6 +326,8 @@ export function FilterPanel({
           variant="secondary"
           onClick={onApplyGettingUpPreset}
           className="w-full justify-start"
+          disabled={!canApplyGettingUpPreset}
+          title={!canApplyGettingUpPreset ? presetDisabledReason ?? undefined : undefined}
         >
           {t("workspace.presets.gettingUp")}
         </Button>
@@ -414,26 +440,46 @@ export function FilterPanel({
         <div className={clsx("flex flex-wrap", density === "compact" ? "gap-2" : "gap-2.5")}>
           {booleanDefinitions.map((definition) => {
             const active = !!getRule(activeTimeframe, definition.field);
+            const disabled = !active && !isFilterAvailable(activeTimeframe, definition.field);
             return (
               <FilterChip
                 key={`${activeTimeframe}-${definition.field}`}
                 active={active}
                 density={density}
                 label={t(definition.labelKey)}
-                tooltip={definition.descriptionKey ? t(definition.descriptionKey) : undefined}
+                tooltip={
+                  disabled
+                    ? t("workspace.filterUnavailable", {
+                        timeframe: t(`timeframes.${activeTimeframe}`),
+                      })
+                    : definition.descriptionKey
+                      ? t(definition.descriptionKey)
+                      : undefined
+                }
+                disabled={disabled}
                 onClick={() => toggleBooleanRule(activeTimeframe, definition.field)}
               />
             );
           })}
           {[...numericDefinitions, ...selectDefinitions].map((definition) => {
             const active = !!getRule(activeTimeframe, definition.field);
+            const disabled = !active && !isFilterAvailable(activeTimeframe, definition.field);
             return (
               <FilterChip
                 key={`${activeTimeframe}-${definition.field}-advanced`}
                 active={active}
                 density={density}
                 label={t(definition.labelKey)}
-                tooltip={definition.descriptionKey ? t(definition.descriptionKey) : undefined}
+                tooltip={
+                  disabled
+                    ? t("workspace.filterUnavailable", {
+                        timeframe: t(`timeframes.${activeTimeframe}`),
+                      })
+                    : definition.descriptionKey
+                      ? t(definition.descriptionKey)
+                      : undefined
+                }
+                disabled={disabled}
                 onClick={() => setAdvancedOpen(true)}
               />
             );

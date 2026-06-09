@@ -481,6 +481,8 @@
       "favoritesTitle": "שמורים ומועדפים",
       "favoritesReady": "המסנן המועדף שלכם מוכן — טענו אותו בלחיצה אחת.",
       "favoritesEmpty": "שמרו את המסנן הנוכחי כמועדף כדי לטעון אותו מיד בפעם הבאה.",
+      "filterUnavailable": "עדיין אין מספיק עומק נתונים ב-{timeframe} בשביל המסנן הזה.",
+      "presetUnavailable": "לאחד או יותר מהחוקים בפריסט הזה עדיין אין מספיק נתונים.",
       "savedScreensLink": "ניהול סריקות שמורות",
       "loadFavoriteShort": "מועדף",
       "presetsTitle": "רעיונות מוכנים",

@@ -229,6 +229,10 @@ export interface ScreenerResultRow extends ScannerResultSnapshot {
 export type ScannerSortKey = "ticker" | "close" | "atr_percent";
 export type ScannerSortDir = "asc" | "desc";
 
+export type ScreenerFilterAvailability = Partial<
+  Record<ScreenerTimeframe, Partial<Record<ScreenerRuleField, boolean>>>
+>;
+
 export interface ScreenerResultsPage {
   rows: ScreenerResultRow[];
   screen: ScreenerPayload;

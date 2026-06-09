@@ -8,6 +8,7 @@ import { ResultsTable } from "@/components/screener/ResultsTable";
 import { PremiumGate } from "@/components/billing/PremiumGate";
 import { Button } from "@/components/ui/Button";
 import type {
+  ScreenerFilterAvailability,
   ScreenerPayload,
   ScreenerResultRow,
   ScreenerResultsPage,
@@ -68,6 +69,14 @@ const GETTING_UP_PRESET: ScreenerPayload = {
   ],
 };
 
+function presetAvailable(
+  preset: ScreenerPayload,
+  availability: ScreenerFilterAvailability | null
+) {
+  if (!availability) return true;
+  return preset.rules.every((rule) => availability[rule.timeframe]?.[rule.field] ?? true);
+}
+
 export default function ScreenerPage() {
   const t = useTranslations("screener");
   const locale = useLocale();
@@ -95,6 +104,7 @@ export default function ScreenerPage() {
   const [refreshTicker, setRefreshTicker] = useState(() => Date.now());
   const [sortKey, setSortKey] = useState<ScannerSortKey>("ticker");
   const [sortDir, setSortDir] = useState<ScannerSortDir>("asc");
+  const [filterAvailability, setFilterAvailability] = useState<ScreenerFilterAvailability | null>(null);
   const requestInFlightRef = useRef(false);
 
   const fetchResults = useCallback(async ({
@@ -220,6 +230,31 @@ export default function ScreenerPage() {
   useEffect(() => {
     let cancelled = false;
 
+    async function loadFilterAvailability() {
+      try {
+        const res = await fetch("/api/screener/options", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = (await res.json()) as { filterAvailability?: ScreenerFilterAvailability };
+        if (!cancelled) {
+          setFilterAvailability(data.filterAvailability ?? null);
+        }
+      } catch {
+        if (!cancelled) {
+          setFilterAvailability(null);
+        }
+      }
+    }
+
+    void loadFilterAvailability();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
     async function loadMarketMeta() {
       try {
         const res = await fetch("/api/market-meta");
@@ -328,6 +363,10 @@ export default function ScreenerPage() {
       return formattedLastUpdated;
     }
   }, [formattedLastUpdated, lastUpdated, locale, refreshTicker]);
+  const presetDisabledReason = t("workspace.presetUnavailable");
+  const canApplyTurningPointPreset = presetAvailable(TURNING_POINT_PRESET, filterAvailability);
+  const canApplyBreakoutPreset = presetAvailable(BREAKOUT_LEADER_PRESET, filterAvailability);
+  const canApplyGettingUpPreset = presetAvailable(GETTING_UP_PRESET, filterAvailability);
 
   function handleFiltersChange(nextFilters: ScreenerPayload) {
     filtersRef.current = nextFilters;
@@ -626,6 +665,11 @@ export default function ScreenerPage() {
                 onApplyTurningPointPreset={handleApplyTurningPointPreset}
                 onApplyBreakoutPreset={handleApplyBreakoutPreset}
                 onApplyGettingUpPreset={handleApplyGettingUpPreset}
+                canApplyTurningPointPreset={canApplyTurningPointPreset}
+                canApplyBreakoutPreset={canApplyBreakoutPreset}
+                canApplyGettingUpPreset={canApplyGettingUpPreset}
+                presetDisabledReason={presetDisabledReason}
+                filterAvailability={filterAvailability ?? undefined}
                 loading={loading}
                 onSaveScan={handleSaveScan}
                 saveScanLoading={saveScanLoading}
@@ -719,6 +763,11 @@ export default function ScreenerPage() {
                 onApplyTurningPointPreset={handleApplyTurningPointPreset}
                 onApplyBreakoutPreset={handleApplyBreakoutPreset}
                 onApplyGettingUpPreset={handleApplyGettingUpPreset}
+                canApplyTurningPointPreset={canApplyTurningPointPreset}
+                canApplyBreakoutPreset={canApplyBreakoutPreset}
+                canApplyGettingUpPreset={canApplyGettingUpPreset}
+                presetDisabledReason={presetDisabledReason}
+                filterAvailability={filterAvailability ?? undefined}
                 loading={loading}
                 onSaveScan={handleSaveScan}
                 saveScanLoading={saveScanLoading}
