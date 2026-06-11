@@ -157,6 +157,25 @@ export async function assertScreenerAccess(): Promise<MarketDataGate> {
   return { allowed: true };
 }
 
+export async function assertAlertsAccess(): Promise<MarketDataGate> {
+  const entitlement = await getCurrentEntitlement();
+  if (!entitlement.loggedIn) {
+    return {
+      allowed: false,
+      response: loginRequiredResponse("Sign in to manage scan alerts."),
+    };
+  }
+  if (!entitlement.canUseAlerts) {
+    return {
+      allowed: false,
+      response: subscriptionRequiredResponse(
+        "Scan alerts require a Premium or active Demo plan."
+      ),
+    };
+  }
+  return { allowed: true };
+}
+
 export async function assertFullMarketDataAccess(): Promise<MarketDataGate> {
   if (!marketDataRequiresSubscription()) {
     return { allowed: true };

@@ -809,16 +809,32 @@
   },
   "savedScreens": {
     "title": "Saved Screens",
-    "subtitle": "Reopen saved scans and manage future scan alerts from one place.",
+    "subtitle": "Reopen saved scans and toggle alerts to be notified when new stocks enter a scan.",
     "empty": "No saved screens yet",
+    "emptyTitle": "No saved screens yet",
+    "emptyBody": "Build a scan in the screener and save it to track it here.",
     "saveCurrent": "Save Current Screen",
     "nameLabel": "Screen name",
     "namePlaceholder": "My screen",
     "viewScan": "View scan",
+    "goToScreener": "Go to Screener",
     "enableAlerts": "Alerts",
     "alertsPremium": "Premium",
+    "alertsLabel": "Alerts",
     "alertsComingSoon": "Alerts for new stocks entering this scan will be added in a future update.",
-    "alertsPremiumHint": "New-entry alerts are planned as a Premium feature and are still disabled for now."
+    "alertsPremiumHint": "Scan alerts are a Premium feature. Upgrade to enable notifications when new stocks enter a saved scan.",
+    "watching": "Watching",
+    "lastChecked": "Last checked: {time}",
+    "filterSingular": "filter",
+    "filterPlural": "filters",
+    "alertsHint": "Toggle alerts on any screen below. We'll notify you here when new stocks enter after each market refresh."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllSeen": "Mark all seen",
+    "emptyTitle": "No notifications yet",
+    "emptyBody": "Enable alerts on a saved screen and we'll notify you here when new stocks enter.",
+    "hint": "Notifications are cleared after 10 per screen. Hover to mark as seen."
   },
   "settings": {
     "title": "Settings",

@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/Button";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { clsx } from "clsx";
 
 type ClientEntitlement = {
@@ -158,6 +159,7 @@ export function Header() {
         <div className="flex items-center gap-1.5">
           <LanguageToggle />
           <ThemeToggle />
+          <NotificationBell loggedIn={!!user} />
 
           {user ? (
             <div className="relative ms-1 hidden sm:block">
