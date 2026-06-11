@@ -168,8 +168,8 @@ export function HomePageClient() {
           </p>
         </div>
 
-        <div className="ui-panel-strong mx-auto mt-8 max-w-6xl rounded-[28px] p-3.5">
-          <div className="overflow-hidden rounded-[22px] border border-border-strong bg-surface-raised shadow-[0_24px_60px_rgba(0,0,0,0.24)]">
+        <div className="ui-panel-strong mx-auto mt-8 max-w-6xl rounded-[28px] p-3.5 dark:bg-[rgba(17,24,39,0.98)]">
+          <div className="overflow-hidden rounded-[22px] border border-border-strong bg-surface-raised shadow-[0_24px_60px_rgba(0,0,0,0.24)] dark:border-white/12 dark:bg-[rgb(15,23,42)]">
             <div className="ui-table-header flex items-center justify-between border-b border-border px-4 py-3">
               <div className="flex items-center gap-2">
                 <span className="h-2.5 w-2.5 rounded-full bg-danger/60" />
@@ -187,7 +187,7 @@ export function HomePageClient() {
             </div>
 
             <div className="grid gap-0 lg:grid-cols-[1.15fr_0.85fr]">
-              <div className="border-b border-border p-5 lg:border-b-0 lg:border-e">
+              <div className="border-b border-border p-5 dark:bg-[rgb(15,23,42)] lg:border-b-0 lg:border-e">
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <p className="text-xs font-bold uppercase tracking-[0.18em] text-text-muted">
@@ -217,7 +217,7 @@ export function HomePageClient() {
                           "rounded-2xl border px-4 py-3 transition-all duration-500",
                           active
                             ? "border-primary/40 bg-primary-soft/80 shadow-[0_14px_28px_rgba(37,99,235,0.12)]"
-                            : "border-border bg-surface-elevated"
+                            : "border-border bg-surface-elevated dark:border-white/10 dark:bg-[rgb(24,34,54)]"
                         )}
                       >
                         <div className="flex items-center justify-between gap-3">
@@ -229,7 +229,7 @@ export function HomePageClient() {
                               "h-5 w-5 rounded-md border transition-colors",
                               active
                                 ? "border-primary bg-primary"
-                                : "border-border-strong bg-surface"
+                                : "border-border-strong bg-surface dark:border-white/12 dark:bg-[rgb(18,26,43)]"
                             )}
                           >
                             {active && (
@@ -249,7 +249,7 @@ export function HomePageClient() {
                     <span>{t("preview.scanProgress")}</span>
                     <span>{previewStep >= 5 ? t("preview.scanDone") : t("preview.scanPreparing")}</span>
                   </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-surface-raised">
+                  <div className="h-2 overflow-hidden rounded-full bg-surface-raised dark:bg-[rgb(10,16,28)]">
                     <div
                       className="h-full rounded-full bg-gradient-to-r from-primary to-primary-hover transition-all duration-700"
                       style={{ width: `${Math.min((previewStep + 1) * 18, 100)}%` }}
@@ -272,7 +272,7 @@ export function HomePageClient() {
                 </div>
               </div>
 
-              <div className="bg-surface-raised p-5">
+              <div className="bg-surface-raised p-5 dark:bg-[rgb(15,23,42)]">
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <p className="text-xs font-bold uppercase tracking-[0.18em] text-text-muted">
@@ -287,15 +287,15 @@ export function HomePageClient() {
                   </div>
                 </div>
 
-                <div className="mt-6 overflow-hidden rounded-2xl border border-border-strong shadow-[0_22px_48px_rgba(0,0,0,0.22)]">
-                  <div className="grid grid-cols-[1.1fr_0.95fr_0.7fr_0.7fr_0.8fr] gap-2 border-b border-border bg-surface-elevated px-4 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted">
+                <div className="mt-6 overflow-hidden rounded-2xl border border-border-strong shadow-[0_22px_48px_rgba(0,0,0,0.22)] dark:border-white/12">
+                  <div className="grid grid-cols-[1.1fr_0.95fr_0.7fr_0.7fr_0.8fr] gap-2 border-b border-border bg-surface-elevated px-4 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted dark:border-white/10 dark:bg-[rgb(24,34,54)] dark:text-slate-300">
                     <span>{t("preview.table.ticker")}</span>
                     <span className="text-end">{t("preview.table.close")}</span>
                     <span className="text-center market-inline-ltr">{t("preview.table.sma20")}</span>
                     <span className="text-center market-inline-ltr">{t("preview.table.sma50")}</span>
                     <span>{t("preview.table.sequence")}</span>
                   </div>
-                  <div className="divide-y divide-border bg-surface-raised text-sm">
+                  <div className="divide-y divide-border bg-surface-raised text-sm dark:divide-white/10 dark:bg-[rgb(18,26,43)]">
                     {[
                       {
                         ticker: "AAPL",
@@ -366,7 +366,7 @@ export function HomePageClient() {
                         "rounded-full border px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.16em]",
                         previewStep >= 5
                           ? "border-primary/25 bg-primary-soft text-primary"
-                          : "border-border bg-surface text-text-muted"
+                          : "border-border bg-surface text-text-muted dark:border-white/12 dark:bg-[rgb(18,26,43)] dark:text-slate-300"
                       )}
                     >
                       {previewStep >= 5 ? t("preview.savedScreenDone") : t("preview.savedScreenPending")}
