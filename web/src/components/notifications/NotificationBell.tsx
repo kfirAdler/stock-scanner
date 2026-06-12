@@ -51,9 +51,11 @@ function EmptyState({ t }: { t: ReturnType<typeof useTranslations> }) {
 function NotificationItem({
   notification,
   onSeen,
+  t,
 }: {
   notification: AppNotification;
   onSeen: (id: string) => void;
+  t: ReturnType<typeof useTranslations>;
 }) {
   const isUnread = !notification.seen_at;
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -67,8 +69,8 @@ function NotificationItem({
     if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
   }
 
-  const visibleTickers = notification.new_tickers.slice(0, 7);
-  const overflow = notification.new_tickers.length - visibleTickers.length;
+  const visibleTickers = notification.tickers?.slice(0, 7) ?? [];
+  const overflow = (notification.tickers?.length ?? 0) - visibleTickers.length;
 
   return (
     <div
@@ -93,7 +95,7 @@ function NotificationItem({
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
           <span className="truncate text-sm font-semibold leading-tight text-[color:var(--color-text)]">
-            {notification.screen_name}
+            {notification.title}
           </span>
           <span className="flex-shrink-0 text-[10px] text-[color:var(--color-text-muted)]">
             {timeAgo(notification.triggered_at)}
@@ -101,26 +103,43 @@ function NotificationItem({
         </div>
 
         <p className="mt-0.5 text-xs text-[color:var(--color-text-secondary)]">
-          {notification.new_tickers.length === 1
-            ? "1 new stock entered"
-            : `${notification.new_tickers.length} new stocks entered`}
+          {notification.kind === "market_news"
+            ? t("notifications.marketHeadline")
+            : (notification.tickers?.length ?? 0) === 1
+              ? t("notifications.newStockEntered")
+              : t("notifications.newStocksEntered", {
+                  count: notification.tickers?.length ?? 0,
+                })}
         </p>
 
-        <div className="mt-2 flex flex-wrap gap-1">
-          {visibleTickers.map((ticker) => (
-            <span
-              key={ticker}
-              className="inline-flex items-center rounded-md bg-[color:var(--color-surface-accent)] px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-[color:var(--color-text)]"
-            >
-              {ticker}
-            </span>
-          ))}
-          {overflow > 0 ? (
-            <span className="inline-flex items-center rounded-md bg-[color:var(--color-surface-alt)] px-1.5 py-0.5 text-[10px] text-[color:var(--color-text-muted)]">
-              +{overflow} more
-            </span>
-          ) : null}
-        </div>
+        {notification.url ? (
+          <a
+            href={notification.url}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-2 inline-flex text-[11px] font-semibold text-primary hover:underline"
+          >
+            {notification.source ?? t("notifications.openArticle")}
+          </a>
+        ) : null}
+
+        {visibleTickers.length || overflow > 0 ? (
+          <div className="mt-2 flex flex-wrap gap-1">
+            {visibleTickers.map((ticker) => (
+              <span
+                key={ticker}
+                className="inline-flex items-center rounded-md bg-[color:var(--color-surface-accent)] px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-[color:var(--color-text)]"
+              >
+                {ticker}
+              </span>
+            ))}
+            {overflow > 0 ? (
+              <span className="inline-flex items-center rounded-md bg-[color:var(--color-surface-alt)] px-1.5 py-0.5 text-[10px] text-[color:var(--color-text-muted)]">
+                +{overflow} more
+              </span>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -228,6 +247,7 @@ export function NotificationBell({ loggedIn }: { loggedIn: boolean }) {
                     key={notification.id}
                     notification={notification}
                     onSeen={markSeen}
+                    t={t}
                   />
                 ))
               )}

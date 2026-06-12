@@ -4,9 +4,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 export interface AppNotification {
   id: string;
-  saved_screen_id: string;
-  screen_name: string;
-  new_tickers: string[];
+  kind: "screen_alert" | "market_news";
+  title: string;
+  body: string;
+  source?: string | null;
+  url?: string | null;
+  tickers?: string[];
   triggered_at: string;
   seen_at: string | null;
 }
@@ -76,12 +79,14 @@ export function useNotifications(active: boolean) {
       await fetch("/api/notifications/seen", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids: [id] }),
+        body: JSON.stringify({
+          items: prevStateItem(id, state.notifications),
+        }),
       });
     } catch {
       // Ignore.
     }
-  }, []);
+  }, [state.notifications]);
 
   const markAllSeen = useCallback(async () => {
     const unseenIds = state.notifications
@@ -100,7 +105,14 @@ export function useNotifications(active: boolean) {
       await fetch("/api/notifications/seen", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids: unseenIds }),
+        body: JSON.stringify({
+          items: state.notifications
+            .filter((notification) => !notification.seen_at)
+            .map((notification) => ({
+              id: notification.id,
+              kind: notification.kind,
+            })),
+        }),
       });
     } catch {
       // Ignore.
@@ -108,4 +120,9 @@ export function useNotifications(active: boolean) {
   }, [state.notifications]);
 
   return { ...state, markSeen, markAllSeen, refetch: fetchNotifications };
+}
+
+function prevStateItem(id: string, notifications: AppNotification[]) {
+  const item = notifications.find((notification) => notification.id === id);
+  return item ? [{ id: item.id, kind: item.kind }] : [{ id, kind: "screen_alert" as const }];
 }

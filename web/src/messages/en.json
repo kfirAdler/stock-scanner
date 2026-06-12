@@ -834,7 +834,11 @@
     "markAllSeen": "Mark all seen",
     "emptyTitle": "No notifications yet",
     "emptyBody": "Enable alerts on a saved screen and we'll notify you here when new stocks enter.",
-    "hint": "Notifications are cleared after 10 per screen. Hover to mark as seen."
+    "hint": "Notifications are cleared after 10 per screen. Global market headlines expire after 2 days. Hover to mark as seen.",
+    "marketHeadline": "Top market headline",
+    "newStockEntered": "1 new stock entered",
+    "newStocksEntered": "{count} new stocks entered",
+    "openArticle": "Open article"
   },
   "settings": {
     "title": "Settings",
