@@ -1,4 +1,4 @@
-"""Fetch one market-wide headline and store it as a global notification."""
+"""Fetch market-wide headlines and store them as global notifications."""
 
 from __future__ import annotations
 
@@ -21,6 +21,7 @@ MARKET_NEWS_RSS_URL = (
 )
 RSS_TIMEOUT_SECONDS = 15
 TTL_DAYS = 2
+MAX_HEADLINES = 2
 
 
 def _parse_pub_date(value: str | None) -> datetime:
@@ -49,7 +50,17 @@ def _extract_leading_text(text: str | None) -> str | None:
     return value or None
 
 
-def fetch_top_market_headline() -> dict[str, Any] | None:
+def _headline_allowed(title: str | None, url: str | None) -> bool:
+    if not title:
+        return False
+    # A question without a link is weak for the notification bell because it
+    # creates curiosity with nowhere useful to go next.
+    if title.rstrip().endswith("?") and not url:
+        return False
+    return True
+
+
+def fetch_top_market_headlines(limit: int = MAX_HEADLINES) -> list[dict[str, Any]]:
     response = requests.get(MARKET_NEWS_RSS_URL, timeout=RSS_TIMEOUT_SECONDS)
     response.raise_for_status()
 
@@ -58,34 +69,43 @@ def fetch_top_market_headline() -> dict[str, Any] | None:
     if channel is None:
         raise ValueError("RSS feed missing channel")
 
-    item = channel.find("item")
-    if item is None:
-        return None
+    payloads: list[dict[str, Any]] = []
+    seen_titles: set[str] = set()
 
-    title = _extract_leading_text(item.findtext("title"))
-    link = _strip_google_redirect(item.findtext("link"))
-    pub_date = _parse_pub_date(item.findtext("pubDate"))
+    for item in channel.findall("item"):
+        title = _extract_leading_text(item.findtext("title"))
+        link = _strip_google_redirect(item.findtext("link"))
+        pub_date = _parse_pub_date(item.findtext("pubDate"))
 
-    source_text = None
-    source_node = item.find("source")
-    if source_node is not None:
-        source_text = _extract_leading_text(source_node.text)
-    if not source_text and title and " - " in title:
-        title, source_text = [part.strip() for part in title.rsplit(" - ", 1)]
+        source_text = None
+        source_node = item.find("source")
+        if source_node is not None:
+            source_text = _extract_leading_text(source_node.text)
+        if not source_text and title and " - " in title:
+            title, source_text = [part.strip() for part in title.rsplit(" - ", 1)]
 
-    if not title:
-        return None
+        if not _headline_allowed(title, link):
+            continue
+        if not title or title in seen_titles:
+            continue
 
-    return {
-        "kind": MARKET_NEWS_KIND,
-        "market_date": pub_date.date().isoformat(),
-        "headline": title,
-        "source": source_text,
-        "url": link,
-        "published_at": pub_date.isoformat(),
-        "expires_at": (pub_date + timedelta(days=TTL_DAYS)).isoformat(),
-        "updated_at": datetime.now(timezone.utc).isoformat(),
-    }
+        seen_titles.add(title)
+        payloads.append({
+            "kind": MARKET_NEWS_KIND,
+            "slot": len(payloads) + 1,
+            "market_date": pub_date.date().isoformat(),
+            "headline": title,
+            "source": source_text,
+            "url": link,
+            "published_at": pub_date.isoformat(),
+            "expires_at": (pub_date + timedelta(days=TTL_DAYS)).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        })
+
+        if len(payloads) >= limit:
+            break
+
+    return payloads
 
 
 def cleanup_expired_market_news() -> int:
@@ -103,9 +123,9 @@ def run() -> dict[str, Any]:
     started_at = datetime.now(timezone.utc)
     deleted = cleanup_expired_market_news()
 
-    payload = fetch_top_market_headline()
-    if not payload:
-        logger.info("No market headline found.")
+    payloads = fetch_top_market_headlines()
+    if not payloads:
+        logger.info("No market headlines found.")
         return {
             "stored": False,
             "deleted": deleted,
@@ -113,17 +133,15 @@ def run() -> dict[str, Any]:
         }
 
     client = _get_client()
-    result = (
-        client.table("global_market_notifications")
-        .upsert(payload, on_conflict="kind,market_date")
-        .execute()
-    )
+    result = client.table("global_market_notifications").upsert(
+        payloads, on_conflict="kind,market_date,slot"
+    ).execute()
 
     stored = bool(result.data)
     summary = {
         "stored": stored,
         "deleted": deleted,
-        "headline": payload["headline"],
+        "headlines": [payload["headline"] for payload in payloads],
         "duration_seconds": (datetime.now(timezone.utc) - started_at).total_seconds(),
     }
     logger.info("Market news check finished: %s", summary)

@@ -17,7 +17,8 @@ def main() -> None:
         print("No market news headline stored.")
         return
     print(
-        f"Stored market news headline in {result.get('duration_seconds', 0):.1f}s"
+        f"Stored {len(result.get('headlines', []))} market news headline(s) in "
+        f"{result.get('duration_seconds', 0):.1f}s"
         f" (expired deleted: {result.get('deleted', 0)})."
     )
 

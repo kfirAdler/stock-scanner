@@ -10,6 +10,7 @@ export interface AppNotification {
   source?: string | null;
   url?: string | null;
   tickers?: string[];
+  linkLabel?: string | null;
   triggered_at: string;
   seen_at: string | null;
 }

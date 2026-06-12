@@ -44,9 +44,10 @@ export async function GET() {
         .limit(MAX_NOTIFICATIONS),
       supabase
         .from("global_market_notifications")
-        .select("id, headline, source, url, published_at, expires_at")
+        .select("id, headline, source, url, published_at, expires_at, slot")
         .gt("expires_at", new Date().toISOString())
         .order("published_at", { ascending: false })
+        .order("slot", { ascending: true })
         .limit(MAX_NOTIFICATIONS),
     ]);
 
@@ -89,6 +90,7 @@ export async function GET() {
     seen_at: globalReads.get(item.id) ?? null,
     source: item.source,
     url: item.url,
+    linkLabel: item.source ? `Source: ${item.source}` : "Open article",
   }));
 
   const notifications = [...scanNotifications, ...globalNotifications]

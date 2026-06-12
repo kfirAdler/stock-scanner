@@ -94,7 +94,7 @@ function NotificationItem({
 
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
-          <span className="truncate text-sm font-semibold leading-tight text-[color:var(--color-text)]">
+          <span className="text-sm font-semibold leading-tight text-[color:var(--color-text)]">
             {notification.title}
           </span>
           <span className="flex-shrink-0 text-[10px] text-[color:var(--color-text-muted)]">
@@ -119,7 +119,7 @@ function NotificationItem({
             rel="noreferrer"
             className="mt-2 inline-flex text-[11px] font-semibold text-primary hover:underline"
           >
-            {notification.source ?? t("notifications.openArticle")}
+            {notification.linkLabel ?? notification.source ?? t("notifications.openArticle")}
           </a>
         ) : null}
 
