@@ -13,6 +13,7 @@ type ScanAlertNotification = {
   source?: string | null;
   url?: string | null;
   tickers?: string[];
+  linkLabel?: string | null;
 };
 
 type GlobalNewsNotification = {
@@ -25,6 +26,7 @@ type GlobalNewsNotification = {
   source?: string | null;
   url?: string | null;
   tickers?: string[];
+  linkLabel?: string | null;
 };
 
 export async function GET() {
@@ -55,6 +57,27 @@ export async function GET() {
   if (globalError) return NextResponse.json({ error: globalError.message }, { status: 500 });
 
   const globalIds = (globalData ?? []).map((item) => item.id);
+  const [
+    { count: unreadAlertCount, error: unreadAlertError },
+    { data: activeGlobalRows, count: activeGlobalCount, error: activeGlobalError },
+  ] = await Promise.all([
+    supabase
+      .from("alert_notifications")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .is("seen_at", null),
+    supabase
+      .from("global_market_notifications")
+      .select("id", { count: "exact" })
+      .gt("expires_at", new Date().toISOString()),
+  ]);
+  if (unreadAlertError) {
+    return NextResponse.json({ error: unreadAlertError.message }, { status: 500 });
+  }
+  if (activeGlobalError) {
+    return NextResponse.json({ error: activeGlobalError.message }, { status: 500 });
+  }
+
   const { data: readData, error: readError } = globalIds.length
     ? await supabase
         .from("user_global_notification_reads")
@@ -63,6 +86,18 @@ export async function GET() {
         .in("notification_id", globalIds)
     : { data: [], error: null };
   if (readError) return NextResponse.json({ error: readError.message }, { status: 500 });
+
+  const activeGlobalIds = (activeGlobalRows ?? []).map((item) => item.id as string);
+  const { count: seenGlobalCount, error: seenGlobalError } = activeGlobalIds.length
+    ? await supabase
+        .from("user_global_notification_reads")
+        .select("notification_id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .in("notification_id", activeGlobalIds)
+    : { count: 0, error: null };
+  if (seenGlobalError) {
+    return NextResponse.json({ error: seenGlobalError.message }, { status: 500 });
+  }
 
   const globalReads = new Map(
     (readData ?? []).map((row) => [row.notification_id as string, row.seen_at as string | null])
@@ -99,7 +134,9 @@ export async function GET() {
         new Date(b.triggered_at).getTime() - new Date(a.triggered_at).getTime()
     )
     .slice(0, MAX_NOTIFICATIONS);
-  const unread_count = notifications.filter((notification) => !notification.seen_at).length;
+  const unread_count =
+    (unreadAlertCount ?? 0) +
+    Math.max(0, (activeGlobalCount ?? 0) - (seenGlobalCount ?? 0));
 
   return NextResponse.json({ notifications, unread_count });
 }

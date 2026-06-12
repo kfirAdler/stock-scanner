@@ -245,10 +245,13 @@ export function Header() {
       </div>
 
       {mobileNavOpen && (
-        <div id="mobile-site-nav" className="border-t border-border/70 bg-surface-overlay/95 md:hidden">
+        <div
+          id="mobile-site-nav"
+          className="border-t border-border/70 bg-surface-overlay/95 md:hidden dark:border-white/10 dark:bg-[rgba(10,16,28,0.98)]"
+        >
           <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6">
             {user && (
-              <div className="ui-panel-subtle mb-3 rounded-xl px-3 py-2">
+              <div className="ui-panel-subtle mb-3 rounded-xl px-3 py-2 dark:border-white/10 dark:bg-[rgb(17,24,39)]">
                 <p className="text-xs font-bold uppercase tracking-wider text-text-muted">
                   {showMemberBadge ? badgeLabel : t("premium.headerBadgeLocked")}
                 </p>
