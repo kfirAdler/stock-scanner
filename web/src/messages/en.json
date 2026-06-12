@@ -835,7 +835,7 @@
     "emptyTitle": "No notifications yet",
     "emptyBody": "Enable alerts on a saved screen and we'll notify you here when new stocks enter.",
     "hint": "Notifications are cleared after 10 per screen. Global market headlines expire after 2 days. Hover to mark as seen.",
-    "marketHeadline": "Top market headline",
+    "marketHeadline": "News",
     "newStockEntered": "1 new stock entered",
     "newStocksEntered": "{count} new stocks entered",
     "openArticle": "Open article"
