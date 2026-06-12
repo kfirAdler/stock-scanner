@@ -8,11 +8,13 @@ on:
   schedule:
     # --- US: NYSE/NASDAQ regular session Mon-Fri ---
     # GitHub Actions schedule is UTC.
-    # Simplified 30-minute cadence during US market hours to lower API/Supabase usage.
-    # Roughly 16:30-23:00 Israel time, without extra DST-specific branching.
-    - cron: "30 13 * * 1-5"
-    - cron: "0 14-20 * * 1-5"
-    - cron: "0 21 * * 1-5"
+    # Simplified cadence during US market hours to lower API/Supabase usage.
+    # Use non-zero minute offsets because GitHub cron is less reliable exactly
+    # at the top of the hour under load.
+    # Roughly 16:37-23:07 Israel time, without extra DST-specific branching.
+    - cron: "37 13 * * 1-5"
+    - cron: "7 14-20 * * 1-5"
+    - cron: "7 21 * * 1-5"
   workflow_dispatch:
     inputs:
       tickers:
