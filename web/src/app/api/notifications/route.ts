@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { coerceStoredScreen, screenToQueryString } from "@/lib/screener-query";
 import { createClient } from "@/lib/supabase/server";
 
 const MAX_NOTIFICATIONS = 30;
@@ -10,6 +11,8 @@ type ScanAlertNotification = {
   body: string;
   triggered_at: string;
   seen_at: string | null;
+  saved_screen_id?: string;
+  href?: string | null;
   source?: string | null;
   url?: string | null;
   tickers?: string[];
@@ -87,6 +90,18 @@ export async function GET() {
     : { data: [], error: null };
   if (readError) return NextResponse.json({ error: readError.message }, { status: 500 });
 
+  const savedScreenIds = [...new Set((alertData ?? []).map((item) => item.saved_screen_id))];
+  const { data: savedScreens, error: savedScreensError } = savedScreenIds.length
+    ? await supabase
+        .from("saved_screens")
+        .select("id, filter_json")
+        .eq("user_id", user.id)
+        .in("id", savedScreenIds)
+    : { data: [], error: null };
+  if (savedScreensError) {
+    return NextResponse.json({ error: savedScreensError.message }, { status: 500 });
+  }
+
   const activeGlobalIds = (activeGlobalRows ?? []).map((item) => item.id as string);
   const { count: seenGlobalCount, error: seenGlobalError } = activeGlobalIds.length
     ? await supabase
@@ -102,6 +117,13 @@ export async function GET() {
   const globalReads = new Map(
     (readData ?? []).map((row) => [row.notification_id as string, row.seen_at as string | null])
   );
+  const screenHrefById = new Map(
+    (savedScreens ?? []).map((screen) => {
+      const payload = coerceStoredScreen(screen.filter_json);
+      const href = payload ? `/screener${screenToQueryString(payload)}` : null;
+      return [screen.id as string, href];
+    })
+  );
 
   const scanNotifications: ScanAlertNotification[] = (alertData ?? []).map((item) => ({
     id: item.id,
@@ -113,6 +135,8 @@ export async function GET() {
         : `${item.new_tickers.length} new stocks entered`,
     triggered_at: item.triggered_at,
     seen_at: item.seen_at,
+    saved_screen_id: item.saved_screen_id,
+    href: screenHrefById.get(item.saved_screen_id) ?? null,
     tickers: item.new_tickers,
   }));
 

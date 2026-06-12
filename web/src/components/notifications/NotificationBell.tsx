@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { clsx } from "clsx";
 import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import { useNotifications } from "@/hooks/useNotifications";
 import type { AppNotification } from "@/hooks/useNotifications";
 
@@ -51,22 +52,32 @@ function EmptyState({ t }: { t: ReturnType<typeof useTranslations> }) {
 function NotificationItem({
   notification,
   onSeen,
+  onOpenScreenAlert,
   t,
 }: {
   notification: AppNotification;
-  onSeen: (id: string) => void;
+  onSeen: (id: string) => Promise<void>;
+  onOpenScreenAlert: (notification: AppNotification) => Promise<void>;
   t: ReturnType<typeof useTranslations>;
 }) {
   const isUnread = !notification.seen_at;
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const canOpenScreenAlert = notification.kind === "screen_alert" && !!notification.href;
 
   function handleMouseEnter() {
     if (!isUnread) return;
-    hoverTimerRef.current = setTimeout(() => onSeen(notification.id), 400);
+    hoverTimerRef.current = setTimeout(() => void onSeen(notification.id), 400);
   }
 
   function handleMouseLeave() {
     if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+  }
+
+  function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (!canOpenScreenAlert) return;
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    void onOpenScreenAlert(notification);
   }
 
   const visibleTickers = notification.tickers?.slice(0, 7) ?? [];
@@ -76,10 +87,16 @@ function NotificationItem({
     <div
       className={clsx(
         "group flex gap-3 px-4 py-3.5 transition-colors duration-150 hover:bg-[color:var(--color-surface-hover)]",
+        canOpenScreenAlert &&
+          "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset",
         isUnread && "bg-[color:var(--color-primary-soft)]/10"
       )}
+      role={canOpenScreenAlert ? "button" : undefined}
+      tabIndex={canOpenScreenAlert ? 0 : undefined}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onClick={canOpenScreenAlert ? () => void onOpenScreenAlert(notification) : undefined}
+      onKeyDown={handleKeyDown}
     >
       <div className="mt-1.5 flex-shrink-0">
         <div
@@ -147,6 +164,7 @@ function NotificationItem({
 
 export function NotificationBell({ loggedIn }: { loggedIn: boolean }) {
   const t = useTranslations();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -172,6 +190,13 @@ export function NotificationBell({ loggedIn }: { loggedIn: boolean }) {
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, [open]);
+
+  async function handleOpenScreenAlert(notification: AppNotification) {
+    if (notification.kind !== "screen_alert" || !notification.href) return;
+    await markSeen(notification.id);
+    setOpen(false);
+    router.push(notification.href);
+  }
 
   if (!loggedIn) return null;
 
@@ -247,6 +272,7 @@ export function NotificationBell({ loggedIn }: { loggedIn: boolean }) {
                     key={notification.id}
                     notification={notification}
                     onSeen={markSeen}
+                    onOpenScreenAlert={handleOpenScreenAlert}
                     t={t}
                   />
                 ))

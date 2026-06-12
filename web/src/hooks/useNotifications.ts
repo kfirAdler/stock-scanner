@@ -7,6 +7,8 @@ export interface AppNotification {
   kind: "screen_alert" | "market_news";
   title: string;
   body: string;
+  saved_screen_id?: string;
+  href?: string | null;
   source?: string | null;
   url?: string | null;
   tickers?: string[];
