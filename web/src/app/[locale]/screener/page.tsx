@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { FilterPanel } from "@/components/screener/FilterPanel";
@@ -24,11 +25,6 @@ import {
 } from "@/lib/screener-query";
 
 type Gate = null | "login" | "subscribe";
-
-function readInitialFilters(): ScreenerPayload {
-  if (typeof window === "undefined") return DEFAULT_SCREENER_PAYLOAD;
-  return parseScreenFromSearchParams(new URLSearchParams(window.location.search));
-}
 
 const DEFAULT_LIMIT = 50;
 const TURNING_POINT_PRESET: ScreenerPayload = {
@@ -77,12 +73,18 @@ function presetAvailable(
   return preset.rules.every((rule) => availability[rule.timeframe]?.[rule.field] ?? true);
 }
 
-export default function ScreenerPage() {
+function ScreenerPageContent() {
   const t = useTranslations("screener");
   const locale = useLocale();
-  const [filters, setFilters] = useState<ScreenerPayload>(() => readInitialFilters());
-  const filtersRef = useRef<ScreenerPayload>(readInitialFilters());
-  const [appliedFilters, setAppliedFilters] = useState<ScreenerPayload>(() => readInitialFilters());
+  const searchParams = useSearchParams();
+  const searchParamsKey = searchParams.toString();
+  const urlFilters = useMemo(
+    () => parseScreenFromSearchParams(new URLSearchParams(searchParamsKey)),
+    [searchParamsKey]
+  );
+  const [filters, setFilters] = useState<ScreenerPayload>(urlFilters);
+  const filtersRef = useRef<ScreenerPayload>(urlFilters);
+  const [appliedFilters, setAppliedFilters] = useState<ScreenerPayload>(urlFilters);
   const [favoriteFilters, setFavoriteFilters] = useState<ScreenerPayload | null>(null);
   const [favoriteLoading, setFavoriteLoading] = useState(true);
   const [favoriteSaving, setFavoriteSaving] = useState(false);
@@ -106,6 +108,9 @@ export default function ScreenerPage() {
   const [sortDir, setSortDir] = useState<ScannerSortDir>("asc");
   const [filterAvailability, setFilterAvailability] = useState<ScreenerFilterAvailability | null>(null);
   const requestInFlightRef = useRef(false);
+  const requestAbortControllerRef = useRef<AbortController | null>(null);
+  const requestSequenceRef = useRef(0);
+  const handledSearchParamsRef = useRef<string | null>(null);
 
   const fetchResults = useCallback(async ({
     nextFilters = filtersRef.current,
@@ -120,7 +125,13 @@ export default function ScreenerPage() {
     nextSortKey?: ScannerSortKey;
     nextSortDir?: ScannerSortDir;
   } = {}) => {
-    if (requestInFlightRef.current) return;
+    if (append && requestInFlightRef.current) return;
+    if (!append) {
+      requestAbortControllerRef.current?.abort();
+    }
+    const requestId = ++requestSequenceRef.current;
+    const abortController = new AbortController();
+    requestAbortControllerRef.current = abortController;
     requestInFlightRef.current = true;
     const normalizedFilters = coerceStoredScreen(nextFilters) ?? DEFAULT_SCREENER_PAYLOAD;
     setResultsError(null);
@@ -128,6 +139,7 @@ export default function ScreenerPage() {
       setLoadingMore(true);
     } else {
       setLoading(true);
+      setLoadingMore(false);
       setResults([]);
       setHasMore(false);
     }
@@ -139,6 +151,7 @@ export default function ScreenerPage() {
     if (!append && typeof window !== "undefined") {
       const query = screenToQueryString(normalizedFilters);
       const pathname = window.location.pathname;
+      handledSearchParamsRef.current = query.startsWith("?") ? query.slice(1) : "";
       window.history.replaceState({}, "", query ? `${pathname}${query}` : pathname);
     }
     try {
@@ -152,7 +165,9 @@ export default function ScreenerPage() {
           sortKey: nextSortKey,
           sortDir: nextSortDir,
         }),
+        signal: abortController.signal,
       });
+      if (requestId !== requestSequenceRef.current) return;
       if (res.status === 401) {
         setGate("login");
         if (!append) setResults([]);
@@ -165,6 +180,7 @@ export default function ScreenerPage() {
       }
       if (!res.ok) throw new Error("Failed to fetch");
       const data = (await res.json()) as ScreenerResultsPage;
+      if (requestId !== requestSequenceRef.current) return;
       const nextRows = data.rows ?? [];
       setHasMore(!!data.hasMore);
       setResults((current) => {
@@ -179,16 +195,21 @@ export default function ScreenerPage() {
         }
         return merged;
       });
-    } catch {
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") return;
+      if (requestId !== requestSequenceRef.current) return;
       setResultsError(t("resultsError"));
       if (!append) {
         setResults([]);
         setHasMore(false);
       }
     } finally {
-      requestInFlightRef.current = false;
-      setLoading(false);
-      setLoadingMore(false);
+      if (requestId === requestSequenceRef.current) {
+        requestInFlightRef.current = false;
+        requestAbortControllerRef.current = null;
+        setLoading(false);
+        setLoadingMore(false);
+      }
     }
   }, [sortDir, sortKey, t]);
 
@@ -278,10 +299,43 @@ export default function ScreenerPage() {
   }, []);
 
   useEffect(() => {
-    if (countActiveFilters(filtersRef.current) > 0) {
-      void fetchResults({ nextFilters: filtersRef.current });
-    }
-  }, [fetchResults]);
+    let cancelled = false;
+
+    queueMicrotask(() => {
+      if (cancelled || handledSearchParamsRef.current === searchParamsKey) return;
+      handledSearchParamsRef.current = searchParamsKey;
+      filtersRef.current = urlFilters;
+      setFilters(urlFilters);
+      setAppliedFilters(urlFilters);
+      setFilterPanelResetKey((current) => current + 1);
+      setFavoriteStatus(null);
+
+      if (countActiveFilters(urlFilters) > 0) {
+        void fetchResults({ nextFilters: urlFilters });
+        return;
+      }
+
+      requestSequenceRef.current += 1;
+      requestAbortControllerRef.current?.abort();
+      requestAbortControllerRef.current = null;
+      requestInFlightRef.current = false;
+      setResults([]);
+      setHasMore(false);
+      setHasSearched(false);
+      setResultsError(null);
+      setGate(null);
+      setLoading(false);
+      setLoadingMore(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchResults, searchParamsKey, urlFilters]);
+
+  useEffect(() => {
+    return () => requestAbortControllerRef.current?.abort();
+  }, []);
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -687,7 +741,7 @@ export default function ScreenerPage() {
               />
             </div>
 
-            <div className="space-y-3">
+            <div className="min-w-0 space-y-3">
               <div className="ui-panel-subtle flex flex-wrap items-center gap-2 rounded-2xl px-3.5 py-2.5 text-text-secondary">
                 <span className="ui-badge-default rounded-full px-2.5 py-1 text-[11px] font-semibold text-text">
                   {t("workspace.appliedCount", { count: appliedFilterCount })}
@@ -807,5 +861,19 @@ export default function ScreenerPage() {
 
       </div>
     </div>
+  );
+}
+
+export default function ScreenerPage() {
+  return (
+    <Suspense
+      fallback={(
+        <div className="page-shell max-w-[1580px]" aria-hidden="true">
+          <div className="ui-panel min-h-[520px] animate-pulse rounded-2xl" />
+        </div>
+      )}
+    >
+      <ScreenerPageContent />
+    </Suspense>
   );
 }

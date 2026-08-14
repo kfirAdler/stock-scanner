@@ -274,22 +274,24 @@ export function ResultsTable({
 
   return (
     <section className="space-y-3">
-      <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
-        <div className="min-w-0">
+      <div className="flex min-w-0 flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
+        <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-[15px] font-bold text-text">{t("symbols", { count: rows.length })}</h2>
+            <h2 className="shrink-0 text-[15px] font-bold text-text">{t("symbols", { count: rows.length })}</h2>
             {activeScanSummary.map((block) => (
               <span
                 key={block.timeframe}
-                className="ui-badge-default inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium"
+                className="ui-badge-default inline-flex min-w-0 max-w-full items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium"
               >
-                <span className="font-semibold text-text">{t(`timeframes.${block.timeframe}`)}</span>
-                <span className="truncate text-text-secondary">{block.labels.join(" · ")}</span>
+                <span className="shrink-0 font-semibold text-text">{t(`timeframes.${block.timeframe}`)}</span>
+                <span className="min-w-0 truncate text-text-secondary" title={block.labels.join(" · ")}>
+                  {block.labels.join(" · ")}
+                </span>
               </span>
             ))}
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
           <span className="rounded-full bg-success-soft px-2.5 py-1 text-[11px] font-semibold text-success ring-1 ring-success/15">
             {resultSummary.bullish} {t("workspace.cards.bullish")}
           </span>
