@@ -6,9 +6,12 @@ import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { FilterPanel } from "@/components/screener/FilterPanel";
 import { ResultsTable } from "@/components/screener/ResultsTable";
+import { DiscoveryGoalPicker } from "@/components/screener/DiscoveryGoalPicker";
 import { PremiumGate } from "@/components/billing/PremiumGate";
 import { Button } from "@/components/ui/Button";
 import type {
+  DiscoveryGoal,
+  ListingMarketFilter,
   ScreenerFilterAvailability,
   ScreenerPayload,
   ScreenerResultRow,
@@ -16,6 +19,7 @@ import type {
   ScannerSortDir,
   ScannerSortKey,
 } from "@/lib/screener-types";
+import { buildDiscoveryPayload } from "@/lib/discovery-goals";
 import {
   DEFAULT_SCREENER_PAYLOAD,
   coerceStoredScreen,
@@ -94,6 +98,7 @@ function ScreenerPageContent() {
   const [results, setResults] = useState<ScreenerResultRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [loadingGoal, setLoadingGoal] = useState<DiscoveryGoal | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
   const [hasMore, setHasMore] = useState(false);
   const [resultsError, setResultsError] = useState<string | null>(null);
@@ -104,8 +109,12 @@ function ScreenerPageContent() {
   const [desktopFiltersOpen, setDesktopFiltersOpen] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [refreshTicker, setRefreshTicker] = useState(() => Date.now());
-  const [sortKey, setSortKey] = useState<ScannerSortKey>("ticker");
-  const [sortDir, setSortDir] = useState<ScannerSortDir>("asc");
+  const [sortKey, setSortKey] = useState<ScannerSortKey>(
+    () => urlFilters.discovery_goal ? "match_score" : "ticker"
+  );
+  const [sortDir, setSortDir] = useState<ScannerSortDir>(
+    () => urlFilters.discovery_goal ? "desc" : "asc"
+  );
   const [filterAvailability, setFilterAvailability] = useState<ScreenerFilterAvailability | null>(null);
   const requestInFlightRef = useRef(false);
   const requestAbortControllerRef = useRef<AbortController | null>(null);
@@ -425,6 +434,48 @@ function ScreenerPageContent() {
   function handleFiltersChange(nextFilters: ScreenerPayload) {
     filtersRef.current = nextFilters;
     setFilters(nextFilters);
+    if (!nextFilters.discovery_goal && sortKey === "match_score") {
+      setSortKey("ticker");
+      setSortDir("asc");
+    }
+  }
+
+  async function handleApplyDiscoveryGoal(goal: DiscoveryGoal) {
+    const preset = buildDiscoveryPayload(goal, filtersRef.current);
+    setFilterPanelResetKey((current) => current + 1);
+    setFavoriteStatus(null);
+    setFilters(preset);
+    filtersRef.current = preset;
+
+    if (!loggedIn && countActiveFilters(preset) > 1) {
+      setMultiFilterGateOpen(true);
+      return;
+    }
+
+    setSortKey("match_score");
+    setSortDir("desc");
+    setMobileFiltersOpen(false);
+    setLoadingGoal(goal);
+    try {
+      await fetchResults({
+        nextFilters: preset,
+        nextSortKey: "match_score",
+        nextSortDir: "desc",
+      });
+    } finally {
+      setLoadingGoal(null);
+    }
+  }
+
+  function handleDiscoveryMarketChange(market?: ListingMarketFilter) {
+    const nextFilters: ScreenerPayload = {
+      ...filtersRef.current,
+      listing_market: market,
+    };
+    handleFiltersChange(nextFilters);
+    if (nextFilters.discovery_goal) {
+      void handleApplyDiscoveryGoal(nextFilters.discovery_goal);
+    }
   }
 
   async function handleApplyTurningPointPreset() {
@@ -577,7 +628,9 @@ function ScreenerPageContent() {
 
   function handleSortChange(key: ScannerSortKey) {
     const nextDir: ScannerSortDir =
-      key === sortKey ? (sortDir === "asc" ? "desc" : "asc") : "asc";
+      key === sortKey
+        ? (sortDir === "asc" ? "desc" : "asc")
+        : key === "match_score" ? "desc" : "asc";
     setSortKey(key);
     setSortDir(nextDir);
     void fetchResults({
@@ -688,6 +741,15 @@ function ScreenerPageContent() {
             {t("legalNotice.link")}
           </Link>
         </div>
+
+        <DiscoveryGoalPicker
+          selectedGoal={filters.discovery_goal}
+          market={filters.listing_market}
+          availability={filterAvailability}
+          loadingGoal={loadingGoal}
+          onSelectGoal={(goal) => void handleApplyDiscoveryGoal(goal)}
+          onMarketChange={handleDiscoveryMarketChange}
+        />
 
         {gate && <PremiumGate kind={gate === "login" ? "login" : "subscribe"} />}
 

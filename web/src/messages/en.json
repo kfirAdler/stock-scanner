@@ -204,6 +204,68 @@
   },
   "screener": {
     "title": "Stock Screener",
+    "discovery": {
+      "eyebrow": "Guided discovery",
+      "title": "What would you like to find?",
+      "body": "Choose an opportunity type. The scanner applies the matching rules and ranks each stock by its fit for that search.",
+      "marketLabel": "Market",
+      "activeLabel": "Active search",
+      "changeGoal": "Change goal",
+      "unavailable": "There is not enough data to run this search yet.",
+      "scoreNote": "The match score measures fit for the selected goal only. It is not a return forecast or investment recommendation.",
+      "score": "Match",
+      "whyMatched": "Why it matched",
+      "watchOut": "Watch out",
+      "markets": {
+        "all": "All",
+        "US": "US",
+        "TA": "TASE"
+      },
+      "goals": {
+        "trend_leaders": {
+          "title": "Trend leaders",
+          "description": "A positive trend with confirmation from higher timeframes.",
+          "risk": "Balanced"
+        },
+        "confirmed_breakout": {
+          "title": "Fresh breakout",
+          "description": "A 50-day high within a trend structure, with preference for volume confirmation.",
+          "risk": "Dynamic"
+        },
+        "healthy_pullback": {
+          "title": "Healthy pullback",
+          "description": "Below SMA20 while holding SMA50 and the longer-term trend.",
+          "risk": "Balanced"
+        },
+        "stable_trend": {
+          "title": "Stable trend",
+          "description": "Stocks in a positive trend with more moderate daily volatility.",
+          "risk": "Moderate"
+        },
+        "aggressive_rebound": {
+          "title": "Aggressive rebound",
+          "description": "A daily turn from weakness or oversold conditions; requires extra caution.",
+          "risk": "High"
+        }
+      },
+      "reasons": {
+        "daily_trend": "The daily trend is above the long moving averages",
+        "higher_timeframe_trend": "The weekly or monthly timeframe supports the trend",
+        "new_high_50": "The stock reached a new 50-day high",
+        "volume_confirmation": "The move has relative-volume confirmation",
+        "controlled_pullback": "Price is between SMA20 and SMA50 while holding the long trend",
+        "reversal_confirmed": "An early change-of-direction signal appeared",
+        "oversold_turn": "A positive day followed a low RSI reading",
+        "lower_volatility": "Daily volatility is relatively moderate",
+        "basic_financial_health": "Positive ROE and a reasonable basic debt level"
+      },
+      "risks": {
+        "high_volatility": "Volatility is high, so price swings may be sharp.",
+        "elevated_rsi": "RSI is elevated and the short-term move may be stretched.",
+        "weak_volume": "The breakout does not yet have relative-volume confirmation.",
+        "negative_equity": "The debt ratio may be misleading because equity is negative."
+      }
+    },
     "premiumSubtitle": "Member workspace — build daily, weekly, and monthly rules against our precomputed snapshot store.",
     "updatedAt": "Last data refresh: {date}",
     "filters": "Filters",
@@ -429,6 +491,7 @@
     "resultsError": "Could not load scanner results. Try running the scan again.",
     "table": {
       "ticker": "Ticker",
+      "matchScore": "Match",
       "close": "Close",
       "sma20": "SMA 20",
       "sma50": "SMA 50",

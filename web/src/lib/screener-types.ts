@@ -1,5 +1,28 @@
 export type ListingMarketFilter = "US" | "TA";
 export type ScreenerTimeframe = "1D" | "1W" | "1M";
+export type DiscoveryGoal =
+  | "trend_leaders"
+  | "confirmed_breakout"
+  | "healthy_pullback"
+  | "stable_trend"
+  | "aggressive_rebound";
+
+export type DiscoveryReasonCode =
+  | "daily_trend"
+  | "higher_timeframe_trend"
+  | "new_high_50"
+  | "volume_confirmation"
+  | "controlled_pullback"
+  | "reversal_confirmed"
+  | "oversold_turn"
+  | "lower_volatility"
+  | "basic_financial_health";
+
+export type DiscoveryRiskCode =
+  | "high_volatility"
+  | "elevated_rsi"
+  | "weak_volume"
+  | "negative_equity";
 
 export type ScreenerRuleField =
   | "is_above_sma20"
@@ -58,6 +81,7 @@ export interface ScreenerRule {
 
 export interface ScreenerPayload {
   version: 1;
+  discovery_goal?: DiscoveryGoal;
   listing_market?: ListingMarketFilter;
   market_cap_gte?: number;
   market_cap_lte?: number;
@@ -222,11 +246,14 @@ export type ScannerResultSnapshot = Pick<
 >;
 
 export interface ScreenerResultRow extends ScannerResultSnapshot {
+  match_score?: number | null;
+  match_reasons?: DiscoveryReasonCode[];
+  risk_flags?: DiscoveryRiskCode[];
   matched_timeframes?: ScreenerTimeframe[];
   timeframe_snapshots?: Partial<Record<ScreenerTimeframe, ScannerResultSnapshot | null>>;
 }
 
-export type ScannerSortKey = "ticker" | "close" | "atr_percent";
+export type ScannerSortKey = "ticker" | "close" | "atr_percent" | "match_score";
 export type ScannerSortDir = "asc" | "desc";
 
 export type ScreenerFilterAvailability = Partial<

@@ -8,9 +8,9 @@ import type {
   ScreenerResultRow,
   ScannerSortDir,
   ScannerSortKey,
-  ScreenerTimeframe,
 } from "@/lib/screener-types";
 import { createServiceClient } from "@/lib/supabase/server";
+import { buildDiscoveryEvidence } from "@/lib/discovery-evidence";
 
 const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 100;
@@ -47,7 +47,9 @@ function parsePositiveInt(
 }
 
 function parseSortKey(value: string | null | undefined): ScannerSortKey {
-  return value === "close" || value === "atr_percent" ? value : DEFAULT_SORT_KEY;
+  return value === "close" || value === "atr_percent" || value === "match_score"
+    ? value
+    : DEFAULT_SORT_KEY;
 }
 
 function parseSortDir(value: string | null | undefined): ScannerSortDir {
@@ -84,7 +86,7 @@ async function runScreener(
   const hasMore = rawRows.length > limit;
   const rows: ScreenerResultRow[] = rawRows.slice(0, limit).map((row) => {
     const { weekly_snapshot, monthly_snapshot, ...dailyRow } = row;
-    return {
+    const resultRow: ScreenerResultRow = {
       ...dailyRow,
       matched_timeframes,
       timeframe_snapshots: {
@@ -92,6 +94,10 @@ async function runScreener(
         "1W": coerceCompanionSnapshot(weekly_snapshot),
         "1M": coerceCompanionSnapshot(monthly_snapshot),
       },
+    };
+    return {
+      ...resultRow,
+      ...buildDiscoveryEvidence(payload.discovery_goal, resultRow),
     };
   });
   const response: ScreenerResultsPage = {

@@ -1,10 +1,19 @@
 import type {
+  DiscoveryGoal,
   LegacyScreenerFilters,
   ScreenerPayload,
   ScreenerRule,
   ScreenerRuleField,
   ScreenerTimeframe,
 } from "@/lib/screener-types";
+
+const DISCOVERY_GOALS = new Set<DiscoveryGoal>([
+  "trend_leaders",
+  "confirmed_breakout",
+  "healthy_pullback",
+  "stable_trend",
+  "aggressive_rebound",
+]);
 
 export const SCREENER_BOOLEAN_FILTER_KEYS: (keyof LegacyScreenerFilters)[] = [
   "is_above_sma20",
@@ -237,6 +246,11 @@ export function normalizePayload(input: Partial<ScreenerPayload> | null | undefi
     : [];
   return {
     version: 1,
+    discovery_goal:
+      typeof input?.discovery_goal === "string" &&
+      DISCOVERY_GOALS.has(input.discovery_goal as DiscoveryGoal)
+        ? (input.discovery_goal as DiscoveryGoal)
+        : undefined,
     listing_market:
       input?.listing_market === "US" || input?.listing_market === "TA"
         ? input.listing_market
@@ -317,7 +331,7 @@ export function parseScreenFromSearchParams(params: URLSearchParams): ScreenerPa
 
 export function screenToQueryString(payload: ScreenerPayload): string {
   const normalized = normalizePayload(payload);
-  if (countActiveFilters(normalized) === 0) return "";
+  if (countActiveFilters(normalized) === 0 && !normalized.discovery_goal) return "";
   const params = new URLSearchParams();
   params.set("screen", JSON.stringify(normalized));
   return `?${params.toString()}`;

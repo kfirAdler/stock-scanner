@@ -39,6 +39,57 @@ function fmt(val: number | null | undefined, decimals = 2): string {
   return val.toFixed(decimals);
 }
 
+function MatchScoreBadge({ score }: { score: number | null | undefined }) {
+  const t = useTranslations("screener");
+  if (score == null) return <span className="text-text-muted">—</span>;
+  const tone = score >= 80
+    ? "bg-success-soft text-success ring-success/20"
+    : score >= 60
+      ? "bg-primary-soft text-primary ring-primary/20"
+      : "bg-warning-soft text-warning ring-warning/20";
+  return (
+    <span className={clsx(
+      "inline-flex items-baseline gap-1 rounded-full px-2.5 py-1 font-bold tabular-nums ring-1",
+      tone
+    )}>
+      <span className="text-sm">{Math.round(score)}</span>
+      <span className="text-[9px] uppercase tracking-wide">{t("discovery.score")}</span>
+    </span>
+  );
+}
+
+function MatchExplanation({ row }: { row: ScreenerResultRow }) {
+  const t = useTranslations("screener");
+  const reasons = row.match_reasons ?? [];
+  const risk = row.risk_flags?.[0];
+  if (reasons.length === 0 && !risk) return null;
+  return (
+    <div className="ui-panel-subtle space-y-2 rounded-xl p-3">
+      {reasons.length > 0 ? (
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
+            {t("discovery.whyMatched")}
+          </p>
+          <ul className="mt-1.5 space-y-1 text-xs text-text-secondary">
+            {reasons.slice(0, 3).map((reason) => (
+              <li key={reason} className="flex items-start gap-1.5">
+                <span className="mt-0.5 text-success">✓</span>
+                <span>{t(`discovery.reasons.${reason}`)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      {risk ? (
+        <div className="rounded-lg bg-warning-soft px-2.5 py-2 text-[11px] leading-relaxed text-warning ring-1 ring-warning/15">
+          <span className="font-bold">{t("discovery.watchOut")}: </span>
+          {t(`discovery.risks.${risk}`)}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function SmaPill({ above, below }: { above: boolean | null; below: boolean | null }) {
   if (above) {
     return (
@@ -292,6 +343,8 @@ export function ResultsTable({
           </div>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
+          {!screenerFilters?.discovery_goal ? (
+            <>
           <span className="rounded-full bg-success-soft px-2.5 py-1 text-[11px] font-semibold text-success ring-1 ring-success/15">
             {resultSummary.bullish} {t("workspace.cards.bullish")}
           </span>
@@ -301,6 +354,8 @@ export function ResultsTable({
           <span className="rounded-full bg-primary-soft px-2.5 py-1 text-[11px] font-semibold text-primary ring-1 ring-primary/10">
             {resultSummary.strong} {t("workspace.cards.strong")}
           </span>
+            </>
+          ) : null}
           <div className="ui-segment inline-flex items-center rounded-full p-1">
             <button
               type="button"
@@ -341,13 +396,15 @@ export function ResultsTable({
                   <p className="text-sm font-bold tracking-[0.01em] text-text">{row.ticker}</p>
                   <p className="mt-1 text-[11px] text-text-muted">{row.last_trade_date}</p>
                 </div>
-                <div className="text-right">
+                <div className="flex shrink-0 flex-col items-end gap-1.5 text-end">
+                  {screenerFilters?.discovery_goal ? <MatchScoreBadge score={row.match_score} /> : null}
                   <SignalBadge row={row} />
                 </div>
               </button>
 
               {expanded ? (
                 <div className="space-y-3 border-t border-border bg-surface-alt/65 px-4 py-3.5">
+                  {screenerFilters?.discovery_goal ? <MatchExplanation row={row} /> : null}
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div className="ui-control rounded-lg px-3 py-2.5">
                       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
@@ -425,6 +482,14 @@ export function ResultsTable({
                   {sortKey === "ticker" ? (sortDir === "asc" ? "↑" : "↓") : null}
                 </button>
               </th>
+              {screenerFilters?.discovery_goal ? (
+                <th scope="col" className="px-3 py-2.5 text-start text-[10px] font-bold uppercase tracking-[0.2em] text-text-secondary">
+                  <button onClick={() => onSortChange("match_score")} className="link-hover inline-flex items-center gap-1">
+                    {t("table.matchScore")}
+                    {sortKey === "match_score" ? (sortDir === "asc" ? "↑" : "↓") : null}
+                  </button>
+                </th>
+              ) : null}
               <th scope="col" className="px-3 py-2.5 text-end text-[10px] font-bold uppercase tracking-[0.2em] text-text-secondary">
                 <button onClick={() => onSortChange("close")} className="link-hover inline-flex items-center gap-1">
                   {t("table.close")}
@@ -472,6 +537,14 @@ export function ResultsTable({
                     <span className="text-[10px] text-text-muted">{row.last_trade_date}</span>
                   </div>
                 </td>
+                {screenerFilters?.discovery_goal ? (
+                  <td className={clsx(densityRowClass, "min-w-[220px]")}>
+                    <div className="space-y-2">
+                      <MatchScoreBadge score={row.match_score} />
+                      <MatchExplanation row={row} />
+                    </div>
+                  </td>
+                ) : null}
                 <td className={clsx(densityRowClass, "text-end tabular-nums font-semibold text-text")}>{fmt(row.close)}</td>
                 <td className={clsx(densityRowClass, "text-center")}><SmaPill above={row.is_above_sma20} below={row.is_below_sma20} /></td>
                 <td className={clsx(densityRowClass, "text-center")}><SmaPill above={row.is_above_sma50} below={row.is_below_sma50} /></td>
