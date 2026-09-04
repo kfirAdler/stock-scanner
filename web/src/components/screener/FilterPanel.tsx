@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { clsx } from "clsx";
-import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/Button";
 import { RULE_DEFINITIONS, activeRuleCountForTimeframe, countActiveFilters, createRule, ruleDefinitionsByField } from "@/lib/screener-query";
 import type {
@@ -55,14 +54,6 @@ interface FilterPanelProps {
   filterAvailability?: ScreenerFilterAvailability;
   onResetDraft?: () => void;
   loading?: boolean;
-  onSaveScan: () => void;
-  saveScanLoading?: boolean;
-  onSaveFavorite: () => void;
-  onLoadFavorite: () => void;
-  favoriteSaving?: boolean;
-  favoriteLoading?: boolean;
-  favoriteAvailable?: boolean;
-  favoriteStatus?: string | null;
   onClose?: () => void;
   hasPendingChanges?: boolean;
   resultCount?: number;
@@ -83,14 +74,6 @@ export function FilterPanel({
   filterAvailability,
   onResetDraft,
   loading,
-  onSaveScan,
-  saveScanLoading,
-  onSaveFavorite,
-  onLoadFavorite,
-  favoriteSaving,
-  favoriteLoading,
-  favoriteAvailable,
-  favoriteStatus,
   onClose,
   hasPendingChanges,
   resultCount = 0,
@@ -260,7 +243,6 @@ export function FilterPanel({
           resultCount={resultCount}
           resultLabel={t("workspace.statusMatches")}
           updatedLabel={lastUpdatedLabel ? t("updatedAt", { date: lastUpdatedLabel }) : null}
-          statusMessage={favoriteStatus}
         />
       }
       footer={
@@ -331,71 +313,6 @@ export function FilterPanel({
         >
           {t("workspace.presets.gettingUp")}
         </Button>
-      </section>
-
-      <section className="ui-panel-subtle space-y-3 rounded-2xl p-3">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-warning-soft text-warning">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5" aria-hidden="true">
-                <path d="M10 1.5l2.6 5.27 5.82.85-4.21 4.1.99 5.79L10 14.77l-5.2 2.73.99-5.79L1.58 7.62l5.82-.85L10 1.5z" />
-              </svg>
-            </span>
-            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
-              {t("workspace.favoritesTitle")}
-            </p>
-          </div>
-          <Link href="/saved-screens" className="link-hover text-[11px] font-semibold text-text-secondary">
-            {t("workspace.savedScreensLink")}
-          </Link>
-        </div>
-        <p className="text-[12px] leading-relaxed text-text-secondary">
-          {favoriteAvailable ? t("workspace.favoritesReady") : t("workspace.favoritesEmpty")}
-        </p>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            type="button"
-            size="sm"
-            variant="secondary"
-            onClick={onLoadFavorite}
-            loading={favoriteLoading}
-            disabled={!favoriteAvailable}
-            className={clsx(
-              favoriteAvailable &&
-                "border-warning/30 bg-warning-soft text-warning shadow-none hover:bg-warning-soft/80"
-            )}
-          >
-            <span className="inline-flex items-center gap-1.5">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5" aria-hidden="true">
-                <path d="M10 1.5l2.6 5.27 5.82.85-4.21 4.1.99 5.79L10 14.77l-5.2 2.73.99-5.79L1.58 7.62l5.82-.85L10 1.5z" />
-              </svg>
-              {t("favorite.load")}
-            </span>
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={onSaveFavorite}
-            loading={favoriteSaving}
-            disabled={activeFilterCount === 0}
-          >
-            {favoriteAvailable ? t("favorite.update") : t("favorite.save")}
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={onSaveScan}
-            loading={saveScanLoading}
-            disabled={activeFilterCount === 0}
-          >
-            {t("saveScan")}
-          </Button>
-        </div>
-        {favoriteStatus ? (
-          <p className="text-[11px] font-semibold text-text-secondary">{favoriteStatus}</p>
-        ) : null}
       </section>
 
       <section className="space-y-2.5 rounded-2xl">

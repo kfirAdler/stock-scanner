@@ -275,10 +275,21 @@
     "saveScan": "Save Scan",
     "saveScanPrompt": "Name this saved scan",
     "saveScanDefaultName": "My scan",
-    "saveScanSaved": "Scan saved.",
+    "saveScanSaved": "Saved successfully!",
     "saveScanFailed": "Could not save scan.",
     "saveScanEmpty": "Choose at least one filter before saving a scan.",
     "saveScanSignInRequired": "Sign in to save scans.",
+    "saveDialog": {
+      "eyebrow": "Save this setup",
+      "title": "Name your scan",
+      "body": "Save these {count} applied filters so you can run the same setup again.",
+      "nameLabel": "Scan name",
+      "namePlaceholder": "For example: Quality trend leaders",
+      "nameRequired": "Enter a name for this scan.",
+      "close": "Close save dialog",
+      "cancel": "Cancel",
+      "save": "Save scan"
+    },
     "favorite": {
       "save": "Save Favorite",
       "update": "Update Favorite",
@@ -492,6 +503,7 @@
     "table": {
       "ticker": "Ticker",
       "matchScore": "Match",
+      "sector": "Sector",
       "close": "Close",
       "sma20": "SMA 20",
       "sma50": "SMA 50",
@@ -503,6 +515,26 @@
       "seqState": "Sequence",
       "signals": "Signals",
       "timeframes": "Matched TFs"
+    },
+    "sectorMix": {
+      "title": "Sector mix",
+      "leader": "{sector} represents {percentage}% of this scan",
+      "basedOn": "Based on {count} matches",
+      "unknown": "Unclassified",
+      "other": "Other sectors"
+    },
+    "sectorNames": {
+      "basicMaterials": "Basic Materials",
+      "communicationServices": "Communication Services",
+      "consumerCyclical": "Consumer Cyclical",
+      "consumerDefensive": "Consumer Defensive",
+      "energy": "Energy",
+      "financialServices": "Financial Services",
+      "healthcare": "Healthcare",
+      "industrials": "Industrials",
+      "realEstate": "Real Estate",
+      "technology": "Technology",
+      "utilities": "Utilities"
     },
     "workspace": {
       "resultBody": "Scan the symbol list first, then open any symbol to inspect the daily, weekly, and monthly context.",
@@ -890,7 +922,16 @@
     "lastChecked": "Last checked: {time}",
     "filterSingular": "filter",
     "filterPlural": "filters",
-    "alertsHint": "Toggle alerts on any screen below. We'll notify you here when new stocks enter after each market refresh."
+    "alertsHint": "Toggle alerts on any screen below. We'll notify you here when new stocks enter after each market refresh.",
+    "remove": "Remove",
+    "deleteDialogEyebrow": "Remove saved screen",
+    "deleteDialogTitle": "Remove “{name}”?",
+    "deleteDialogBody": "This permanently deletes this saved screen and any alerts connected to it. This cannot be undone.",
+    "deleteDialogClose": "Close delete confirmation",
+    "deleteCancel": "Keep screen",
+    "deleteConfirm": "Yes, remove it",
+    "deleteFailed": "Could not remove the saved screen. Please try again.",
+    "deleteSuccess": "“{name}” was removed."
   },
   "notifications": {
     "title": "Notifications",

@@ -355,6 +355,9 @@ def upsert_symbol_metadata(
     ticker: str,
     *,
     market: str,
+    company_name: str | None = None,
+    sector: str | None = None,
+    industry: str | None = None,
     listing_exchange: str | None = None,
     market_cap: float | None = None,
     return_on_equity: float | None = None,
@@ -367,6 +370,12 @@ def upsert_symbol_metadata(
         "market": market,
         "updated_at": now,
     }
+    if company_name is not None:
+        row["company_name"] = company_name
+    if sector is not None:
+        row["sector"] = sector
+    if industry is not None:
+        row["industry"] = industry
     if listing_exchange is not None:
         row["listing_exchange"] = listing_exchange
     if market_cap is not None:

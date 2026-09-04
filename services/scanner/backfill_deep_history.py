@@ -82,7 +82,10 @@ def get_symbol_metadata_row(ticker: str) -> dict | None:
     client = _get_client()
     result = (
         client.table("symbol_metadata")
-        .select("listing_exchange,market_cap,return_on_equity,debt_to_equity")
+        .select(
+            "company_name,sector,industry,listing_exchange,market_cap,"
+            "return_on_equity,debt_to_equity"
+        )
         .eq("ticker", ticker)
         .limit(1)
         .execute()
@@ -117,12 +120,21 @@ def recompute_ticker(ticker: str, market: str) -> bool:
         wrote_any = True
 
     metadata_row = get_symbol_metadata_row(ticker) or {}
+    company_name = metadata_row.get("company_name")
+    sector = metadata_row.get("sector")
+    industry = metadata_row.get("industry")
     listing_exchange = metadata_row.get("listing_exchange")
     market_cap = metadata_row.get("market_cap")
     return_on_equity = metadata_row.get("return_on_equity")
     debt_to_equity = metadata_row.get("debt_to_equity")
-    should_refresh_metadata = market == "US" and (
-        not isinstance(listing_exchange, str)
+    should_refresh_metadata = (
+        not isinstance(company_name, str)
+        or not company_name.strip()
+        or not isinstance(sector, str)
+        or not sector.strip()
+        or not isinstance(industry, str)
+        or not industry.strip()
+        or not isinstance(listing_exchange, str)
         or not listing_exchange.strip()
         or market_cap is None
         or return_on_equity is None
@@ -132,6 +144,9 @@ def recompute_ticker(ticker: str, market: str) -> bool:
     upsert_symbol_metadata(
         ticker,
         market=market,
+        company_name=metadata.get("company_name") or company_name,
+        sector=metadata.get("sector") or sector,
+        industry=metadata.get("industry") or industry,
         listing_exchange="TASE" if market == "TA" else (metadata.get("listing_exchange") or listing_exchange),
         market_cap=metadata.get("market_cap") if metadata.get("market_cap") is not None else market_cap,
         return_on_equity=(

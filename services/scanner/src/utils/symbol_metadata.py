@@ -9,6 +9,9 @@ logger = logging.getLogger(__name__)
 
 
 class SymbolMetadata(TypedDict):
+    company_name: Optional[str]
+    sector: Optional[str]
+    industry: Optional[str]
     market_cap: Optional[float]
     listing_exchange: Optional[str]
     return_on_equity: Optional[float]
@@ -23,11 +26,20 @@ def _to_optional_float(value: object) -> Optional[float]:
     return None
 
 
+def _to_optional_text(value: object) -> Optional[str]:
+    if not isinstance(value, str):
+        return None
+    normalized = value.strip()
+    return normalized or None
+
+
 def fetch_symbol_metadata_yfinance(ticker: str) -> SymbolMetadata:
     try:
         import yfinance as yf
 
-        ysym = ticker.replace(".", "-")
+        # Yahoo keeps the `.TA` suffix for Tel Aviv symbols, while US share
+        # classes such as BRK.B use a hyphen in Yahoo's symbol format.
+        ysym = ticker if ticker.upper().endswith(".TA") else ticker.replace(".", "-")
         t = yf.Ticker(ysym)
         fast_info = getattr(t, "fast_info", None)
         full = t.info or {}
@@ -60,6 +72,9 @@ def fetch_symbol_metadata_yfinance(ticker: str) -> SymbolMetadata:
             )
 
         return {
+            "company_name": _to_optional_text(full.get("longName") or full.get("shortName")),
+            "sector": _to_optional_text(full.get("sector")),
+            "industry": _to_optional_text(full.get("industry")),
             "market_cap": float(market_cap) if market_cap is not None else None,
             "listing_exchange": map_yfinance_mic_to_tv(mic if isinstance(mic, str) else None),
             "return_on_equity": roe,
@@ -68,6 +83,9 @@ def fetch_symbol_metadata_yfinance(ticker: str) -> SymbolMetadata:
     except Exception:
         logger.debug("yfinance metadata lookup failed for %s", ticker, exc_info=True)
         return {
+            "company_name": None,
+            "sector": None,
+            "industry": None,
             "market_cap": None,
             "listing_exchange": None,
             "return_on_equity": None,

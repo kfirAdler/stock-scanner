@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import { clsx } from "clsx";
@@ -51,6 +51,27 @@ function PremiumStar() {
       aria-hidden="true"
     >
       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.719c-.783-.57-.38-1.81.588-1.81H7.03a1 1 0 00.951-.69l1.07-3.292z" />
+    </svg>
+  );
+}
+
+function TrashIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.7}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M3.5 5.5h13" />
+      <path d="M7.2 5.5V3.7h5.6v1.8" />
+      <path d="M5.3 5.5l.7 10.2h8l.7-10.2" />
+      <path d="M8.3 8.5v4.7M11.7 8.5v4.7" />
     </svg>
   );
 }
@@ -134,6 +155,7 @@ function ScreenCard({
   alert,
   canUseAlerts,
   onApply,
+  onDelete,
   onToggleAlert,
   t,
 }: {
@@ -141,6 +163,7 @@ function ScreenCard({
   alert: AlertRow | null;
   canUseAlerts: boolean;
   onApply: () => void;
+  onDelete: () => void;
   onToggleAlert: (screenId: string, next: boolean) => Promise<void>;
   t: ReturnType<typeof useTranslations>;
 }) {
@@ -160,7 +183,7 @@ function ScreenCard({
   return (
     <div
       className={clsx(
-        "page-card relative flex flex-col gap-4 transition-all duration-200 sm:flex-row sm:items-center sm:justify-between",
+        "page-card relative flex flex-col gap-4 transition-all duration-200 md:flex-row md:items-center md:justify-between",
         alertEnabled && "ring-1 ring-[color:var(--color-neon)]/20 shadow-[0_0_0_1px_var(--color-neon-soft)]"
       )}
     >
@@ -192,7 +215,7 @@ function ScreenCard({
         </p>
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
         <Button size="sm" variant="secondary" onClick={onApply}>
           {t("savedScreens.viewScan")}
         </Button>
@@ -204,6 +227,96 @@ function ScreenCard({
           lastCheckedAt={alert?.last_checked_at ?? null}
           t={t}
         />
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={onDelete}
+          className="justify-center text-danger hover:bg-danger-soft hover:text-danger"
+        >
+          <TrashIcon className="h-4 w-4" />
+          {t("savedScreens.remove")}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function DeleteScreenDialog({
+  screen,
+  loading,
+  error,
+  onCancel,
+  onConfirm,
+  t,
+}: {
+  screen: SavedScreen;
+  loading: boolean;
+  error: string | null;
+  onCancel: () => void;
+  onConfirm: () => void;
+  t: ReturnType<typeof useTranslations>;
+}) {
+  function handleBackdropClick(event: MouseEvent<HTMLDivElement>) {
+    if (event.target === event.currentTarget && !loading) onCancel();
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-text/55 p-4 backdrop-blur-sm"
+      onMouseDown={handleBackdropClick}
+      onKeyDown={(event) => {
+        if (event.key === "Escape" && !loading) onCancel();
+      }}
+    >
+      <div
+        className="ui-panel-strong w-full max-w-md overflow-hidden rounded-[24px] shadow-[0_30px_80px_rgba(15,23,42,0.3)]"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="delete-screen-title"
+        aria-describedby="delete-screen-description"
+      >
+        <div className="px-5 py-5">
+          <div className="flex items-start gap-4">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-danger-soft text-danger ring-1 ring-danger/15">
+              <TrashIcon className="h-5 w-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-danger">
+                {t("savedScreens.deleteDialogEyebrow")}
+              </p>
+              <h2 id="delete-screen-title" className="mt-1 break-words text-xl font-bold text-text">
+                {t("savedScreens.deleteDialogTitle", { name: screen.name })}
+              </h2>
+              <p id="delete-screen-description" className="mt-2 text-sm leading-relaxed text-text-secondary">
+                {t("savedScreens.deleteDialogBody")}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onCancel}
+              disabled={loading}
+              className="ui-control inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-lg text-text-secondary transition-colors hover:border-border-strong hover:text-text disabled:opacity-50"
+              aria-label={t("savedScreens.deleteDialogClose")}
+            >
+              ×
+            </button>
+          </div>
+
+          {error ? (
+            <p className="mt-4 rounded-xl bg-danger-soft px-3 py-2 text-xs font-semibold text-danger" role="alert">
+              {error}
+            </p>
+          ) : null}
+        </div>
+
+        <div className="flex flex-col-reverse gap-2 border-t border-border bg-surface-alt/45 px-5 py-3.5 sm:flex-row sm:justify-end">
+          <Button type="button" variant="secondary" size="sm" onClick={onCancel} disabled={loading} autoFocus>
+            {t("savedScreens.deleteCancel")}
+          </Button>
+          <Button type="button" variant="danger" size="sm" onClick={onConfirm} loading={loading}>
+            {t("savedScreens.deleteConfirm")}
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -216,6 +329,11 @@ export default function SavedScreensPage() {
   const [alerts, setAlerts] = useState<AlertRow[]>([]);
   const [canUseAlerts, setCanUseAlerts] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState<SavedScreen | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [removedMessage, setRemovedMessage] = useState<string | null>(null);
+  const removedMessageTimerRef = useRef<number | null>(null);
 
   const loadAll = useCallback(async () => {
     try {
@@ -261,8 +379,59 @@ export default function SavedScreensPage() {
     return () => window.clearTimeout(timer);
   }, [loadAll]);
 
+  useEffect(() => {
+    return () => {
+      if (removedMessageTimerRef.current !== null) {
+        window.clearTimeout(removedMessageTimerRef.current);
+      }
+    };
+  }, []);
+
   function applyScreen(screen: SavedScreen) {
     router.push(`/screener${screen.filter_json ? screenToQueryString(screen.filter_json) : ""}`);
+  }
+
+  function openDeleteDialog(screen: SavedScreen) {
+    setDeleteError(null);
+    setDeleteTarget(screen);
+  }
+
+  async function handleDeleteScreen() {
+    if (!deleteTarget) return;
+    const target = deleteTarget;
+    setDeleteLoading(true);
+    setDeleteError(null);
+
+    try {
+      const res = await fetch(`/api/saved-screens?id=${encodeURIComponent(target.id)}`, {
+        method: "DELETE",
+      });
+      if (res.status === 401) {
+        router.replace("/auth/login");
+        return;
+      }
+      if (res.status === 403) {
+        router.replace("/settings");
+        return;
+      }
+      if (!res.ok) throw new Error("Failed to delete saved screen");
+
+      setScreens((current) => current.filter((screen) => screen.id !== target.id));
+      setAlerts((current) => current.filter((alert) => alert.saved_screen_id !== target.id));
+      setDeleteTarget(null);
+      setRemovedMessage(t("savedScreens.deleteSuccess", { name: target.name }));
+      if (removedMessageTimerRef.current !== null) {
+        window.clearTimeout(removedMessageTimerRef.current);
+      }
+      removedMessageTimerRef.current = window.setTimeout(() => {
+        setRemovedMessage(null);
+        removedMessageTimerRef.current = null;
+      }, 3600);
+    } catch {
+      setDeleteError(t("savedScreens.deleteFailed"));
+    } finally {
+      setDeleteLoading(false);
+    }
   }
 
   async function handleToggleAlert(savedScreenId: string, next: boolean) {
@@ -382,12 +551,39 @@ export default function SavedScreensPage() {
               alert={alertMap.get(screen.id) ?? null}
               canUseAlerts={canUseAlerts}
               onApply={() => applyScreen(screen)}
+              onDelete={() => openDeleteDialog(screen)}
               onToggleAlert={handleToggleAlert}
               t={t}
             />
           ))}
         </div>
       )}
+
+      {deleteTarget ? (
+        <DeleteScreenDialog
+          screen={deleteTarget}
+          loading={deleteLoading}
+          error={deleteError}
+          onCancel={() => {
+            if (!deleteLoading) setDeleteTarget(null);
+          }}
+          onConfirm={handleDeleteScreen}
+          t={t}
+        />
+      ) : null}
+
+      {removedMessage ? (
+        <div
+          className="fixed left-1/2 top-5 z-[90] flex -translate-x-1/2 items-center gap-2 rounded-full border border-success/25 bg-success-soft px-4 py-2.5 text-sm font-bold text-success shadow-[0_16px_42px_rgba(22,163,74,0.2)] backdrop-blur-md"
+          role="status"
+          aria-live="polite"
+        >
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-success text-xs text-white" aria-hidden="true">
+            ✓
+          </span>
+          {removedMessage}
+        </div>
+      ) : null}
     </div>
   );
 }

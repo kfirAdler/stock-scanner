@@ -10,6 +10,7 @@ import type {
   ScannerSortKey,
   ScreenerResultRow,
   ScreenerRule,
+  ScreenerSectorBreakdownItem,
   ScreenerTimeframe,
   ScannerResultSnapshot,
 } from "@/lib/screener-types";
@@ -32,7 +33,31 @@ interface ResultsTableProps {
   sortDir: ScannerSortDir;
   onSortChange: (key: ScannerSortKey) => void;
   screenerFilters?: ScreenerPayload;
+  totalCount?: number | null;
+  sectorBreakdown?: ScreenerSectorBreakdownItem[];
 }
+
+const SECTOR_TRANSLATION_KEYS: Record<string, string> = {
+  "Basic Materials": "basicMaterials",
+  "Communication Services": "communicationServices",
+  "Consumer Cyclical": "consumerCyclical",
+  "Consumer Defensive": "consumerDefensive",
+  Energy: "energy",
+  "Financial Services": "financialServices",
+  Healthcare: "healthcare",
+  Industrials: "industrials",
+  "Real Estate": "realEstate",
+  Technology: "technology",
+  Utilities: "utilities",
+};
+
+const SECTOR_COLORS = [
+  "bg-primary",
+  "bg-success",
+  "bg-warning",
+  "bg-[#8b5cf6]",
+  "bg-[#06b6d4]",
+];
 
 function fmt(val: number | null | undefined, decimals = 2): string {
   if (val === null || val === undefined) return "—";
@@ -88,6 +113,21 @@ function MatchExplanation({ row }: { row: ScreenerResultRow }) {
       ) : null}
     </div>
   );
+}
+
+function sectorLabel(
+  sector: string | null | undefined,
+  t: ReturnType<typeof useTranslations>
+) {
+  if (!sector) return t("sectorMix.unknown");
+  const translationKey = SECTOR_TRANSLATION_KEYS[sector];
+  return translationKey ? t(`sectorNames.${translationKey}`) : sector;
+}
+
+function formatPercentage(count: number, total: number) {
+  if (total <= 0) return "0";
+  const percentage = (count / total) * 100;
+  return percentage >= 10 ? percentage.toFixed(0) : percentage.toFixed(1);
 }
 
 function SmaPill({ above, below }: { above: boolean | null; below: boolean | null }) {
@@ -235,6 +275,8 @@ export function ResultsTable({
   sortDir,
   onSortChange,
   screenerFilters,
+  totalCount,
+  sectorBreakdown,
 }: ResultsTableProps) {
   const t = useTranslations("screener");
   const [density, setDensity] = useState<DensityMode>("compact");
@@ -274,6 +316,33 @@ export function ResultsTable({
     const strong = rows.filter((row) => row.strong_buy_signal || row.strong_sell_signal).length;
     return { bullish, bearish, strong };
   }, [rows]);
+
+  const effectiveSectorBreakdown = useMemo(() => {
+    if (sectorBreakdown && sectorBreakdown.length > 0) return sectorBreakdown;
+    const counts = new Map<string | null, number>();
+    for (const row of rows) {
+      const sector = row.sector?.trim() || null;
+      counts.set(sector, (counts.get(sector) ?? 0) + 1);
+    }
+    return [...counts.entries()]
+      .map(([sector, count]) => ({ sector, count }))
+      .sort((a, b) => b.count - a.count || (a.sector ?? "").localeCompare(b.sector ?? ""));
+  }, [rows, sectorBreakdown]);
+
+  const matchedCount = totalCount ?? rows.length;
+  const sectorSegments = useMemo(() => {
+    const visible = effectiveSectorBreakdown.slice(0, 4).map((item) => ({
+      ...item,
+      isOther: false,
+    }));
+    const otherCount = effectiveSectorBreakdown
+      .slice(4)
+      .reduce((sum, item) => sum + item.count, 0);
+    if (otherCount > 0) {
+      visible.push({ sector: null, count: otherCount, isOther: true });
+    }
+    return visible;
+  }, [effectiveSectorBreakdown]);
 
   const groupedRules = useMemo(() => {
     const initial: Record<ScreenerTimeframe, ScreenerRule[]> = {
@@ -328,7 +397,7 @@ export function ResultsTable({
       <div className="flex min-w-0 flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="shrink-0 text-[15px] font-bold text-text">{t("symbols", { count: rows.length })}</h2>
+            <h2 className="shrink-0 text-[15px] font-bold text-text">{t("symbols", { count: matchedCount })}</h2>
             {activeScanSummary.map((block) => (
               <span
                 key={block.timeframe}
@@ -381,6 +450,69 @@ export function ResultsTable({
         </div>
       </div>
 
+      {sectorSegments.length > 0 ? (
+        <section
+          className="ui-panel-subtle space-y-3 rounded-2xl px-4 py-3"
+          aria-label={t("sectorMix.title")}
+        >
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">
+                {t("sectorMix.title")}
+              </p>
+              <p className="mt-1 text-sm font-semibold text-text">
+                {t("sectorMix.leader", {
+                  sector: sectorLabel(effectiveSectorBreakdown[0]?.sector, t),
+                  percentage: formatPercentage(
+                    effectiveSectorBreakdown[0]?.count ?? 0,
+                    matchedCount
+                  ),
+                })}
+              </p>
+            </div>
+            <p className="text-[11px] text-text-muted">
+              {t("sectorMix.basedOn", { count: matchedCount })}
+            </p>
+          </div>
+
+          <div className="flex h-2.5 overflow-hidden rounded-full bg-surface-hover" aria-hidden="true">
+            {sectorSegments.map((item, index) => (
+              <span
+                key={`${item.isOther ? "other" : item.sector ?? "unknown"}-${index}`}
+                className={clsx("h-full", SECTOR_COLORS[index % SECTOR_COLORS.length])}
+                style={{ width: `${(item.count / Math.max(matchedCount, 1)) * 100}%` }}
+              />
+            ))}
+          </div>
+
+          <div className="flex flex-wrap gap-x-4 gap-y-2">
+            {sectorSegments.map((item, index) => {
+              const label = item.isOther
+                ? t("sectorMix.other")
+                : sectorLabel(item.sector, t);
+              return (
+                <div
+                  key={`${item.isOther ? "other" : item.sector ?? "unknown"}-legend`}
+                  className="flex items-center gap-2 text-[11px]"
+                >
+                  <span
+                    className={clsx(
+                      "h-2.5 w-2.5 rounded-full",
+                      SECTOR_COLORS[index % SECTOR_COLORS.length]
+                    )}
+                    aria-hidden="true"
+                  />
+                  <span className="font-semibold text-text">{label}</span>
+                  <span className="tabular-nums text-text-muted">
+                    {formatPercentage(item.count, matchedCount)}% · {item.count}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+
       <div className="ui-table-shell overflow-hidden rounded-[20px]">
       <div className="divide-y divide-border lg:hidden">
         {rows.map((row) => {
@@ -393,7 +525,15 @@ export function ResultsTable({
                 className="flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left transition-colors hover:bg-surface-hover/70"
               >
                 <div className="min-w-0">
-                  <p className="text-sm font-bold tracking-[0.01em] text-text">{row.ticker}</p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-sm font-bold tracking-[0.01em] text-text">{row.ticker}</p>
+                    <span
+                      className="ui-badge-default rounded-full px-2 py-0.5 text-[10px] font-semibold text-text-secondary"
+                      title={row.industry ?? undefined}
+                    >
+                      {sectorLabel(row.sector, t)}
+                    </span>
+                  </div>
                   <p className="mt-1 text-[11px] text-text-muted">{row.last_trade_date}</p>
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1.5 text-end">
@@ -490,6 +630,9 @@ export function ResultsTable({
                   </button>
                 </th>
               ) : null}
+              <th scope="col" className="px-3 py-2.5 text-start text-[10px] font-bold uppercase tracking-[0.2em] text-text-secondary">
+                {t("table.sector")}
+              </th>
               <th scope="col" className="px-3 py-2.5 text-end text-[10px] font-bold uppercase tracking-[0.2em] text-text-secondary">
                 <button onClick={() => onSortChange("close")} className="link-hover inline-flex items-center gap-1">
                   {t("table.close")}
@@ -545,6 +688,14 @@ export function ResultsTable({
                     </div>
                   </td>
                 ) : null}
+                <td className={clsx(densityRowClass, "min-w-[130px]")}>
+                  <span
+                    className="ui-badge-default inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold text-text-secondary"
+                    title={row.industry ?? undefined}
+                  >
+                    {sectorLabel(row.sector, t)}
+                  </span>
+                </td>
                 <td className={clsx(densityRowClass, "text-end tabular-nums font-semibold text-text")}>{fmt(row.close)}</td>
                 <td className={clsx(densityRowClass, "text-center")}><SmaPill above={row.is_above_sma20} below={row.is_below_sma20} /></td>
                 <td className={clsx(densityRowClass, "text-center")}><SmaPill above={row.is_above_sma50} below={row.is_below_sma50} /></td>

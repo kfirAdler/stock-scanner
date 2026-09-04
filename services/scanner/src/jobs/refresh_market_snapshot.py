@@ -99,6 +99,9 @@ def run(
             upsert_symbol_metadata(
                 ticker,
                 market=mk,
+                company_name=metadata.get("company_name"),
+                sector=metadata.get("sector"),
+                industry=metadata.get("industry"),
                 listing_exchange=listing_exchange,
                 market_cap=metadata.get("market_cap"),
                 return_on_equity=metadata.get("return_on_equity"),

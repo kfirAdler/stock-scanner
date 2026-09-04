@@ -275,10 +275,21 @@
     "saveScan": "שמור סריקה",
     "saveScanPrompt": "איך לקרוא לסריקה השמורה?",
     "saveScanDefaultName": "הסריקה שלי",
-    "saveScanSaved": "הסריקה נשמרה.",
+    "saveScanSaved": "נשמר בהצלחה!",
     "saveScanFailed": "לא ניתן לשמור את הסריקה.",
     "saveScanEmpty": "בחר לפחות מסנן אחד לפני שמירת סריקה.",
     "saveScanSignInRequired": "צריך להתחבר כדי לשמור סריקות.",
+    "saveDialog": {
+      "eyebrow": "שמירת הסטאפ",
+      "title": "תנו שם לסריקה",
+      "body": "שמרו את {count} הפילטרים שהוחלו כדי להפעיל שוב את אותו סטאפ.",
+      "nameLabel": "שם הסריקה",
+      "namePlaceholder": "לדוגמה: מובילי מגמה איכותיים",
+      "nameRequired": "יש להזין שם לסריקה.",
+      "close": "סגור חלון שמירת סריקה",
+      "cancel": "ביטול",
+      "save": "שמור סריקה"
+    },
     "favorite": {
       "save": "שמור מועדף",
       "update": "עדכן מועדף",
@@ -492,6 +503,7 @@
     "table": {
       "ticker": "סימול",
       "matchScore": "התאמה",
+      "sector": "סקטור",
       "close": "סגירה",
       "sma20": "SMA 20",
       "sma50": "SMA 50",
@@ -503,6 +515,26 @@
       "seqState": "רצף",
       "signals": "איתותים",
       "timeframes": "טווחי זמן"
+    },
+    "sectorMix": {
+      "title": "תמהיל סקטורים",
+      "leader": "{sector} מהווה {percentage}% מהסריקה",
+      "basedOn": "מבוסס על {count} התאמות",
+      "unknown": "ללא סיווג",
+      "other": "סקטורים נוספים"
+    },
+    "sectorNames": {
+      "basicMaterials": "חומרי גלם",
+      "communicationServices": "שירותי תקשורת",
+      "consumerCyclical": "צריכה מחזורית",
+      "consumerDefensive": "צריכה בסיסית",
+      "energy": "אנרגיה",
+      "financialServices": "שירותים פיננסיים",
+      "healthcare": "בריאות",
+      "industrials": "תעשייה",
+      "realEstate": "נדל״ן",
+      "technology": "טכנולוגיה",
+      "utilities": "שירותים ציבוריים"
     },
     "workspace": {
       "resultBody": "עברו קודם על רשימת הסימבולים, ואז פתחו כל סימבול כדי לראות את ההקשר היומי, השבועי והחודשי.",
@@ -890,7 +922,16 @@
     "lastChecked": "נבדק לאחרונה: {time}",
     "filterSingular": "פילטר",
     "filterPlural": "פילטרים",
-    "alertsHint": "הפעל התראות על כל סריקה למטה. נעדכן אותך כאן כשמניות חדשות ייכנסו לאחר כל רענון שוק."
+    "alertsHint": "הפעל התראות על כל סריקה למטה. נעדכן אותך כאן כשמניות חדשות ייכנסו לאחר כל רענון שוק.",
+    "remove": "הסר",
+    "deleteDialogEyebrow": "הסרת סריקה שמורה",
+    "deleteDialogTitle": "להסיר את „{name}”?",
+    "deleteDialogBody": "הפעולה תמחק לצמיתות את הסריקה השמורה ואת כל ההתראות המקושרות אליה. לא ניתן לבטל אותה.",
+    "deleteDialogClose": "סגור אישור מחיקה",
+    "deleteCancel": "השאר את הסריקה",
+    "deleteConfirm": "כן, להסיר",
+    "deleteFailed": "לא ניתן להסיר את הסריקה השמורה. נסו שוב.",
+    "deleteSuccess": "„{name}” הוסרה."
   },
   "notifications": {
     "title": "התראות",

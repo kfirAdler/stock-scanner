@@ -249,8 +249,16 @@ export interface ScreenerResultRow extends ScannerResultSnapshot {
   match_score?: number | null;
   match_reasons?: DiscoveryReasonCode[];
   risk_flags?: DiscoveryRiskCode[];
+  company_name?: string | null;
+  sector?: string | null;
+  industry?: string | null;
   matched_timeframes?: ScreenerTimeframe[];
   timeframe_snapshots?: Partial<Record<ScreenerTimeframe, ScannerResultSnapshot | null>>;
+}
+
+export interface ScreenerSectorBreakdownItem {
+  sector: string | null;
+  count: number;
 }
 
 export type ScannerSortKey = "ticker" | "close" | "atr_percent" | "match_score";
@@ -262,6 +270,8 @@ export type ScreenerFilterAvailability = Partial<
 
 export interface ScreenerResultsPage {
   rows: ScreenerResultRow[];
+  totalCount?: number;
+  sectorBreakdown?: ScreenerSectorBreakdownItem[];
   screen: ScreenerPayload;
   limit: number;
   offset: number;

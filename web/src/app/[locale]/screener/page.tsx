@@ -7,8 +7,10 @@ import { Link } from "@/i18n/navigation";
 import { FilterPanel } from "@/components/screener/FilterPanel";
 import { ResultsTable } from "@/components/screener/ResultsTable";
 import { DiscoveryGoalPicker } from "@/components/screener/DiscoveryGoalPicker";
+import { SaveScreenDialog } from "@/components/screener/SaveScreenDialog";
 import { PremiumGate } from "@/components/billing/PremiumGate";
 import { Button } from "@/components/ui/Button";
+import { MoneyCelebration } from "@/components/ui/MoneyCelebration";
 import type {
   DiscoveryGoal,
   ListingMarketFilter,
@@ -16,6 +18,7 @@ import type {
   ScreenerPayload,
   ScreenerResultRow,
   ScreenerResultsPage,
+  ScreenerSectorBreakdownItem,
   ScannerSortDir,
   ScannerSortKey,
 } from "@/lib/screener-types";
@@ -94,8 +97,13 @@ function ScreenerPageContent() {
   const [favoriteSaving, setFavoriteSaving] = useState(false);
   const [favoriteStatus, setFavoriteStatus] = useState<string | null>(null);
   const [saveScanLoading, setSaveScanLoading] = useState(false);
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [saveDialogError, setSaveDialogError] = useState<string | null>(null);
+  const [celebrationRun, setCelebrationRun] = useState<number | null>(null);
   const [filterPanelResetKey, setFilterPanelResetKey] = useState(0);
   const [results, setResults] = useState<ScreenerResultRow[]>([]);
+  const [totalMatches, setTotalMatches] = useState<number | null>(null);
+  const [sectorBreakdown, setSectorBreakdown] = useState<ScreenerSectorBreakdownItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [loadingGoal, setLoadingGoal] = useState<DiscoveryGoal | null>(null);
@@ -120,6 +128,7 @@ function ScreenerPageContent() {
   const requestAbortControllerRef = useRef<AbortController | null>(null);
   const requestSequenceRef = useRef(0);
   const handledSearchParamsRef = useRef<string | null>(null);
+  const celebrationTimerRef = useRef<number | null>(null);
 
   const fetchResults = useCallback(async ({
     nextFilters = filtersRef.current,
@@ -150,6 +159,8 @@ function ScreenerPageContent() {
       setLoading(true);
       setLoadingMore(false);
       setResults([]);
+      setTotalMatches(null);
+      setSectorBreakdown([]);
       setHasMore(false);
     }
     setHasSearched(true);
@@ -191,6 +202,10 @@ function ScreenerPageContent() {
       const data = (await res.json()) as ScreenerResultsPage;
       if (requestId !== requestSequenceRef.current) return;
       const nextRows = data.rows ?? [];
+      if (!append) {
+        setTotalMatches(typeof data.totalCount === "number" ? data.totalCount : nextRows.length);
+        setSectorBreakdown(data.sectorBreakdown ?? []);
+      }
       setHasMore(!!data.hasMore);
       setResults((current) => {
         if (!append) return nextRows;
@@ -210,6 +225,8 @@ function ScreenerPageContent() {
       setResultsError(t("resultsError"));
       if (!append) {
         setResults([]);
+        setTotalMatches(null);
+        setSectorBreakdown([]);
         setHasMore(false);
       }
     } finally {
@@ -329,6 +346,8 @@ function ScreenerPageContent() {
       requestAbortControllerRef.current = null;
       requestInFlightRef.current = false;
       setResults([]);
+      setTotalMatches(null);
+      setSectorBreakdown([]);
       setHasMore(false);
       setHasSearched(false);
       setResultsError(null);
@@ -343,7 +362,12 @@ function ScreenerPageContent() {
   }, [fetchResults, searchParamsKey, urlFilters]);
 
   useEffect(() => {
-    return () => requestAbortControllerRef.current?.abort();
+    return () => {
+      requestAbortControllerRef.current?.abort();
+      if (celebrationTimerRef.current !== null) {
+        window.clearTimeout(celebrationTimerRef.current);
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -389,16 +413,16 @@ function ScreenerPageContent() {
     const strongSignals = results.filter(
       (row) => row.strong_buy_signal || row.strong_sell_signal
     ).length;
-    const higherTimeframeRules = filters.rules.filter(
+    const higherTimeframeRules = appliedFilters.rules.filter(
       (rule) => rule.timeframe === "1W" || rule.timeframe === "1M"
     ).length;
     return {
-      rows: results.length,
-      rules: activeFilterCount,
+      rows: totalMatches ?? results.length,
+      rules: appliedFilterCount,
       strongSignals,
       higherTimeframeRules,
     };
-  }, [activeFilterCount, filters.rules, results]);
+  }, [appliedFilterCount, appliedFilters.rules, results, totalMatches]);
   const formattedLastUpdated = useMemo(() => {
     if (!lastUpdated) return null;
     try {
@@ -527,7 +551,7 @@ function ScreenerPageContent() {
   }
 
   async function handleSaveFavorite() {
-    if (activeFilterCount === 0) {
+    if (appliedFilterCount === 0) {
       setFavoriteStatus(t("favorite.emptySave"));
       return;
     }
@@ -535,7 +559,7 @@ function ScreenerPageContent() {
     setFavoriteSaving(true);
     setFavoriteStatus(null);
     try {
-      const normalized = coerceStoredScreen(filters) ?? DEFAULT_SCREENER_PAYLOAD;
+      const normalized = coerceStoredScreen(appliedFilters) ?? DEFAULT_SCREENER_PAYLOAD;
       const res = await fetch("/api/preferences", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -560,21 +584,22 @@ function ScreenerPageContent() {
     }
   }
 
-  async function handleSaveScan() {
-    if (activeFilterCount === 0) {
+  function handleOpenSaveScan() {
+    if (appliedFilterCount === 0) {
       setFavoriteStatus(t("saveScanEmpty"));
       return;
     }
 
-    const name = window.prompt(t("saveScanPrompt"), t("saveScanDefaultName"));
-    if (!name || name.trim() === "") {
-      return;
-    }
+    setSaveDialogError(null);
+    setSaveDialogOpen(true);
+  }
 
+  async function handleSaveScan(name: string) {
     setSaveScanLoading(true);
+    setSaveDialogError(null);
     setFavoriteStatus(null);
     try {
-      const normalized = coerceStoredScreen(filters) ?? DEFAULT_SCREENER_PAYLOAD;
+      const normalized = coerceStoredScreen(appliedFilters) ?? DEFAULT_SCREENER_PAYLOAD;
       const res = await fetch("/api/saved-screens", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -582,7 +607,7 @@ function ScreenerPageContent() {
       });
 
       if (res.status === 401) {
-        setFavoriteStatus(t("saveScanSignInRequired"));
+        setSaveDialogError(t("saveScanSignInRequired"));
         return;
       }
 
@@ -590,9 +615,18 @@ function ScreenerPageContent() {
         throw new Error("Failed to save scan");
       }
 
+      setSaveDialogOpen(false);
       setFavoriteStatus(t("saveScanSaved"));
+      setCelebrationRun(Date.now());
+      if (celebrationTimerRef.current !== null) {
+        window.clearTimeout(celebrationTimerRef.current);
+      }
+      celebrationTimerRef.current = window.setTimeout(() => {
+        setCelebrationRun(null);
+        celebrationTimerRef.current = null;
+      }, 2900);
     } catch {
-      setFavoriteStatus(t("saveScanFailed"));
+      setSaveDialogError(t("saveScanFailed"));
     } finally {
       setSaveScanLoading(false);
     }
@@ -634,7 +668,7 @@ function ScreenerPageContent() {
     setSortKey(key);
     setSortDir(nextDir);
     void fetchResults({
-      nextFilters: filtersRef.current,
+      nextFilters: appliedFilters,
       nextOffset: 0,
       append: false,
       nextSortKey: key,
@@ -787,14 +821,6 @@ function ScreenerPageContent() {
                 presetDisabledReason={presetDisabledReason}
                 filterAvailability={filterAvailability ?? undefined}
                 loading={loading}
-                onSaveScan={handleSaveScan}
-                saveScanLoading={saveScanLoading}
-                onSaveFavorite={handleSaveFavorite}
-                onLoadFavorite={handleLoadFavorite}
-                favoriteSaving={favoriteSaving}
-                favoriteLoading={favoriteLoading}
-                favoriteAvailable={hasFavorite}
-                favoriteStatus={favoriteStatus}
                 onClose={() => setDesktopFiltersOpen(false)}
                 hasPendingChanges={hasPendingChanges}
                 resultCount={resultSummary.rows}
@@ -804,23 +830,71 @@ function ScreenerPageContent() {
             </div>
 
             <div className="min-w-0 space-y-3">
-              <div className="ui-panel-subtle flex flex-wrap items-center gap-2 rounded-2xl px-3.5 py-2.5 text-text-secondary">
-                <span className="ui-badge-default rounded-full px-2.5 py-1 text-[11px] font-semibold text-text">
-                  {t("workspace.appliedCount", { count: appliedFilterCount })}
-                </span>
-                <span className="ui-badge-default rounded-full px-2.5 py-1 text-[11px] font-semibold text-text">
-                  {t("terminalHeader.appliedRules", { count: appliedFilters.rules.length })}
-                </span>
-                {resultSummary.strongSignals > 0 ? (
-                  <span className="rounded-full bg-success-soft px-2.5 py-1 text-[11px] font-semibold text-success ring-1 ring-success/15">
-                    {resultSummary.strongSignals} {t("terminalHeader.cards.strong")}
+              <div className="ui-panel-subtle flex flex-col gap-2.5 rounded-2xl px-3.5 py-2.5 text-text-secondary sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="ui-badge-default rounded-full px-2.5 py-1 text-[11px] font-semibold text-text">
+                    {t("workspace.appliedCount", { count: appliedFilterCount })}
                   </span>
-                ) : null}
-                {resultSummary.higherTimeframeRules > 0 ? (
-                  <span className="rounded-full bg-primary-soft px-2.5 py-1 text-[11px] font-semibold text-primary ring-1 ring-primary/20 dark:text-[#dbe6ff]">
-                    {t("terminalHeader.multiBlocks", { count: resultSummary.higherTimeframeRules })}
+                  <span className="ui-badge-default rounded-full px-2.5 py-1 text-[11px] font-semibold text-text">
+                    {t("terminalHeader.appliedRules", { count: appliedFilters.rules.length })}
                   </span>
-                ) : null}
+                  {resultSummary.strongSignals > 0 ? (
+                    <span className="rounded-full bg-success-soft px-2.5 py-1 text-[11px] font-semibold text-success ring-1 ring-success/15">
+                      {resultSummary.strongSignals} {t("terminalHeader.cards.strong")}
+                    </span>
+                  ) : null}
+                  {resultSummary.higherTimeframeRules > 0 ? (
+                    <span className="rounded-full bg-primary-soft px-2.5 py-1 text-[11px] font-semibold text-primary ring-1 ring-primary/20 dark:text-[#dbe6ff]">
+                      {t("terminalHeader.multiBlocks", { count: resultSummary.higherTimeframeRules })}
+                    </span>
+                  ) : null}
+                </div>
+                <div className="flex flex-col items-start gap-1.5 sm:items-end">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={handleSaveFavorite}
+                      loading={favoriteSaving}
+                      disabled={appliedFilterCount === 0}
+                      className="border-warning/30 bg-warning-soft text-warning shadow-none hover:bg-warning-soft/80"
+                    >
+                      <span className="inline-flex items-center gap-1.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5" aria-hidden="true">
+                          <path d="M10 1.5l2.6 5.27 5.82.85-4.21 4.1.99 5.79L10 14.77l-5.2 2.73.99-5.79L1.58 7.62l5.82-.85L10 1.5z" />
+                        </svg>
+                        {hasFavorite ? t("favorite.update") : t("favorite.save")}
+                      </span>
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={handleOpenSaveScan}
+                      loading={saveScanLoading}
+                      disabled={appliedFilterCount === 0}
+                    >
+                      <span className="inline-flex items-center gap-1.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5" aria-hidden="true">
+                          <path d="M3.5 2.5h10.586L16.5 4.914V17.5h-13v-15zm2 2v4h8v-4h-8zm1 7v4h7v-4h-7z" />
+                        </svg>
+                        {t("saveScan")}
+                      </span>
+                    </Button>
+                    <Link
+                      href="/saved-screens"
+                      className="ui-control inline-flex h-8 items-center rounded-lg px-3 text-xs font-semibold text-text-secondary transition-colors hover:border-border-strong hover:text-text"
+                    >
+                      {t("workspace.savedScreensLink")}
+                    </Link>
+                  </div>
+                  {favoriteStatus ? (
+                    <p className="text-[11px] font-semibold text-text-secondary" aria-live="polite">
+                      {favoriteStatus}
+                    </p>
+                  ) : null}
+                </div>
               </div>
 
               {hasSearched ? (
@@ -834,6 +908,8 @@ function ScreenerPageContent() {
                   sortDir={sortDir}
                   onSortChange={handleSortChange}
                   screenerFilters={appliedFilters}
+                  totalCount={totalMatches ?? undefined}
+                  sectorBreakdown={sectorBreakdown}
                 />
               ) : (
                 <div className="ui-panel flex min-h-[520px] items-center justify-center rounded-2xl border-dashed px-6 text-center">
@@ -885,14 +961,6 @@ function ScreenerPageContent() {
                 presetDisabledReason={presetDisabledReason}
                 filterAvailability={filterAvailability ?? undefined}
                 loading={loading}
-                onSaveScan={handleSaveScan}
-                saveScanLoading={saveScanLoading}
-                onSaveFavorite={handleSaveFavorite}
-                onLoadFavorite={handleLoadFavorite}
-                favoriteSaving={favoriteSaving}
-                favoriteLoading={favoriteLoading}
-                favoriteAvailable={hasFavorite}
-                favoriteStatus={favoriteStatus}
                 onClose={() => setMobileFiltersOpen(false)}
                 hasPendingChanges={hasPendingChanges}
                 resultCount={resultSummary.rows}
@@ -920,6 +988,23 @@ function ScreenerPageContent() {
             </div>
           </div>
         )}
+
+        {saveDialogOpen ? (
+          <SaveScreenDialog
+            defaultName={t("saveScanDefaultName")}
+            filterCount={appliedFilterCount}
+            loading={saveScanLoading}
+            error={saveDialogError}
+            onClose={() => {
+              if (!saveScanLoading) setSaveDialogOpen(false);
+            }}
+            onSave={handleSaveScan}
+          />
+        ) : null}
+
+        {celebrationRun !== null ? (
+          <MoneyCelebration key={celebrationRun} message={t("saveScanSaved")} />
+        ) : null}
 
       </div>
     </div>

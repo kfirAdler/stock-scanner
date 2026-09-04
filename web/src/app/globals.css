@@ -508,6 +508,67 @@ button:disabled {
   unicode-bidi: isolate;
 }
 
+@keyframes money-confetti-fall {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -16vh, 0) rotate(var(--money-rotation)) scale(var(--money-scale));
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.12;
+    transform: translate3d(var(--money-drift), 112vh, 0) rotate(calc(var(--money-rotation) + 540deg)) scale(var(--money-scale));
+  }
+}
+
+.money-confetti-bill {
+  --money-left: 50%;
+  --money-delay: 0s;
+  --money-duration: 2.3s;
+  --money-drift: 0px;
+  --money-rotation: 0deg;
+  --money-scale: 1;
+  position: absolute;
+  top: -12vh;
+  left: var(--money-left);
+  display: flex;
+  width: 2.75rem;
+  height: 1.4rem;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #15803d;
+  border-radius: 0.3rem;
+  background: linear-gradient(135deg, #bbf7d0 0%, #4ade80 52%, #86efac 100%);
+  color: #14532d;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: -0.12em;
+  box-shadow: inset 0 0 0 2px rgb(255 255 255 / 34%), 0 5px 14px rgb(22 101 52 / 24%);
+  animation: money-confetti-fall var(--money-duration) cubic-bezier(0.2, 0.65, 0.35, 1) var(--money-delay) both;
+  will-change: transform, opacity;
+}
+
+.money-confetti-bill::before,
+.money-confetti-bill::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 0.28rem;
+  height: 0.28rem;
+  border: 1px solid rgb(20 83 45 / 55%);
+  border-radius: 999px;
+  transform: translateY(-50%);
+}
+
+.money-confetti-bill::before {
+  left: 0.25rem;
+}
+
+.money-confetti-bill::after {
+  right: 0.25rem;
+}
+
 @media (min-width: 640px) {
   .page-shell {
     padding-inline: 1.5rem;
