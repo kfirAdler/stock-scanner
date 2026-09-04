@@ -13,10 +13,7 @@ export async function POST(request: NextRequest) {
 
   const supabase = await createServiceClient();
 
-  const body = await request.json().catch(() => ({}));
-  const tickers: string[] | undefined = body.tickers;
-
-  let query = supabase
+  const query = supabase
     .from("symbol_indicator_snapshot")
     .select("ticker, updated_at")
     .eq("timeframe", "1D")
@@ -48,10 +45,10 @@ export async function POST(request: NextRequest) {
   });
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   const supabase = await createServiceClient();
 
-  const { data: runs, error } = await supabase
+  const { data: runs } = await supabase
     .from("scan_runs")
     .select("*")
     .order("started_at", { ascending: false })

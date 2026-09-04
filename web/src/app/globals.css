@@ -473,6 +473,44 @@ button:disabled {
   box-shadow: inset 2px 0 0 0 color-mix(in srgb, var(--color-neon) 70%, transparent);
 }
 
+.premium-metric-card {
+  min-width: 0;
+  border-radius: 1rem;
+  border: 1px solid color-mix(in srgb, var(--color-border-strong) 82%, transparent);
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--color-surface-elevated) 96%, transparent), color-mix(in srgb, var(--color-surface-alt) 82%, transparent));
+  padding: 0.875rem 1rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+.premium-metric-label {
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.premium-metric-value {
+  margin-top: 0.35rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.premium-metric-meta {
+  margin-top: 0.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.68rem;
+  color: var(--color-text-secondary);
+}
+
 .dark .ui-table-row:hover,
 .dark .ui-table-row:focus-within {
   background-color: color-mix(in srgb, var(--color-neon) 8%, var(--color-surface-hover));
@@ -496,6 +534,26 @@ button:disabled {
 ::selection {
   background-color: var(--color-primary);
   color: white;
+}
+
+.skip-link {
+  position: fixed;
+  inset-inline-start: 1rem;
+  top: 0.75rem;
+  z-index: 200;
+  transform: translateY(-180%);
+  border-radius: 0.75rem;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  padding: 0.65rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 800;
+  box-shadow: var(--color-shadow-overlay);
+  transition: transform 150ms ease;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
 }
 
 .dark ::selection {

@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
-import { useTranslations } from "next-intl";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type MouseEvent } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import { clsx } from "clsx";
 import { Button } from "@/components/ui/Button";
+import { useModalDialog } from "@/hooks/useModalDialog";
 import { countActiveFilters, screenToQueryString } from "@/lib/screener-query";
 import type { ScreenerPayload } from "@/lib/screener-types";
 
@@ -20,6 +21,13 @@ interface AlertRow {
   saved_screen_id: string;
   enabled: boolean;
   last_checked_at: string | null;
+}
+
+type ScreenAction = "rename" | "duplicate";
+
+interface RecentlyDeleted {
+  screen: SavedScreen;
+  alert: AlertRow | null;
 }
 
 function BellIcon({ className }: { className?: string }) {
@@ -82,6 +90,7 @@ function AlertToggle({
   canUseAlerts,
   onToggle,
   lastCheckedAt,
+  locale,
   t,
 }: {
   enabled: boolean;
@@ -89,6 +98,7 @@ function AlertToggle({
   canUseAlerts: boolean;
   onToggle: (next: boolean) => void;
   lastCheckedAt: string | null;
+  locale: string;
   t: ReturnType<typeof useTranslations>;
 }) {
   if (!canUseAlerts) {
@@ -119,10 +129,11 @@ function AlertToggle({
         <button
           role="switch"
           aria-checked={enabled}
+          aria-label={t("savedScreens.alertToggleLabel")}
           disabled={loading}
           onClick={() => onToggle(!enabled)}
           className={clsx(
-            "relative inline-flex h-[22px] w-10 flex-shrink-0 items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out",
+            "relative inline-flex h-7 w-12 flex-shrink-0 items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
             enabled ? "bg-[color:var(--color-neon)]" : "bg-border-strong",
             loading && "cursor-not-allowed opacity-60"
@@ -130,8 +141,10 @@ function AlertToggle({
         >
           <span
             className={clsx(
-              "pointer-events-none block h-[14px] w-[14px] transform rounded-full bg-white shadow-md transition-transform duration-200 ease-in-out",
-              enabled ? "translate-x-[20px]" : "translate-x-[2px]"
+              "pointer-events-none block h-5 w-5 transform rounded-full bg-white shadow-md transition-transform duration-200 ease-in-out",
+              enabled
+                ? "ltr:translate-x-[22px] rtl:-translate-x-[22px]"
+                : "ltr:translate-x-[2px] rtl:-translate-x-[2px]"
             )}
           />
         </button>
@@ -142,7 +155,7 @@ function AlertToggle({
       {enabled && lastCheckedAt ? (
         <span className="text-[10px] text-text-muted">
           {t("savedScreens.lastChecked", {
-            time: new Date(lastCheckedAt).toLocaleString(),
+            time: new Date(lastCheckedAt).toLocaleString(locale),
           })}
         </span>
       ) : null}
@@ -155,21 +168,28 @@ function ScreenCard({
   alert,
   canUseAlerts,
   onApply,
+  onRename,
+  onDuplicate,
   onDelete,
   onToggleAlert,
+  locale,
   t,
 }: {
   screen: SavedScreen;
   alert: AlertRow | null;
   canUseAlerts: boolean;
   onApply: () => void;
+  onRename: () => void;
+  onDuplicate: () => void;
   onDelete: () => void;
   onToggleAlert: (screenId: string, next: boolean) => Promise<void>;
+  locale: string;
   t: ReturnType<typeof useTranslations>;
 }) {
   const [toggling, setToggling] = useState(false);
   const filterCount = screen.filter_json ? countActiveFilters(screen.filter_json) : 0;
   const alertEnabled = alert?.enabled ?? false;
+  const discoveryGoal = screen.filter_json?.discovery_goal;
 
   async function handleToggle(next: boolean) {
     setToggling(true);
@@ -204,7 +224,7 @@ function ScreenCard({
           ) : null}
         </div>
         <p className="text-xs text-text-secondary">
-          {new Date(screen.updated_at).toLocaleDateString()}
+          {new Date(screen.updated_at).toLocaleDateString(locale)}
           <span className="mx-1.5 opacity-40">·</span>
           <span>
             {filterCount}{" "}
@@ -213,18 +233,34 @@ function ScreenCard({
               : t("savedScreens.filterPlural")}
           </span>
         </p>
+        {discoveryGoal ? (
+          <p className="mt-1 inline-flex w-fit items-center gap-1.5 rounded-full bg-primary-soft px-2.5 py-1 text-[10px] font-bold text-primary ring-1 ring-primary/10">
+            <span aria-hidden="true">✦</span>
+            {t(`screener.discovery.goals.${discoveryGoal}.title`)}
+          </p>
+        ) : null}
       </div>
 
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
-        <Button size="sm" variant="secondary" onClick={onApply}>
+      <div className="flex flex-col gap-3 md:items-end">
+        <div className="flex flex-wrap items-center gap-2">
+        <Button size="sm" variant="secondary" onClick={onApply} className="flex-1 md:flex-none">
           {t("savedScreens.viewScan")}
         </Button>
+        <Button size="sm" variant="ghost" onClick={onRename}>
+          {t("savedScreens.rename")}
+        </Button>
+        <Button size="sm" variant="ghost" onClick={onDuplicate}>
+          {t("savedScreens.duplicate")}
+        </Button>
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-3 md:justify-end">
         <AlertToggle
           enabled={alertEnabled}
           loading={toggling}
           canUseAlerts={canUseAlerts}
           onToggle={handleToggle}
           lastCheckedAt={alert?.last_checked_at ?? null}
+          locale={locale}
           t={t}
         />
         <Button
@@ -236,6 +272,7 @@ function ScreenCard({
           <TrashIcon className="h-4 w-4" />
           {t("savedScreens.remove")}
         </Button>
+        </div>
       </div>
     </div>
   );
@@ -256,6 +293,11 @@ function DeleteScreenDialog({
   onConfirm: () => void;
   t: ReturnType<typeof useTranslations>;
 }) {
+  const dialogRef = useModalDialog<HTMLDivElement>({
+    onClose: onCancel,
+    closeDisabled: loading,
+  });
+
   function handleBackdropClick(event: MouseEvent<HTMLDivElement>) {
     if (event.target === event.currentTarget && !loading) onCancel();
   }
@@ -264,16 +306,16 @@ function DeleteScreenDialog({
     <div
       className="fixed inset-0 z-[80] flex items-center justify-center bg-text/55 p-4 backdrop-blur-sm"
       onMouseDown={handleBackdropClick}
-      onKeyDown={(event) => {
-        if (event.key === "Escape" && !loading) onCancel();
-      }}
     >
       <div
+        ref={dialogRef}
         className="ui-panel-strong w-full max-w-md overflow-hidden rounded-[24px] shadow-[0_30px_80px_rgba(15,23,42,0.3)]"
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="delete-screen-title"
         aria-describedby="delete-screen-description"
+        aria-busy={loading}
+        tabIndex={-1}
       >
         <div className="px-5 py-5">
           <div className="flex items-start gap-4">
@@ -295,7 +337,7 @@ function DeleteScreenDialog({
               type="button"
               onClick={onCancel}
               disabled={loading}
-              className="ui-control inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-lg text-text-secondary transition-colors hover:border-border-strong hover:text-text disabled:opacity-50"
+              className="ui-control inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg text-text-secondary transition-colors hover:border-border-strong hover:text-text disabled:opacity-50"
               aria-label={t("savedScreens.deleteDialogClose")}
             >
               ×
@@ -310,7 +352,7 @@ function DeleteScreenDialog({
         </div>
 
         <div className="flex flex-col-reverse gap-2 border-t border-border bg-surface-alt/45 px-5 py-3.5 sm:flex-row sm:justify-end">
-          <Button type="button" variant="secondary" size="sm" onClick={onCancel} disabled={loading} autoFocus>
+          <Button type="button" variant="secondary" size="sm" onClick={onCancel} disabled={loading} data-autofocus>
             {t("savedScreens.deleteCancel")}
           </Button>
           <Button type="button" variant="danger" size="sm" onClick={onConfirm} loading={loading}>
@@ -322,20 +364,152 @@ function DeleteScreenDialog({
   );
 }
 
+function ScreenNameDialog({
+  mode,
+  screen,
+  loading,
+  error,
+  onCancel,
+  onConfirm,
+  t,
+}: {
+  mode: ScreenAction;
+  screen: SavedScreen;
+  loading: boolean;
+  error: string | null;
+  onCancel: () => void;
+  onConfirm: (name: string) => Promise<void>;
+  t: ReturnType<typeof useTranslations>;
+}) {
+  const [name, setName] = useState(
+    mode === "duplicate" ? t("savedScreens.copyName", { name: screen.name }) : screen.name
+  );
+  const [nameError, setNameError] = useState<string | null>(null);
+  const dialogRef = useModalDialog<HTMLFormElement>({
+    onClose: onCancel,
+    closeDisabled: loading,
+  });
+
+  function handleBackdropClick(event: MouseEvent<HTMLDivElement>) {
+    if (event.target === event.currentTarget && !loading) onCancel();
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const normalized = name.trim();
+    if (!normalized) {
+      setNameError(t("savedScreens.nameRequired"));
+      return;
+    }
+    setNameError(null);
+    await onConfirm(normalized);
+  }
+
+  const titleId = `saved-screen-${mode}-title`;
+  const descriptionId = `saved-screen-${mode}-description`;
+
+  return (
+    <div
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-text/55 p-4 backdrop-blur-sm"
+      onMouseDown={handleBackdropClick}
+    >
+      <form
+        ref={dialogRef}
+        onSubmit={handleSubmit}
+        className="ui-panel-strong w-full max-w-md overflow-hidden rounded-[24px] shadow-[0_30px_80px_rgba(15,23,42,0.3)]"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={descriptionId}
+        aria-busy={loading}
+        tabIndex={-1}
+      >
+        <div className="border-b border-border bg-surface-alt/55 px-5 py-4">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
+                {t(`savedScreens.${mode}Eyebrow`)}
+              </p>
+              <h2 id={titleId} className="mt-1 text-xl font-bold text-text">
+                {t(`savedScreens.${mode}Title`)}
+              </h2>
+              <p id={descriptionId} className="mt-1 text-sm text-text-secondary">
+                {t(`savedScreens.${mode}Body`)}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onCancel}
+              disabled={loading}
+              className="ui-control inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg text-text-secondary"
+              aria-label={t("savedScreens.nameDialogClose")}
+            >
+              ×
+            </button>
+          </div>
+        </div>
+
+        <div className="space-y-3 px-5 py-5">
+          <label className="block text-xs font-bold text-text" htmlFor={`saved-screen-${mode}-name`}>
+            {t("savedScreens.nameLabel")}
+          </label>
+          <input
+            id={`saved-screen-${mode}-name`}
+            data-autofocus
+            value={name}
+            maxLength={80}
+            onChange={(event) => {
+              setName(event.target.value);
+              if (nameError) setNameError(null);
+            }}
+            className="ui-control min-h-11 w-full rounded-xl px-3.5 py-2.5 text-sm outline-none focus:border-primary"
+            aria-invalid={!!(nameError || error)}
+            aria-describedby={nameError || error ? `saved-screen-${mode}-error` : undefined}
+          />
+          {nameError || error ? (
+            <p id={`saved-screen-${mode}-error`} className="rounded-xl bg-danger-soft px-3 py-2 text-xs font-semibold text-danger" role="alert">
+              {nameError ?? error}
+            </p>
+          ) : null}
+        </div>
+
+        <div className="flex justify-end gap-2 border-t border-border bg-surface-alt/45 px-5 py-3.5">
+          <Button type="button" variant="ghost" size="sm" onClick={onCancel} disabled={loading}>
+            {t("savedScreens.actionCancel")}
+          </Button>
+          <Button type="submit" size="sm" loading={loading}>
+            {t(`savedScreens.${mode}Confirm`)}
+          </Button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 export default function SavedScreensPage() {
   const t = useTranslations();
+  const locale = useLocale();
   const router = useRouter();
   const [screens, setScreens] = useState<SavedScreen[]>([]);
   const [alerts, setAlerts] = useState<AlertRow[]>([]);
   const [canUseAlerts, setCanUseAlerts] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<SavedScreen | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [removedMessage, setRemovedMessage] = useState<string | null>(null);
-  const removedMessageTimerRef = useRef<number | null>(null);
+  const [actionTarget, setActionTarget] = useState<SavedScreen | null>(null);
+  const [actionMode, setActionMode] = useState<ScreenAction>("rename");
+  const [actionLoading, setActionLoading] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [actionStatus, setActionStatus] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortMode, setSortMode] = useState<"recent" | "name">("recent");
+  const [recentlyDeleted, setRecentlyDeleted] = useState<RecentlyDeleted | null>(null);
+  const toastTimerRef = useRef<number | null>(null);
 
   const loadAll = useCallback(async () => {
+    setLoadError(null);
     try {
       const [screensRes, entitlementRes] = await Promise.all([
         fetch("/api/saved-screens"),
@@ -368,11 +542,11 @@ export default function SavedScreensPage() {
         setAlerts([]);
       }
     } catch {
-      // ignore
+      setLoadError(t("savedScreens.loadFailed"));
     } finally {
       setLoading(false);
     }
-  }, [router]);
+  }, [router, t]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => void loadAll(), 0);
@@ -381,8 +555,8 @@ export default function SavedScreensPage() {
 
   useEffect(() => {
     return () => {
-      if (removedMessageTimerRef.current !== null) {
-        window.clearTimeout(removedMessageTimerRef.current);
+      if (toastTimerRef.current !== null) {
+        window.clearTimeout(toastTimerRef.current);
       }
     };
   }, []);
@@ -394,6 +568,53 @@ export default function SavedScreensPage() {
   function openDeleteDialog(screen: SavedScreen) {
     setDeleteError(null);
     setDeleteTarget(screen);
+  }
+
+  function openNameDialog(mode: ScreenAction, screen: SavedScreen) {
+    setActionMode(mode);
+    setActionError(null);
+    setActionTarget(screen);
+  }
+
+  async function saveScreenAction(name: string) {
+    if (!actionTarget?.filter_json) return;
+    setActionLoading(true);
+    setActionError(null);
+    try {
+      const res = await fetch("/api/saved-screens", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...(actionMode === "rename" ? { id: actionTarget.id } : {}),
+          name,
+          filter_json: actionTarget.filter_json,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to save screen action");
+      const data = (await res.json()) as { screen?: SavedScreen };
+      if (!data.screen) throw new Error("Saved screen missing from response");
+      const savedScreen = data.screen;
+
+      setScreens((current) => actionMode === "rename"
+        ? current.map((screen) => screen.id === savedScreen.id ? savedScreen : screen)
+        : [savedScreen, ...current]
+      );
+      setActionTarget(null);
+      setActionStatus(
+        actionMode === "rename"
+          ? t("savedScreens.renameSuccess", { name })
+          : t("savedScreens.duplicateSuccess", { name })
+      );
+      if (toastTimerRef.current !== null) window.clearTimeout(toastTimerRef.current);
+      toastTimerRef.current = window.setTimeout(() => {
+        setActionStatus(null);
+        toastTimerRef.current = null;
+      }, 4200);
+    } catch {
+      setActionError(t("savedScreens.actionFailed"));
+    } finally {
+      setActionLoading(false);
+    }
   }
 
   async function handleDeleteScreen() {
@@ -417,21 +638,65 @@ export default function SavedScreensPage() {
       if (!res.ok) throw new Error("Failed to delete saved screen");
 
       setScreens((current) => current.filter((screen) => screen.id !== target.id));
+      const targetAlert = alerts.find((alert) => alert.saved_screen_id === target.id) ?? null;
       setAlerts((current) => current.filter((alert) => alert.saved_screen_id !== target.id));
       setDeleteTarget(null);
-      setRemovedMessage(t("savedScreens.deleteSuccess", { name: target.name }));
-      if (removedMessageTimerRef.current !== null) {
-        window.clearTimeout(removedMessageTimerRef.current);
-      }
-      removedMessageTimerRef.current = window.setTimeout(() => {
-        setRemovedMessage(null);
-        removedMessageTimerRef.current = null;
-      }, 3600);
+      setRecentlyDeleted({ screen: target, alert: targetAlert });
+      setActionStatus(null);
+      if (toastTimerRef.current !== null) window.clearTimeout(toastTimerRef.current);
+      toastTimerRef.current = window.setTimeout(() => {
+        setRecentlyDeleted(null);
+        toastTimerRef.current = null;
+      }, 7000);
     } catch {
       setDeleteError(t("savedScreens.deleteFailed"));
     } finally {
       setDeleteLoading(false);
     }
+  }
+
+  async function undoDelete() {
+    if (!recentlyDeleted?.screen.filter_json) return;
+    const deleted = recentlyDeleted;
+    if (toastTimerRef.current !== null) window.clearTimeout(toastTimerRef.current);
+    setRecentlyDeleted(null);
+    setActionStatus(t("savedScreens.restoring"));
+
+    try {
+      const res = await fetch("/api/saved-screens", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: deleted.screen.name,
+          filter_json: deleted.screen.filter_json,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to restore saved screen");
+      const data = (await res.json()) as { screen?: SavedScreen };
+      if (!data.screen) throw new Error("Restored screen missing from response");
+      const restoredScreen = data.screen;
+
+      setScreens((current) => [restoredScreen, ...current]);
+      if (deleted.alert?.enabled) {
+        const alertRes = await fetch("/api/alerts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ saved_screen_id: restoredScreen.id, enabled: true }),
+        });
+        if (alertRes.ok) {
+          const alertData = await alertRes.json();
+          if (alertData.alert) setAlerts((current) => [...current, alertData.alert]);
+        }
+      }
+      setActionStatus(t("savedScreens.restoreSuccess", { name: deleted.screen.name }));
+    } catch {
+      setActionStatus(t("savedScreens.restoreFailed"));
+    }
+
+    toastTimerRef.current = window.setTimeout(() => {
+      setActionStatus(null);
+      toastTimerRef.current = null;
+    }, 4500);
   }
 
   async function handleToggleAlert(savedScreenId: string, next: boolean) {
@@ -471,6 +736,7 @@ export default function SavedScreensPage() {
             : alert
         )
       );
+      setActionStatus(t("savedScreens.alertUpdateFailed"));
     }
   }
 
@@ -478,6 +744,23 @@ export default function SavedScreensPage() {
     () => new Map(alerts.map((alert) => [alert.saved_screen_id, alert])),
     [alerts]
   );
+  const visibleScreens = useMemo(() => {
+    const normalizedQuery = searchQuery.trim().toLocaleLowerCase(locale);
+    const filtered = normalizedQuery
+      ? screens.filter((screen) => screen.name.toLocaleLowerCase(locale).includes(normalizedQuery))
+      : screens;
+    return [...filtered].sort((a, b) => {
+      if (sortMode === "name") return a.name.localeCompare(b.name, locale);
+      return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+    });
+  }, [locale, screens, searchQuery, sortMode]);
+  const activeAlerts = alerts.filter((alert) => alert.enabled).length;
+  const mostRecentlyUpdated = screens.reduce<SavedScreen | null>((latest, screen) => {
+    if (!latest) return screen;
+    return new Date(screen.updated_at).getTime() > new Date(latest.updated_at).getTime()
+      ? screen
+      : latest;
+  }, null);
 
   if (loading) {
     return (
@@ -493,7 +776,7 @@ export default function SavedScreensPage() {
   }
 
   return (
-    <div className="page-shell page-stack max-w-4xl">
+    <div className="page-shell page-stack max-w-5xl">
       <div className="flex flex-col gap-1.5 sm:flex-row sm:items-start sm:justify-between">
         <div className="page-hero !p-0">
           <h1 className="text-3xl font-bold tracking-tight text-text">{t("savedScreens.title")}</h1>
@@ -513,6 +796,39 @@ export default function SavedScreensPage() {
             {t("savedScreens.alertsHint")}
           </p>
         </div>
+      ) : null}
+
+      {loadError ? (
+        <div className="flex flex-col gap-3 rounded-2xl bg-danger-soft px-4 py-3 text-sm font-semibold text-danger sm:flex-row sm:items-center sm:justify-between" role="alert">
+          <span>{loadError}</span>
+          <Button type="button" size="sm" variant="secondary" onClick={() => void loadAll()}>
+            {t("savedScreens.retry")}
+          </Button>
+        </div>
+      ) : null}
+
+      {screens.length > 0 ? (
+        <section className="grid grid-cols-2 gap-2 sm:grid-cols-3" aria-label={t("savedScreens.overviewLabel")}>
+          <div className="premium-metric-card">
+            <p className="premium-metric-label">{t("savedScreens.savedCountLabel")}</p>
+            <p className="premium-metric-value">{screens.length}</p>
+            <p className="premium-metric-meta">{t("savedScreens.savedCountMeta")}</p>
+          </div>
+          <div className="premium-metric-card">
+            <p className="premium-metric-label">{t("savedScreens.activeAlertsLabel")}</p>
+            <p className="premium-metric-value">{activeAlerts}</p>
+            <p className="premium-metric-meta">{t("savedScreens.activeAlertsMeta")}</p>
+          </div>
+          <div className="premium-metric-card col-span-2 sm:col-span-1">
+            <p className="premium-metric-label">{t("savedScreens.lastSavedLabel")}</p>
+            <p className="premium-metric-value text-base">
+              {mostRecentlyUpdated
+                ? new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(new Date(mostRecentlyUpdated.updated_at))
+                : "—"}
+            </p>
+            <p className="premium-metric-meta">{t("savedScreens.lastSavedMeta")}</p>
+          </div>
+        </section>
       ) : null}
 
       {screens.length === 0 ? (
@@ -544,15 +860,52 @@ export default function SavedScreensPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {screens.map((screen) => (
+          <div className="ui-panel-subtle flex flex-col gap-3 rounded-2xl p-3 sm:flex-row sm:items-center sm:justify-between">
+            <label className="relative min-w-0 flex-1" htmlFor="saved-screen-search">
+              <span className="sr-only">{t("savedScreens.searchLabel")}</span>
+              <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-text-muted" aria-hidden="true">⌕</span>
+              <input
+                id="saved-screen-search"
+                type="search"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder={t("savedScreens.searchPlaceholder")}
+                className="ui-control min-h-11 w-full rounded-xl ps-9 pe-3 text-sm outline-none focus:border-primary"
+              />
+            </label>
+            <label className="flex items-center gap-2 text-xs font-semibold text-text-secondary" htmlFor="saved-screen-sort">
+              {t("savedScreens.sortLabel")}
+              <select
+                id="saved-screen-sort"
+                value={sortMode}
+                onChange={(event) => setSortMode(event.target.value as "recent" | "name")}
+                className="ui-control min-h-11 rounded-xl px-3 text-sm outline-none focus:border-primary"
+              >
+                <option value="recent">{t("savedScreens.sortRecent")}</option>
+                <option value="name">{t("savedScreens.sortName")}</option>
+              </select>
+            </label>
+          </div>
+
+          {visibleScreens.length === 0 ? (
+            <div className="page-empty-state text-center">
+              <p className="font-bold text-text">{t("savedScreens.noSearchResults")}</p>
+              <button type="button" onClick={() => setSearchQuery("")} className="mt-2 min-h-10 text-sm font-bold text-primary hover:underline">
+                {t("savedScreens.clearSearch")}
+              </button>
+            </div>
+          ) : visibleScreens.map((screen) => (
             <ScreenCard
               key={screen.id}
               screen={screen}
               alert={alertMap.get(screen.id) ?? null}
               canUseAlerts={canUseAlerts}
               onApply={() => applyScreen(screen)}
+              onRename={() => openNameDialog("rename", screen)}
+              onDuplicate={() => openNameDialog("duplicate", screen)}
               onDelete={() => openDeleteDialog(screen)}
               onToggleAlert={handleToggleAlert}
+              locale={locale}
               t={t}
             />
           ))}
@@ -572,16 +925,44 @@ export default function SavedScreensPage() {
         />
       ) : null}
 
-      {removedMessage ? (
+      {actionTarget ? (
+        <ScreenNameDialog
+          key={`${actionMode}-${actionTarget.id}`}
+          mode={actionMode}
+          screen={actionTarget}
+          loading={actionLoading}
+          error={actionError}
+          onCancel={() => {
+            if (!actionLoading) setActionTarget(null);
+          }}
+          onConfirm={saveScreenAction}
+          t={t}
+        />
+      ) : null}
+
+      {recentlyDeleted ? (
         <div
-          className="fixed left-1/2 top-5 z-[90] flex -translate-x-1/2 items-center gap-2 rounded-full border border-success/25 bg-success-soft px-4 py-2.5 text-sm font-bold text-success shadow-[0_16px_42px_rgba(22,163,74,0.2)] backdrop-blur-md"
+          className="fixed inset-x-3 bottom-4 z-[90] mx-auto flex max-w-md items-center justify-between gap-3 rounded-2xl border border-border-strong bg-surface-overlay px-4 py-3 text-sm font-bold text-text shadow-[var(--color-shadow-overlay)] backdrop-blur-md sm:bottom-6"
           role="status"
           aria-live="polite"
         >
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-success text-xs text-white" aria-hidden="true">
-            ✓
+          <span className="min-w-0 truncate">
+            {t("savedScreens.deleteSuccess", { name: recentlyDeleted.screen.name })}
           </span>
-          {removedMessage}
+          <Button type="button" size="sm" variant="secondary" onClick={() => void undoDelete()}>
+            {t("savedScreens.undo")}
+          </Button>
+        </div>
+      ) : null}
+
+      {actionStatus ? (
+        <div
+          className="fixed inset-x-3 bottom-4 z-[90] mx-auto flex max-w-md items-center gap-2 rounded-2xl border border-success/25 bg-success-soft px-4 py-3 text-sm font-bold text-success shadow-[0_16px_42px_rgba(22,163,74,0.2)] backdrop-blur-md sm:bottom-6"
+          role="status"
+          aria-live="polite"
+        >
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-success text-xs text-white" aria-hidden="true">✓</span>
+          {actionStatus}
         </div>
       ) : null}
     </div>

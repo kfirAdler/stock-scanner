@@ -54,10 +54,13 @@ export function useNotifications(active: boolean) {
 
   useEffect(() => {
     if (!active) return;
-    setState((prev) => ({ ...prev, loading: true }));
-    void fetchNotifications();
+    const initialFetchTimer = window.setTimeout(() => {
+      setState((prev) => ({ ...prev, loading: true }));
+      void fetchNotifications();
+    }, 0);
     intervalRef.current = setInterval(fetchNotifications, POLL_INTERVAL_MS);
     return () => {
+      window.clearTimeout(initialFetchTimer);
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [active, fetchNotifications]);

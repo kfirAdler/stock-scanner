@@ -8,17 +8,20 @@ interface ActiveFilterPillProps {
   label: string;
   onRemove: () => void;
   density?: DensityMode;
+  removeLabel?: string;
 }
 
 export function ActiveFilterPill({
   label,
   onRemove,
   density = "compact",
+  removeLabel,
 }: ActiveFilterPillProps) {
   return (
     <button
       type="button"
       onClick={onRemove}
+      aria-label={removeLabel ? `${removeLabel}: ${label}` : label}
       className={clsx(
         "ui-control inline-flex items-center gap-2 rounded-full text-text-secondary transition-colors hover:border-border-strong hover:text-text",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2 focus-visible:ring-offset-surface",

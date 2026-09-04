@@ -35,6 +35,7 @@ interface ResultsTableProps {
   screenerFilters?: ScreenerPayload;
   totalCount?: number | null;
   sectorBreakdown?: ScreenerSectorBreakdownItem[];
+  lastUpdatedLabel?: string | null;
 }
 
 const SECTOR_TRANSLATION_KEYS: Record<string, string> = {
@@ -83,17 +84,19 @@ function MatchScoreBadge({ score }: { score: number | null | undefined }) {
   );
 }
 
-function MatchExplanation({ row }: { row: ScreenerResultRow }) {
+function MatchExplanation({ row, guided = false }: { row: ScreenerResultRow; guided?: boolean }) {
   const t = useTranslations("screener");
   const reasons = row.match_reasons ?? [];
   const risk = row.risk_flags?.[0];
-  if (reasons.length === 0 && !risk) return null;
+  if (reasons.length === 0 && !risk) {
+    return <p className="text-[11px] leading-relaxed text-text-muted">{t("discovery.noEvidence")}</p>;
+  }
   return (
     <div className="ui-panel-subtle space-y-2 rounded-xl p-3">
       {reasons.length > 0 ? (
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
-            {t("discovery.whyMatched")}
+            {guided ? t("discovery.whyMatched") : t("discovery.notableContext")}
           </p>
           <ul className="mt-1.5 space-y-1 text-xs text-text-secondary">
             {reasons.slice(0, 3).map((reason) => (
@@ -130,22 +133,42 @@ function formatPercentage(count: number, total: number) {
   return percentage >= 10 ? percentage.toFixed(0) : percentage.toFixed(1);
 }
 
-function SmaPill({ above, below }: { above: boolean | null; below: boolean | null }) {
+function SmaPill({
+  above,
+  below,
+  aboveLabel,
+  belowLabel,
+  missingLabel,
+}: {
+  above: boolean | null;
+  below: boolean | null;
+  aboveLabel: string;
+  belowLabel: string;
+  missingLabel: string;
+}) {
   if (above) {
     return (
-      <span className="inline-flex min-w-7 items-center justify-center rounded-full bg-success-soft px-2 py-0.5 text-[10px] font-bold text-success ring-1 ring-success/20 dark:border dark:border-[#4fb97f]/28 dark:bg-[#183528] dark:text-[#8ee0b2]">
+      <span
+        className="inline-flex min-h-7 min-w-7 items-center justify-center rounded-full bg-success-soft px-2 py-0.5 text-[10px] font-bold text-success ring-1 ring-success/20 dark:border dark:border-[#4fb97f]/28 dark:bg-[#183528] dark:text-[#8ee0b2]"
+        title={aboveLabel}
+      >
         ↑
+        <span className="sr-only">{aboveLabel}</span>
       </span>
     );
   }
   if (below) {
     return (
-      <span className="inline-flex min-w-7 items-center justify-center rounded-full bg-danger-soft px-2 py-0.5 text-[10px] font-bold text-danger ring-1 ring-danger/20 dark:border dark:border-[#d77d7d]/28 dark:bg-[#3a1f24] dark:text-[#ffb0a8]">
+      <span
+        className="inline-flex min-h-7 min-w-7 items-center justify-center rounded-full bg-danger-soft px-2 py-0.5 text-[10px] font-bold text-danger ring-1 ring-danger/20 dark:border dark:border-[#d77d7d]/28 dark:bg-[#3a1f24] dark:text-[#ffb0a8]"
+        title={belowLabel}
+      >
         ↓
+        <span className="sr-only">{belowLabel}</span>
       </span>
     );
   }
-  return <span className="text-text-muted">—</span>;
+  return <span className="text-text-muted" title={missingLabel}>—<span className="sr-only">{missingLabel}</span></span>;
 }
 
 function SignalBadge({ row }: { row: ScreenerResultRow }) {
@@ -277,6 +300,7 @@ export function ResultsTable({
   screenerFilters,
   totalCount,
   sectorBreakdown,
+  lastUpdatedLabel,
 }: ResultsTableProps) {
   const t = useTranslations("screener");
   const [density, setDensity] = useState<DensityMode>("compact");
@@ -314,7 +338,18 @@ export function ResultsTable({
     const bullish = rows.filter((row) => row.buy_signal || row.strong_buy_signal).length;
     const bearish = rows.filter((row) => row.sell_signal || row.strong_sell_signal).length;
     const strong = rows.filter((row) => row.strong_buy_signal || row.strong_sell_signal).length;
-    return { bullish, bearish, strong };
+    const risks = rows.filter((row) => (row.risk_flags?.length ?? 0) > 0).length;
+    const atrValues = rows
+      .map((row) => row.atr_percent)
+      .filter((value): value is number => typeof value === "number")
+      .sort((a, b) => a - b);
+    const midpoint = Math.floor(atrValues.length / 2);
+    const medianAtr = atrValues.length === 0
+      ? null
+      : atrValues.length % 2 === 0
+        ? (atrValues[midpoint - 1] + atrValues[midpoint]) / 2
+        : atrValues[midpoint];
+    return { bullish, bearish, strong, risks, medianAtr };
   }, [rows]);
 
   const effectiveSectorBreakdown = useMemo(() => {
@@ -330,6 +365,9 @@ export function ResultsTable({
   }, [rows, sectorBreakdown]);
 
   const matchedCount = totalCount ?? rows.length;
+  const leadingSectorPercentage = matchedCount > 0
+    ? ((effectiveSectorBreakdown[0]?.count ?? 0) / matchedCount) * 100
+    : 0;
   const sectorSegments = useMemo(() => {
     const visible = effectiveSectorBreakdown.slice(0, 4).map((item) => ({
       ...item,
@@ -361,10 +399,20 @@ export function ResultsTable({
 
   if (loading) {
     return (
-      <div className="ui-panel flex min-h-[420px] items-center justify-center rounded-2xl">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-9 w-9 animate-spin rounded-full border-[3px] border-primary/25 border-t-primary" role="status" />
-          <span className="text-sm font-medium text-text-muted">{t("results")}…</span>
+      <div className="ui-panel overflow-hidden rounded-2xl" role="status" aria-live="polite">
+        <span className="sr-only">{t("workspace.loadingResults")}</span>
+        <div className="border-b border-border bg-surface-alt/60 px-4 py-4">
+          <div className="h-4 w-44 animate-pulse rounded-full bg-surface-accent" />
+          <div className="mt-2 h-3 w-72 max-w-full animate-pulse rounded-full bg-surface-accent/70" />
+        </div>
+        <div className="divide-y divide-border" aria-hidden="true">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div key={index} className="grid grid-cols-[100px_1fr_90px] gap-4 px-4 py-4">
+              <div className="h-4 animate-pulse rounded-full bg-surface-accent" />
+              <div className="h-4 animate-pulse rounded-full bg-surface-accent/75" />
+              <div className="h-4 animate-pulse rounded-full bg-surface-accent/60" />
+            </div>
+          ))}
         </div>
       </div>
     );
@@ -393,7 +441,7 @@ export function ResultsTable({
     .filter(Boolean) as { timeframe: ScreenerTimeframe; labels: string[] }[];
 
   return (
-    <section className="space-y-3">
+    <section className="space-y-3" aria-live="polite" aria-busy={loadingMore}>
       <div className="flex min-w-0 flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -425,12 +473,13 @@ export function ResultsTable({
           </span>
             </>
           ) : null}
-          <div className="ui-segment inline-flex items-center rounded-full p-1">
+          <div className="ui-segment inline-flex items-center rounded-full p-1" role="group" aria-label={t("workspace.density")}>
             <button
               type="button"
               onClick={() => setDensity("comfortable")}
+              aria-pressed={density === "comfortable"}
               className={clsx(
-                "rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors",
+                "min-h-8 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors",
                 density === "comfortable" ? "ui-segment-item-active" : "ui-segment-item hover:text-text"
               )}
             >
@@ -439,14 +488,44 @@ export function ResultsTable({
             <button
               type="button"
               onClick={() => setDensity("compact")}
+              aria-pressed={density === "compact"}
               className={clsx(
-                "rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors",
+                "min-h-8 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors",
                 density === "compact" ? "ui-segment-item-active" : "ui-segment-item hover:text-text"
               )}
             >
               {t("workspace.density.compact")}
             </button>
           </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+        <div className="premium-metric-card">
+          <p className="premium-metric-label">{t("insights.matches")}</p>
+          <p className="premium-metric-value">{matchedCount}</p>
+          <p className="premium-metric-meta">{t("insights.loaded", { count: rows.length })}</p>
+        </div>
+        <div className="premium-metric-card">
+          <p className="premium-metric-label">{t("insights.medianAtr")}</p>
+          <p className="premium-metric-value">
+            {resultSummary.medianAtr == null ? "—" : `${fmt(resultSummary.medianAtr, 1)}%`}
+          </p>
+          <p className="premium-metric-meta">{t("insights.visibleResults")}</p>
+        </div>
+        <div className="premium-metric-card">
+          <p className="premium-metric-label">{t("insights.riskFlags")}</p>
+          <p className="premium-metric-value">{resultSummary.risks}</p>
+          <p className="premium-metric-meta">
+            {resultSummary.risks > 0 ? t("insights.reviewFlags") : t("insights.noFlags")}
+          </p>
+        </div>
+        <div className="premium-metric-card">
+          <p className="premium-metric-label">{t("insights.dataFreshness")}</p>
+          <p className="premium-metric-value text-base">
+            {lastUpdatedLabel ?? rows[0]?.last_trade_date ?? "—"}
+          </p>
+          <p className="premium-metric-meta">{t("insights.latestAvailable")}</p>
         </div>
       </div>
 
@@ -468,6 +547,17 @@ export function ResultsTable({
                     matchedCount
                   ),
                 })}
+              </p>
+              <p className={clsx(
+                "mt-1.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold",
+                leadingSectorPercentage >= 50
+                  ? "bg-warning-soft text-warning ring-1 ring-warning/15"
+                  : "bg-success-soft text-success ring-1 ring-success/15"
+              )}>
+                <span aria-hidden="true">{leadingSectorPercentage >= 50 ? "!" : "✓"}</span>
+                {leadingSectorPercentage >= 50
+                  ? t("sectorMix.concentrated")
+                  : t("sectorMix.diversified")}
               </p>
             </div>
             <p className="text-[11px] text-text-muted">
@@ -522,7 +612,9 @@ export function ResultsTable({
               <button
                 type="button"
                 onClick={() => toggleExpanded(row.ticker)}
-                className="flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left transition-colors hover:bg-surface-hover/70"
+                className="flex min-h-[76px] w-full items-center justify-between gap-3 px-4 py-3 text-start transition-colors hover:bg-surface-hover/70"
+                aria-expanded={expanded}
+                aria-controls={`mobile-result-${row.ticker}`}
               >
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
@@ -534,17 +626,31 @@ export function ResultsTable({
                       {sectorLabel(row.sector, t)}
                     </span>
                   </div>
-                  <p className="mt-1 text-[11px] text-text-muted">{row.last_trade_date}</p>
+                  {row.company_name ? (
+                    <p className="mt-1 truncate text-xs font-medium text-text-secondary">{row.company_name}</p>
+                  ) : null}
+                  <p className="mt-1 text-[10px] text-text-muted">{row.last_trade_date}</p>
                 </div>
-                <div className="flex shrink-0 flex-col items-end gap-1.5 text-end">
+                <div className="flex shrink-0 items-center gap-2">
+                  <div className="flex flex-col items-end gap-1.5 text-end">
                   {screenerFilters?.discovery_goal ? <MatchScoreBadge score={row.match_score} /> : null}
                   <SignalBadge row={row} />
+                  </div>
+                  <span
+                    className={clsx(
+                      "inline-flex h-8 w-8 items-center justify-center rounded-full bg-surface-alt text-text-muted transition-transform",
+                      expanded && "rotate-180"
+                    )}
+                    aria-hidden="true"
+                  >
+                    ⌄
+                  </span>
                 </div>
               </button>
 
               {expanded ? (
-                <div className="space-y-3 border-t border-border bg-surface-alt/65 px-4 py-3.5">
-                  {screenerFilters?.discovery_goal ? <MatchExplanation row={row} /> : null}
+                <div id={`mobile-result-${row.ticker}`} className="space-y-3 border-t border-border bg-surface-alt/65 px-4 py-3.5">
+                  <MatchExplanation row={row} guided={!!screenerFilters?.discovery_goal} />
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div className="ui-control rounded-lg px-3 py-2.5">
                       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
@@ -569,19 +675,19 @@ export function ResultsTable({
                   <div className="grid grid-cols-4 gap-2">
                     <div className="ui-control rounded-lg px-3 py-2 text-center">
                       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">20</p>
-                      <div className="mt-1"><SmaPill above={row.is_above_sma20} below={row.is_below_sma20} /></div>
+                      <div className="mt-1"><SmaPill above={row.is_above_sma20} below={row.is_below_sma20} aboveLabel={t("accessibility.aboveSma", { period: 20 })} belowLabel={t("accessibility.belowSma", { period: 20 })} missingLabel={t("accessibility.noData")} /></div>
                     </div>
                     <div className="ui-control rounded-lg px-3 py-2 text-center">
                       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">50</p>
-                      <div className="mt-1"><SmaPill above={row.is_above_sma50} below={row.is_below_sma50} /></div>
+                      <div className="mt-1"><SmaPill above={row.is_above_sma50} below={row.is_below_sma50} aboveLabel={t("accessibility.aboveSma", { period: 50 })} belowLabel={t("accessibility.belowSma", { period: 50 })} missingLabel={t("accessibility.noData")} /></div>
                     </div>
                     <div className="ui-control rounded-lg px-3 py-2 text-center">
                       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">150</p>
-                      <div className="mt-1"><SmaPill above={row.is_above_sma150} below={row.is_below_sma150} /></div>
+                      <div className="mt-1"><SmaPill above={row.is_above_sma150} below={row.is_below_sma150} aboveLabel={t("accessibility.aboveSma", { period: 150 })} belowLabel={t("accessibility.belowSma", { period: 150 })} missingLabel={t("accessibility.noData")} /></div>
                     </div>
                     <div className="ui-control rounded-lg px-3 py-2 text-center">
                       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">200</p>
-                      <div className="mt-1"><SmaPill above={row.is_above_sma200} below={row.is_below_sma200} /></div>
+                      <div className="mt-1"><SmaPill above={row.is_above_sma200} below={row.is_below_sma200} aboveLabel={t("accessibility.aboveSma", { period: 200 })} belowLabel={t("accessibility.belowSma", { period: 200 })} missingLabel={t("accessibility.noData")} /></div>
                     </div>
                   </div>
 
@@ -614,27 +720,36 @@ export function ResultsTable({
 
       <div className="hidden overflow-x-auto lg:block">
         <table className="min-w-full text-sm">
+          <caption className="sr-only">{t("accessibility.resultsCaption", { count: matchedCount })}</caption>
           <thead className="ui-table-header sticky top-0 z-10 backdrop-blur">
             <tr className="border-b border-border/80 text-start">
-              <th scope="col" className="px-4 py-2.5 text-start text-[10px] font-bold uppercase tracking-[0.2em] text-text-secondary">
-                <button onClick={() => onSortChange("ticker")} className="link-hover inline-flex items-center gap-1">
+              <th
+                scope="col"
+                aria-sort={sortKey === "ticker" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
+                className="px-4 py-2.5 text-start text-[10px] font-bold uppercase tracking-[0.2em] text-text-secondary"
+              >
+                <button type="button" onClick={() => onSortChange("ticker")} className="link-hover inline-flex min-h-8 items-center gap-1">
                   {t("table.ticker")}
                   {sortKey === "ticker" ? (sortDir === "asc" ? "↑" : "↓") : null}
                 </button>
               </th>
-              {screenerFilters?.discovery_goal ? (
-                <th scope="col" className="px-3 py-2.5 text-start text-[10px] font-bold uppercase tracking-[0.2em] text-text-secondary">
-                  <button onClick={() => onSortChange("match_score")} className="link-hover inline-flex items-center gap-1">
+              <th
+                scope="col"
+                aria-sort={screenerFilters?.discovery_goal && sortKey === "match_score" ? (sortDir === "asc" ? "ascending" : "descending") : undefined}
+                className="px-3 py-2.5 text-start text-[10px] font-bold uppercase tracking-[0.2em] text-text-secondary"
+              >
+                {screenerFilters?.discovery_goal ? (
+                  <button type="button" onClick={() => onSortChange("match_score")} className="link-hover inline-flex min-h-8 items-center gap-1">
                     {t("table.matchScore")}
                     {sortKey === "match_score" ? (sortDir === "asc" ? "↑" : "↓") : null}
                   </button>
-                </th>
-              ) : null}
+                ) : t("discovery.notableContext")}
+              </th>
               <th scope="col" className="px-3 py-2.5 text-start text-[10px] font-bold uppercase tracking-[0.2em] text-text-secondary">
                 {t("table.sector")}
               </th>
-              <th scope="col" className="px-3 py-2.5 text-end text-[10px] font-bold uppercase tracking-[0.2em] text-text-secondary">
-                <button onClick={() => onSortChange("close")} className="link-hover inline-flex items-center gap-1">
+              <th scope="col" aria-sort={sortKey === "close" ? (sortDir === "asc" ? "ascending" : "descending") : "none"} className="px-3 py-2.5 text-end text-[10px] font-bold uppercase tracking-[0.2em] text-text-secondary">
+                <button type="button" onClick={() => onSortChange("close")} className="link-hover inline-flex min-h-8 items-center gap-1">
                   {t("table.close")}
                   {sortKey === "close" ? (sortDir === "asc" ? "↑" : "↓") : null}
                 </button>
@@ -643,8 +758,8 @@ export function ResultsTable({
               <th scope="col" className="px-2 py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-text-secondary">{t("table.sma50")}</th>
               <th scope="col" className="px-2 py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-text-secondary">{t("table.sma150")}</th>
               <th scope="col" className="px-2 py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-text-secondary">{t("table.sma200")}</th>
-              <th scope="col" className="px-3 py-2.5 text-end text-[10px] font-bold uppercase tracking-[0.2em] text-text-secondary">
-                <button onClick={() => onSortChange("atr_percent")} className="link-hover inline-flex items-center gap-1">
+              <th scope="col" aria-sort={sortKey === "atr_percent" ? (sortDir === "asc" ? "ascending" : "descending") : "none"} className="px-3 py-2.5 text-end text-[10px] font-bold uppercase tracking-[0.2em] text-text-secondary">
+                <button type="button" onClick={() => onSortChange("atr_percent")} className="link-hover inline-flex min-h-8 items-center gap-1">
                   {t("table.atrPct")}
                   {sortKey === "atr_percent" ? (sortDir === "asc" ? "↑" : "↓") : null}
                 </button>
@@ -677,17 +792,20 @@ export function ResultsTable({
                         <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
                       </svg>
                     </a>
+                    {row.company_name ? (
+                      <span className="max-w-[180px] truncate text-[11px] font-medium text-text-secondary" title={row.company_name}>
+                        {row.company_name}
+                      </span>
+                    ) : null}
                     <span className="text-[10px] text-text-muted">{row.last_trade_date}</span>
                   </div>
                 </td>
-                {screenerFilters?.discovery_goal ? (
-                  <td className={clsx(densityRowClass, "min-w-[220px]")}>
-                    <div className="space-y-2">
-                      <MatchScoreBadge score={row.match_score} />
-                      <MatchExplanation row={row} />
-                    </div>
-                  </td>
-                ) : null}
+                <td className={clsx(densityRowClass, "min-w-[220px]")}>
+                  <div className="space-y-2">
+                    {screenerFilters?.discovery_goal ? <MatchScoreBadge score={row.match_score} /> : null}
+                    <MatchExplanation row={row} guided={!!screenerFilters?.discovery_goal} />
+                  </div>
+                </td>
                 <td className={clsx(densityRowClass, "min-w-[130px]")}>
                   <span
                     className="ui-badge-default inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold text-text-secondary"
@@ -697,10 +815,10 @@ export function ResultsTable({
                   </span>
                 </td>
                 <td className={clsx(densityRowClass, "text-end tabular-nums font-semibold text-text")}>{fmt(row.close)}</td>
-                <td className={clsx(densityRowClass, "text-center")}><SmaPill above={row.is_above_sma20} below={row.is_below_sma20} /></td>
-                <td className={clsx(densityRowClass, "text-center")}><SmaPill above={row.is_above_sma50} below={row.is_below_sma50} /></td>
-                <td className={clsx(densityRowClass, "text-center")}><SmaPill above={row.is_above_sma150} below={row.is_below_sma150} /></td>
-                <td className={clsx(densityRowClass, "text-center")}><SmaPill above={row.is_above_sma200} below={row.is_below_sma200} /></td>
+                <td className={clsx(densityRowClass, "text-center")}><SmaPill above={row.is_above_sma20} below={row.is_below_sma20} aboveLabel={t("accessibility.aboveSma", { period: 20 })} belowLabel={t("accessibility.belowSma", { period: 20 })} missingLabel={t("accessibility.noData")} /></td>
+                <td className={clsx(densityRowClass, "text-center")}><SmaPill above={row.is_above_sma50} below={row.is_below_sma50} aboveLabel={t("accessibility.aboveSma", { period: 50 })} belowLabel={t("accessibility.belowSma", { period: 50 })} missingLabel={t("accessibility.noData")} /></td>
+                <td className={clsx(densityRowClass, "text-center")}><SmaPill above={row.is_above_sma150} below={row.is_below_sma150} aboveLabel={t("accessibility.aboveSma", { period: 150 })} belowLabel={t("accessibility.belowSma", { period: 150 })} missingLabel={t("accessibility.noData")} /></td>
+                <td className={clsx(densityRowClass, "text-center")}><SmaPill above={row.is_above_sma200} below={row.is_below_sma200} aboveLabel={t("accessibility.aboveSma", { period: 200 })} belowLabel={t("accessibility.belowSma", { period: 200 })} missingLabel={t("accessibility.noData")} /></td>
                 <td className={clsx(densityRowClass, "text-end tabular-nums text-[12px] text-text-secondary")}>{fmt(row.atr_percent)}</td>
                 <td className={densityRowClass}>
                   <SignalBadge row={row} />

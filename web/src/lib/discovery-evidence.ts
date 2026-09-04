@@ -14,8 +14,6 @@ export function buildDiscoveryEvidence(
   goal: DiscoveryGoal | undefined,
   row: ScreenerResultRow
 ): Pick<ScreenerResultRow, "match_reasons" | "risk_flags"> {
-  if (!goal) return { match_reasons: [], risk_flags: [] };
-
   const reasons: DiscoveryReasonCode[] = [];
   const risks: DiscoveryRiskCode[] = [];
   const weekly = row.timeframe_snapshots?.["1W"] as ScannerResultSnapshot | null | undefined;

@@ -29,6 +29,7 @@ export function FilterChip({
         type="button"
         onClick={onClick}
         disabled={disabled}
+        aria-pressed={active}
         className={clsx(
           "inline-flex items-center rounded-full font-semibold transition-all duration-150",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2 focus-visible:ring-offset-surface",

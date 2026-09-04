@@ -11,6 +11,7 @@ import { SaveScreenDialog } from "@/components/screener/SaveScreenDialog";
 import { PremiumGate } from "@/components/billing/PremiumGate";
 import { Button } from "@/components/ui/Button";
 import { MoneyCelebration } from "@/components/ui/MoneyCelebration";
+import { useModalDialog } from "@/hooks/useModalDialog";
 import type {
   DiscoveryGoal,
   ListingMarketFilter,
@@ -32,6 +33,7 @@ import {
 } from "@/lib/screener-query";
 
 type Gate = null | "login" | "subscribe";
+type ScannerMode = "guided" | "advanced";
 
 const DEFAULT_LIMIT = 50;
 const TURNING_POINT_PRESET: ScreenerPayload = {
@@ -115,6 +117,9 @@ function ScreenerPageContent() {
   const [multiFilterGateOpen, setMultiFilterGateOpen] = useState(false);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [desktopFiltersOpen, setDesktopFiltersOpen] = useState(true);
+  const [scannerMode, setScannerMode] = useState<ScannerMode>(() =>
+    urlFilters.discovery_goal || countActiveFilters(urlFilters) === 0 ? "guided" : "advanced"
+  );
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [refreshTicker, setRefreshTicker] = useState(() => Date.now());
   const [sortKey, setSortKey] = useState<ScannerSortKey>(
@@ -129,6 +134,16 @@ function ScreenerPageContent() {
   const requestSequenceRef = useRef(0);
   const handledSearchParamsRef = useRef<string | null>(null);
   const celebrationTimerRef = useRef<number | null>(null);
+  const closeMobileFilters = useCallback(() => setMobileFiltersOpen(false), []);
+  const closeMultiFilterGate = useCallback(() => setMultiFilterGateOpen(false), []);
+  const mobileFiltersDialogRef = useModalDialog<HTMLDivElement>({
+    open: mobileFiltersOpen,
+    onClose: closeMobileFilters,
+  });
+  const multiFilterGateDialogRef = useModalDialog<HTMLDivElement>({
+    open: multiFilterGateOpen,
+    onClose: closeMultiFilterGate,
+  });
 
   const fetchResults = useCallback(async ({
     nextFilters = filtersRef.current,
@@ -333,6 +348,9 @@ function ScreenerPageContent() {
       filtersRef.current = urlFilters;
       setFilters(urlFilters);
       setAppliedFilters(urlFilters);
+      setScannerMode(
+        urlFilters.discovery_goal || countActiveFilters(urlFilters) === 0 ? "guided" : "advanced"
+      );
       setFilterPanelResetKey((current) => current + 1);
       setFavoriteStatus(null);
 
@@ -478,6 +496,7 @@ function ScreenerPageContent() {
 
     setSortKey("match_score");
     setSortDir("desc");
+    setScannerMode("guided");
     setMobileFiltersOpen(false);
     setLoadingGoal(goal);
     try {
@@ -642,6 +661,7 @@ function ScreenerPageContent() {
     setFilters(favoriteFilters);
     filtersRef.current = favoriteFilters;
     setFavoriteStatus(t("favorite.loaded"));
+    setScannerMode(favoriteFilters.discovery_goal ? "guided" : "advanced");
     setMobileFiltersOpen(false);
     await fetchResults({ nextFilters: favoriteFilters });
   }
@@ -658,6 +678,15 @@ function ScreenerPageContent() {
 
   function handleResetDraft() {
     handleFiltersChange(appliedFilters);
+  }
+
+  function handleModeChange(mode: ScannerMode) {
+    setScannerMode(mode);
+    if (mode === "advanced") {
+      setDesktopFiltersOpen(true);
+    } else {
+      setMobileFiltersOpen(false);
+    }
   }
 
   function handleSortChange(key: ScannerSortKey) {
@@ -690,78 +719,83 @@ function ScreenerPageContent() {
   return (
     <div className="page-shell max-w-[1580px]">
       <div className="space-y-3">
-        <section className="page-card-strong sticky top-3 z-30 !p-4">
+        <section className="page-card-strong sticky top-3 z-30 !p-3.5 sm:!p-4">
           <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <h1 className="text-[17px] font-bold tracking-tight text-text">{t("title")}</h1>
-              <span className="ui-badge-default rounded-full px-2.5 py-1 text-[11px] font-semibold">
-                {resultSummary.rows} {t("workspace.statusMatches")}
-              </span>
-              <span className="ui-badge-default rounded-full px-2.5 py-1 text-[11px] font-semibold">
-                {activeFilterCount} {t("workspace.statusFilters")}
-              </span>
-              <span
-                className={hasPendingChanges
-                  ? "rounded-full bg-warning-soft px-2.5 py-1 text-[11px] font-semibold text-warning ring-1 ring-warning/15"
-                  : "rounded-full bg-success-soft px-2.5 py-1 text-[11px] font-semibold text-success ring-1 ring-success/15"
-                }
-              >
-                {hasPendingChanges ? t("workspace.draftPending") : t("workspace.draftSynced")}
-              </span>
-              {relativeLastUpdated ? (
-                <span className="ui-badge-default rounded-full px-2.5 py-1 text-[11px] font-semibold text-text-secondary">
-                  {t("workspace.statusUpdated")} {relativeLastUpdated}
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <h1 className="text-lg font-bold tracking-tight text-text">{t("title")}</h1>
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-text-secondary" aria-live="polite">
+                  <span
+                    className={hasPendingChanges ? "h-2 w-2 rounded-full bg-warning" : "h-2 w-2 rounded-full bg-success"}
+                    aria-hidden="true"
+                  />
+                  {hasPendingChanges ? t("workspace.draftPending") : t("workspace.draftSynced")}
                 </span>
-              ) : null}
+              </div>
+              <p className="mt-1 text-xs text-text-muted">
+                {t("workspace.compactStatus", {
+                  matches: resultSummary.rows,
+                  filters: activeFilterCount,
+                })}
+                {relativeLastUpdated ? ` · ${t("workspace.statusUpdated")} ${relativeLastUpdated}` : ""}
+              </p>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={() => setDesktopFiltersOpen((current) => !current)}
-                className="hidden xl:inline-flex"
-              >
-                {desktopFiltersOpen ? t("workspace.hideFilters") : t("workspace.openFilters")}
-              </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={() => setMobileFiltersOpen(true)}
-                className="justify-center xl:hidden"
-              >
-                {t("mobile.openFilters", { count: activeFilterCount })}
-              </Button>
-              {hasFavorite ? (
-                <Button
+
+            <div
+              className="ui-segment grid grid-cols-2 rounded-xl p-1"
+              role="group"
+              aria-label={t("workspace.modeLabel")}
+            >
+              {(["guided", "advanced"] as ScannerMode[]).map((mode) => (
+                <button
+                  key={mode}
                   type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleLoadFavorite}
-                  loading={favoriteLoading}
-                  className="border-warning/30 bg-warning-soft text-warning shadow-none hover:bg-warning-soft/80"
+                  aria-pressed={scannerMode === mode}
+                  onClick={() => handleModeChange(mode)}
+                  className={scannerMode === mode
+                    ? "ui-segment-item-active min-h-10 rounded-lg px-4 text-xs font-bold"
+                    : "ui-segment-item min-h-10 rounded-lg px-4 text-xs font-bold"
+                  }
                 >
-                  <span className="inline-flex items-center gap-1.5">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5" aria-hidden="true">
-                      <path d="M10 1.5l2.6 5.27 5.82.85-4.21 4.1.99 5.79L10 14.77l-5.2 2.73.99-5.79L1.58 7.62l5.82-.85L10 1.5z" />
-                    </svg>
-                    {t("workspace.loadFavoriteShort")}
-                  </span>
-                </Button>
-              ) : null}
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={handleResetDraft}
-                disabled={!hasPendingChanges}
-              >
-                {t("workspace.resetDraft")}
-              </Button>
-              <Button type="button" size="sm" onClick={handleApply} loading={loading}>
-                {t("workspace.quickApply")}
-              </Button>
+                  {t(`workspace.modes.${mode}`)}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-2">
+              {scannerMode === "advanced" ? (
+                <>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setDesktopFiltersOpen((current) => !current)}
+                    className="hidden xl:inline-flex"
+                  >
+                    {desktopFiltersOpen ? t("workspace.hideFilters") : t("workspace.openFilters")}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setMobileFiltersOpen(true)}
+                    className="flex-1 justify-center xl:hidden"
+                  >
+                    {t("mobile.openFilters", { count: activeFilterCount })}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={handleApply}
+                    loading={loading}
+                    className="flex-1 xl:flex-none"
+                  >
+                    {t("workspace.quickApply")}
+                  </Button>
+                </>
+              ) : (
+                <p className="text-xs text-text-secondary">{t("workspace.guidedHint")}</p>
+              )}
             </div>
           </div>
         </section>
@@ -776,33 +810,35 @@ function ScreenerPageContent() {
           </Link>
         </div>
 
-        <DiscoveryGoalPicker
-          selectedGoal={filters.discovery_goal}
-          market={filters.listing_market}
-          availability={filterAvailability}
-          loadingGoal={loadingGoal}
-          onSelectGoal={(goal) => void handleApplyDiscoveryGoal(goal)}
-          onMarketChange={handleDiscoveryMarketChange}
-        />
+        {scannerMode === "guided" ? (
+          <DiscoveryGoalPicker
+            selectedGoal={filters.discovery_goal}
+            market={filters.listing_market}
+            availability={filterAvailability}
+            loadingGoal={loadingGoal}
+            onSelectGoal={(goal) => void handleApplyDiscoveryGoal(goal)}
+            onMarketChange={handleDiscoveryMarketChange}
+          />
+        ) : null}
 
         {gate && <PremiumGate kind={gate === "login" ? "login" : "subscribe"} />}
 
         {resultsError ? (
-          <div className="rounded-2xl bg-danger-soft px-4 py-3 text-sm text-danger ring-1 ring-danger/15">
+          <div className="rounded-2xl bg-danger-soft px-4 py-3 text-sm text-danger ring-1 ring-danger/15" role="alert">
             {resultsError}
           </div>
         ) : null}
 
         {!gate && (
           <div
-            className={desktopFiltersOpen
+            className={scannerMode === "advanced" && desktopFiltersOpen
               ? "grid gap-4 xl:grid-cols-[340px_minmax(0,1fr)] 2xl:grid-cols-[360px_minmax(0,1fr)]"
               : "grid gap-4"
             }
           >
             <div
               className={
-                desktopFiltersOpen
+                scannerMode === "advanced" && desktopFiltersOpen
                   ? "hidden xl:sticky xl:top-[5.5rem] xl:block xl:max-h-[calc(100vh-6.5rem)] xl:self-start xl:overflow-y-auto xl:overscroll-contain xl:pr-1"
                   : "hidden"
               }
@@ -851,6 +887,19 @@ function ScreenerPageContent() {
                 </div>
                 <div className="flex flex-col items-start gap-1.5 sm:items-end">
                   <div className="flex flex-wrap items-center gap-2">
+                    {hasFavorite ? (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        onClick={handleLoadFavorite}
+                        loading={favoriteLoading}
+                        className="border-warning/30 bg-warning-soft text-warning shadow-none hover:bg-warning-soft/80"
+                      >
+                        <span aria-hidden="true">★</span>
+                        {t("workspace.loadFavoriteShort")}
+                      </Button>
+                    ) : null}
                     <Button
                       type="button"
                       variant="secondary"
@@ -884,7 +933,7 @@ function ScreenerPageContent() {
                     </Button>
                     <Link
                       href="/saved-screens"
-                      className="ui-control inline-flex h-8 items-center rounded-lg px-3 text-xs font-semibold text-text-secondary transition-colors hover:border-border-strong hover:text-text"
+                      className="ui-control inline-flex min-h-10 items-center rounded-lg px-3 text-xs font-semibold text-text-secondary transition-colors hover:border-border-strong hover:text-text"
                     >
                       {t("workspace.savedScreensLink")}
                     </Link>
@@ -910,6 +959,7 @@ function ScreenerPageContent() {
                   screenerFilters={appliedFilters}
                   totalCount={totalMatches ?? undefined}
                   sectorBreakdown={sectorBreakdown}
+                  lastUpdatedLabel={formattedLastUpdated}
                 />
               ) : (
                 <div className="ui-panel flex min-h-[520px] items-center justify-center rounded-2xl border-dashed px-6 text-center">
@@ -931,19 +981,26 @@ function ScreenerPageContent() {
               type="button"
               className="absolute inset-0 bg-text/50 backdrop-blur-sm"
               aria-label={t("mobile.closeFilters")}
-              onClick={() => setMobileFiltersOpen(false)}
+              onClick={closeMobileFilters}
             />
-            <div className="ui-panel-strong absolute inset-x-0 bottom-0 top-12 overflow-y-auto rounded-t-[28px] px-4 pb-6 pt-4 shadow-[0_-18px_50px_rgba(15,23,42,0.18)]">
-              <div className="mb-4 flex items-center justify-between">
+            <div
+              ref={mobileFiltersDialogRef}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="mobile-filter-title"
+              tabIndex={-1}
+              className="ui-panel-strong absolute inset-x-2 bottom-2 top-10 overflow-y-auto overscroll-contain rounded-[28px] px-3 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-18px_50px_rgba(15,23,42,0.18)] sm:inset-x-4 sm:px-4"
+            >
+              <div className="sticky top-0 z-20 mb-3 flex items-center justify-between rounded-2xl border border-border/80 bg-surface-overlay px-3 py-2 backdrop-blur-xl">
                 <div>
-                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
+                  <p id="mobile-filter-title" className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
                     {t("mobile.filtersTitle")}
                   </p>
                   <p className="mt-1 text-sm text-text-secondary">
                     {t("mobile.filtersBody")}
                   </p>
                 </div>
-                <Button type="button" variant="ghost" size="sm" onClick={() => setMobileFiltersOpen(false)}>
+                <Button type="button" variant="ghost" size="sm" onClick={closeMobileFilters} data-autofocus>
                   {t("mobile.closeFilters")}
                 </Button>
               </div>
@@ -961,7 +1018,7 @@ function ScreenerPageContent() {
                 presetDisabledReason={presetDisabledReason}
                 filterAvailability={filterAvailability ?? undefined}
                 loading={loading}
-                onClose={() => setMobileFiltersOpen(false)}
+                onClose={closeMobileFilters}
                 hasPendingChanges={hasPendingChanges}
                 resultCount={resultSummary.rows}
                 lastUpdatedLabel={formattedLastUpdated}
@@ -973,12 +1030,20 @@ function ScreenerPageContent() {
 
         {multiFilterGateOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-text/45 px-4 backdrop-blur-sm">
-            <div className="relative w-full max-w-2xl">
+            <div
+              ref={multiFilterGateDialogRef}
+              className="relative w-full max-w-2xl"
+              role="dialog"
+              aria-modal="true"
+              aria-label={t("guestLimit.dialogLabel")}
+              tabIndex={-1}
+            >
               <button
                 type="button"
-                onClick={() => setMultiFilterGateOpen(false)}
-                className="ui-control absolute end-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full text-text-secondary shadow-sm transition-colors hover:border-border-strong hover:text-text"
+                onClick={closeMultiFilterGate}
+                className="ui-control absolute end-3 top-3 z-10 inline-flex h-10 w-10 items-center justify-center rounded-full text-text-secondary shadow-sm transition-colors hover:border-border-strong hover:text-text"
                 aria-label={t("guestLimit.close")}
+                data-autofocus
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
                   <path fillRule="evenodd" d="M4.22 4.22a.75.75 0 011.06 0L10 8.94l4.72-4.72a.75.75 0 111.06 1.06L11.06 10l4.72 4.72a.75.75 0 11-1.06 1.06L10 11.06l-4.72 4.72a.75.75 0 11-1.06-1.06L8.94 10 4.22 5.28a.75.75 0 010-1.06z" clipRule="evenodd" />

@@ -148,7 +148,7 @@ export function Header() {
             )}
           </Link>
 
-          <nav className="hidden items-center gap-1 md:flex" aria-label="Main navigation">
+          <nav className="hidden items-center gap-1 md:flex" aria-label={t("nav.primaryLabel")}>
             <NavLink href="/screener" label={t("nav.screener")} />
             <NavLink href="/stock-lookup" label={t("nav.stockLookup")} />
             <NavLink href="/#features" label={t("nav.features")} />
@@ -226,7 +226,7 @@ export function Header() {
               setMobileNavOpen(!mobileNavOpen);
               setMenuOpen(false);
             }}
-            className="ui-icon-button inline-flex h-9 w-9 items-center justify-center rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary md:hidden"
+            className="ui-icon-button inline-flex h-10 w-10 items-center justify-center rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary md:hidden"
             aria-label={t("nav.menu")}
             aria-expanded={mobileNavOpen}
             aria-controls="mobile-site-nav"
@@ -259,7 +259,7 @@ export function Header() {
               </div>
             )}
 
-            <nav className="space-y-1" aria-label="Mobile navigation">
+            <nav className="space-y-1" aria-label={t("nav.mobileLabel")}>
               <NavLink href="/screener" label={t("nav.screener")} mobile onClick={closeMenus} />
               <NavLink href="/stock-lookup" label={t("nav.stockLookup")} mobile onClick={closeMenus} />
               <NavLink href="/#features" label={t("nav.features")} mobile onClick={closeMenus} />

@@ -14,7 +14,8 @@
     "signOut": "התנתק",
     "email": "אימייל",
     "password": "סיסמה",
-    "or": "או"
+    "or": "או",
+    "skipToContent": "דלגו לתוכן הראשי"
   },
   "nav": {
     "dashboard": "לוח בקרה",
@@ -24,7 +25,9 @@
     "savedScreens": "סריקות שמורות",
     "settings": "הגדרות",
     "terms": "תנאי שימוש",
-    "menu": "פתח תפריט ניווט"
+    "menu": "פתח תפריט ניווט",
+    "primaryLabel": "ניווט ראשי",
+    "mobileLabel": "ניווט במובייל"
   },
   "marketing": {
     "badge": "סריקות שוק מחושבות מראש",
@@ -215,7 +218,9 @@
       "scoreNote": "ציון ההתאמה מדרג התאמה למטרה שנבחרה בלבד — הוא אינו תחזית תשואה או המלצת השקעה.",
       "score": "התאמה",
       "whyMatched": "למה היא נמצאה",
+      "notableContext": "הקשר שכדאי להכיר",
       "watchOut": "לשים לב",
+      "noEvidence": "לא זוהה הקשר בולט נוסף מעבר לחוקי הסריקה.",
       "markets": {
         "all": "הכול",
         "US": "ארה״ב",
@@ -321,10 +326,11 @@
       "openFilters": "מסננים ({count})",
       "closeFilters": "סגור",
       "filtersTitle": "מסנני מובייל",
-      "filtersBody": "כוון את הסריקה כאן ואז סגור את הפאנל כדי לעבור לכרטיסי התוצאות."
+      "filtersBody": "כוון את הסריקה כאן ואז הפעל אותה כדי לעבור לכרטיסי התוצאות."
     },
     "guestLimit": {
-      "close": "סגור את חלון ההתחברות"
+      "close": "סגור את חלון ההתחברות",
+      "dialogLabel": "התחברות לשימוש במספר מסננים"
     },
     "legalNotice": {
       "title": "הודעה משפטית חשובה",
@@ -520,6 +526,8 @@
       "title": "תמהיל סקטורים",
       "leader": "{sector} מהווה {percentage}% מהסריקה",
       "basedOn": "מבוסס על {count} התאמות",
+      "concentrated": "התוצאות מרוכזות — כדאי לבדוק חשיפה סקטוריאלית",
+      "diversified": "אין סקטור יחיד ששולט בסריקה",
       "unknown": "ללא סיווג",
       "other": "סקטורים נוספים"
     },
@@ -536,7 +544,38 @@
       "technology": "טכנולוגיה",
       "utilities": "שירותים ציבוריים"
     },
+    "insights": {
+      "matches": "סה״כ התאמות",
+      "loaded": "{count} נטענו כעת",
+      "medianAtr": "ATR חציוני",
+      "visibleResults": "בתוצאות המוצגות",
+      "riskFlags": "דגלי סיכון",
+      "reviewFlags": "מומלץ לבדוק לפני פתיחת גרף",
+      "noFlags": "לא זוהו דגלים בולטים",
+      "dataFreshness": "רענון נתונים",
+      "latestAvailable": "תמונת מצב אחרונה שזמינה בשוק"
+    },
+    "accessibility": {
+      "aboveSma": "המחיר מעל SMA {period}",
+      "belowSma": "המחיר מתחת ל-SMA {period}",
+      "noData": "אין נתון זמין",
+      "resultsCaption": "תוצאות סורק המניות, {count} התאמות"
+    },
     "workspace": {
+      "productSubtitle": "מוצאים, מבינים ושומרים סטאפ שוק.",
+      "modeLabel": "מצב הסורק",
+      "modes": {
+        "guided": "מודרך",
+        "advanced": "מתקדם"
+      },
+      "guidedHint": "בחרו מטרה למטה — החוקים המתאימים יופעלו אוטומטית.",
+      "compactStatus": "{matches} התאמות · {filters} מסננים",
+      "builderEyebrow": "בונה מתקדם",
+      "activeSummary": "נבחרו {count} מסננים",
+      "viewActive": "הצג",
+      "hideActive": "הסתר",
+      "removeFilter": "הסר מסנן",
+      "loadingResults": "תוצאות הסורק נטענות",
       "resultBody": "עברו קודם על רשימת הסימבולים, ואז פתחו כל סימבול כדי לראות את ההקשר היומי, השבועי והחודשי.",
       "showWhyMatched": "למה זה התאים",
       "hideWhyMatched": "הסתר פירוט",
@@ -912,10 +951,28 @@
     "nameLabel": "שם הסריקה",
     "namePlaceholder": "הסריקה שלי",
     "viewScan": "הצג סריקה",
+    "rename": "שינוי שם",
+    "duplicate": "שכפול",
+    "renameEyebrow": "עריכת סריקה שמורה",
+    "renameTitle": "שינוי שם הסריקה",
+    "renameBody": "בחרו שם ברור כדי שיהיה קל לזהות את הסטאפ בהמשך.",
+    "renameConfirm": "שמור שם",
+    "duplicateEyebrow": "שימוש חוזר בסטאפ",
+    "duplicateTitle": "שכפול הסריקה",
+    "duplicateBody": "צרו עותק נפרד שאפשר לערוך בלי לשנות את המקור.",
+    "duplicateConfirm": "צור עותק",
+    "copyName": "עותק של {name}",
+    "nameRequired": "יש להזין שם לסריקה.",
+    "nameDialogClose": "סגור חלון שם",
+    "actionCancel": "ביטול",
+    "actionFailed": "לא ניתן לשמור את השינוי. נסו שוב.",
+    "renameSuccess": "השם שונה ל־„{name}”.",
+    "duplicateSuccess": "„{name}” נוצרה.",
     "goToScreener": "עבור לסורק",
     "enableAlerts": "התראות",
     "alertsPremium": "פרימיום",
     "alertsLabel": "התראות",
+    "alertToggleLabel": "הפעלת או כיבוי התראות לסריקה השמורה",
     "alertsComingSoon": "התראות על מניות חדשות שנכנסו לסריקה יתווספו בעדכון עתידי.",
     "alertsPremiumHint": "התראות על סריקות הן פיצ'ר פרימיום. שדרג כדי לקבל התראות כשמניות חדשות נכנסות לסריקה שמורה.",
     "watching": "עוקב",
@@ -923,15 +980,36 @@
     "filterSingular": "פילטר",
     "filterPlural": "פילטרים",
     "alertsHint": "הפעל התראות על כל סריקה למטה. נעדכן אותך כאן כשמניות חדשות ייכנסו לאחר כל רענון שוק.",
+    "overviewLabel": "סקירת סריקות שמורות",
+    "savedCountLabel": "סריקות שמורות",
+    "savedCountMeta": "סטאפים לשימוש חוזר",
+    "activeAlertsLabel": "התראות פעילות",
+    "activeAlertsMeta": "מעקב אחר התאמות חדשות",
+    "lastSavedLabel": "שינוי אחרון",
+    "lastSavedMeta": "הסריקה שעודכנה לאחרונה",
+    "searchLabel": "חיפוש בסריקות שמורות",
+    "searchPlaceholder": "חיפוש לפי שם סריקה…",
+    "sortLabel": "מיון",
+    "sortRecent": "עודכנו לאחרונה",
+    "sortName": "שם",
+    "noSearchResults": "לא נמצאו סריקות שמורות שמתאימות לחיפוש.",
+    "clearSearch": "נקה חיפוש",
+    "loadFailed": "לא ניתן לטעון את הסריקות השמורות.",
+    "retry": "נסו שוב",
+    "alertUpdateFailed": "לא ניתן לעדכן את ההתראה. נסו שוב.",
     "remove": "הסר",
     "deleteDialogEyebrow": "הסרת סריקה שמורה",
     "deleteDialogTitle": "להסיר את „{name}”?",
-    "deleteDialogBody": "הפעולה תמחק לצמיתות את הסריקה השמורה ואת כל ההתראות המקושרות אליה. לא ניתן לבטל אותה.",
+    "deleteDialogBody": "הפעולה תסיר את הסריקה ואת ההתראה המקושרת. יהיו לכם מספר שניות לבטל אותה.",
     "deleteDialogClose": "סגור אישור מחיקה",
     "deleteCancel": "השאר את הסריקה",
     "deleteConfirm": "כן, להסיר",
     "deleteFailed": "לא ניתן להסיר את הסריקה השמורה. נסו שוב.",
-    "deleteSuccess": "„{name}” הוסרה."
+    "deleteSuccess": "„{name}” הוסרה.",
+    "undo": "ביטול",
+    "restoring": "משחזר את הסריקה…",
+    "restoreSuccess": "„{name}” שוחזרה.",
+    "restoreFailed": "לא ניתן לשחזר את הסריקה. אפשר לשמור אותה מחדש מהסורק."
   },
   "notifications": {
     "title": "התראות",

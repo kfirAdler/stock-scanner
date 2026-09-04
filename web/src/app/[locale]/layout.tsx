@@ -48,9 +48,12 @@ export default async function LocaleLayout({
       <body className="min-h-full flex flex-col bg-surface font-sans text-text antialiased">
         <Providers>
           <NextIntlClientProvider locale={locale} messages={messages}>
+            <a href="#main-content" className="skip-link">
+              {messages.common.skipToContent}
+            </a>
             <TermsAcceptanceGate />
             <Header />
-            <main className="flex-1">{children}</main>
+            <main id="main-content" className="flex-1" tabIndex={-1}>{children}</main>
             <footer className="border-t border-border-strong/50 bg-[color:color-mix(in_srgb,var(--color-surface-raised)_82%,var(--color-surface))]">
               <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
                 <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">

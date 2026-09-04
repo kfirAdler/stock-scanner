@@ -24,7 +24,7 @@ export function FilterCategoryTabs({
 }: FilterCategoryTabsProps) {
   return (
     <div className="overflow-x-auto">
-      <div className="ui-segment inline-flex min-w-full gap-1 rounded-2xl p-1">
+      <div className="ui-segment inline-flex min-w-full gap-1 rounded-2xl p-1" role="group">
         {tabs.map((tab) => {
           const active = tab.id === activeTab;
           return (
@@ -32,6 +32,7 @@ export function FilterCategoryTabs({
               key={tab.id}
               type="button"
               onClick={() => onChange(tab.id)}
+              aria-pressed={active}
               className={clsx(
                 "inline-flex items-center gap-2 rounded-[14px] font-semibold whitespace-nowrap transition-all duration-150",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-alt",

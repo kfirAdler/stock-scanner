@@ -14,7 +14,8 @@
     "signOut": "Sign Out",
     "email": "Email",
     "password": "Password",
-    "or": "or"
+    "or": "or",
+    "skipToContent": "Skip to main content"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -24,7 +25,9 @@
     "savedScreens": "Saved Screens",
     "settings": "Settings",
     "terms": "Terms of Use",
-    "menu": "Open navigation"
+    "menu": "Open navigation",
+    "primaryLabel": "Main navigation",
+    "mobileLabel": "Mobile navigation"
   },
   "marketing": {
     "badge": "Precomputed market scans",
@@ -215,7 +218,9 @@
       "scoreNote": "The match score measures fit for the selected goal only. It is not a return forecast or investment recommendation.",
       "score": "Match",
       "whyMatched": "Why it matched",
+      "notableContext": "Notable context",
       "watchOut": "Watch out",
+      "noEvidence": "No standout context beyond the applied rules.",
       "markets": {
         "all": "All",
         "US": "US",
@@ -321,10 +326,11 @@
       "openFilters": "Filters ({count})",
       "closeFilters": "Close",
       "filtersTitle": "Mobile Filters",
-      "filtersBody": "Tune the scan here, then close this panel to review the result cards."
+      "filtersBody": "Tune the scan here, then apply it to review the result cards."
     },
     "guestLimit": {
-      "close": "Close sign-in prompt"
+      "close": "Close sign-in prompt",
+      "dialogLabel": "Sign in to use multiple filters"
     },
     "legalNotice": {
       "title": "Important legal notice",
@@ -520,6 +526,8 @@
       "title": "Sector mix",
       "leader": "{sector} represents {percentage}% of this scan",
       "basedOn": "Based on {count} matches",
+      "concentrated": "Concentrated result set — review sector exposure",
+      "diversified": "No single sector dominates this scan",
       "unknown": "Unclassified",
       "other": "Other sectors"
     },
@@ -536,7 +544,38 @@
       "technology": "Technology",
       "utilities": "Utilities"
     },
+    "insights": {
+      "matches": "Total matches",
+      "loaded": "{count} loaded now",
+      "medianAtr": "Median ATR",
+      "visibleResults": "Across visible results",
+      "riskFlags": "Risk flags",
+      "reviewFlags": "Review before opening a chart",
+      "noFlags": "No standout flags detected",
+      "dataFreshness": "Data refreshed",
+      "latestAvailable": "Latest available market snapshot"
+    },
+    "accessibility": {
+      "aboveSma": "Price is above SMA {period}",
+      "belowSma": "Price is below SMA {period}",
+      "noData": "No data available",
+      "resultsCaption": "Stock screener results, {count} matches"
+    },
     "workspace": {
+      "productSubtitle": "Find, understand, and save a market setup.",
+      "modeLabel": "Scanner mode",
+      "modes": {
+        "guided": "Guided",
+        "advanced": "Advanced"
+      },
+      "guidedHint": "Choose a goal below — matching rules run automatically.",
+      "compactStatus": "{matches} matches · {filters} filters",
+      "builderEyebrow": "Advanced builder",
+      "activeSummary": "{count} filters selected",
+      "viewActive": "View",
+      "hideActive": "Hide",
+      "removeFilter": "Remove filter",
+      "loadingResults": "Loading screener results",
       "resultBody": "Scan the symbol list first, then open any symbol to inspect the daily, weekly, and monthly context.",
       "showWhyMatched": "Why matched",
       "hideWhyMatched": "Hide details",
@@ -912,10 +951,28 @@
     "nameLabel": "Screen name",
     "namePlaceholder": "My screen",
     "viewScan": "View scan",
+    "rename": "Rename",
+    "duplicate": "Duplicate",
+    "renameEyebrow": "Edit saved screen",
+    "renameTitle": "Rename this scan",
+    "renameBody": "Use a clear name so this setup is easy to recognize later.",
+    "renameConfirm": "Save name",
+    "duplicateEyebrow": "Reuse this setup",
+    "duplicateTitle": "Duplicate this scan",
+    "duplicateBody": "Create a separate copy that you can adjust without changing the original.",
+    "duplicateConfirm": "Create copy",
+    "copyName": "{name} copy",
+    "nameRequired": "Enter a name for this scan.",
+    "nameDialogClose": "Close name dialog",
+    "actionCancel": "Cancel",
+    "actionFailed": "Could not save this change. Please try again.",
+    "renameSuccess": "“{name}” was renamed.",
+    "duplicateSuccess": "“{name}” was created.",
     "goToScreener": "Go to Screener",
     "enableAlerts": "Alerts",
     "alertsPremium": "Premium",
     "alertsLabel": "Alerts",
+    "alertToggleLabel": "Toggle alerts for this saved scan",
     "alertsComingSoon": "Alerts for new stocks entering this scan will be added in a future update.",
     "alertsPremiumHint": "Scan alerts are a Premium feature. Upgrade to enable notifications when new stocks enter a saved scan.",
     "watching": "Watching",
@@ -923,15 +980,36 @@
     "filterSingular": "filter",
     "filterPlural": "filters",
     "alertsHint": "Toggle alerts on any screen below. We'll notify you here when new stocks enter after each market refresh.",
+    "overviewLabel": "Saved screens overview",
+    "savedCountLabel": "Saved scans",
+    "savedCountMeta": "Reusable setups",
+    "activeAlertsLabel": "Active alerts",
+    "activeAlertsMeta": "Watching for new matches",
+    "lastSavedLabel": "Latest change",
+    "lastSavedMeta": "Most recently updated scan",
+    "searchLabel": "Search saved scans",
+    "searchPlaceholder": "Search by scan name…",
+    "sortLabel": "Sort",
+    "sortRecent": "Recently updated",
+    "sortName": "Name",
+    "noSearchResults": "No saved scans match that search.",
+    "clearSearch": "Clear search",
+    "loadFailed": "Saved scans could not be loaded.",
+    "retry": "Try again",
+    "alertUpdateFailed": "The alert could not be updated. Please try again.",
     "remove": "Remove",
     "deleteDialogEyebrow": "Remove saved screen",
     "deleteDialogTitle": "Remove “{name}”?",
-    "deleteDialogBody": "This permanently deletes this saved screen and any alerts connected to it. This cannot be undone.",
+    "deleteDialogBody": "This removes the saved screen and its connected alert. You will have a few seconds to undo it.",
     "deleteDialogClose": "Close delete confirmation",
     "deleteCancel": "Keep screen",
     "deleteConfirm": "Yes, remove it",
     "deleteFailed": "Could not remove the saved screen. Please try again.",
-    "deleteSuccess": "“{name}” was removed."
+    "deleteSuccess": "“{name}” was removed.",
+    "undo": "Undo",
+    "restoring": "Restoring saved scan…",
+    "restoreSuccess": "“{name}” was restored.",
+    "restoreFailed": "The scan could not be restored. Please save it again from the screener."
   },
   "notifications": {
     "title": "Notifications",

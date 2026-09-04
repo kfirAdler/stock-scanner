@@ -56,25 +56,25 @@ export function TradingViewAdvancedChart({
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetRef = useRef<TvWidget | null>(null);
   const studiesRef = useRef(studies);
-  studiesRef.current = studies;
   const { resolvedTheme } = useTheme();
-  const [scriptError, setScriptError] = useState(false);
+  const [scriptErrorSymbol, setScriptErrorSymbol] = useState<string | null>(null);
   const tvLocale = locale === "he" ? "he_IL" : "en";
   const studiesDep = studiesKey ?? JSON.stringify(studies);
 
   useEffect(() => {
-    setScriptError(false);
-  }, [symbol]);
+    studiesRef.current = studies;
+  }, [studies, studiesDep]);
 
   useEffect(() => {
     let cancelled = false;
     let rafId = 0;
+    let activeContainer: HTMLDivElement | null = null;
 
     (async () => {
       try {
         await loadTradingViewScript();
       } catch {
-        if (!cancelled) setScriptError(true);
+        if (!cancelled) setScriptErrorSymbol(symbol);
         return;
       }
       if (cancelled || !containerRef.current || !window.TradingView) return;
@@ -83,6 +83,7 @@ export function TradingViewAdvancedChart({
         if (cancelled || !containerRef.current || !window.TradingView) return;
 
         const el = containerRef.current;
+        activeContainer = el;
         widgetRef.current?.remove?.();
         widgetRef.current = null;
         el.innerHTML = "";
@@ -126,13 +127,13 @@ export function TradingViewAdvancedChart({
       cancelAnimationFrame(rafId);
       widgetRef.current?.remove?.();
       widgetRef.current = null;
-      if (containerRef.current) {
-        containerRef.current.innerHTML = "";
+      if (activeContainer) {
+        activeContainer.innerHTML = "";
       }
     };
   }, [symbol, height, resolvedTheme, studiesDep, containerId, tvLocale]);
 
-  if (scriptError) {
+  if (scriptErrorSymbol === symbol) {
     return (
       <div
         className="flex items-center justify-center rounded-2xl border border-border bg-surface-alt px-4 text-center text-sm text-text-secondary"

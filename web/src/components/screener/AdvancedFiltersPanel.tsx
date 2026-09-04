@@ -16,12 +16,16 @@ export function AdvancedFiltersPanel({
   title,
   children,
 }: AdvancedFiltersPanelProps) {
+  const panelId = "advanced-scanner-filters";
+
   return (
     <section className="ui-panel-subtle rounded-2xl">
       <button
         type="button"
         onClick={onToggle}
-        className="flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left"
+        className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-2.5 text-start"
+        aria-expanded={open}
+        aria-controls={panelId}
       >
         <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-text-muted">
           {title}
@@ -36,7 +40,11 @@ export function AdvancedFiltersPanel({
           ˅
         </span>
       </button>
-      {open ? <div className="border-t border-border/80 px-4 py-3">{children}</div> : null}
+      {open ? (
+        <div id={panelId} className="border-t border-border/80 px-4 py-3">
+          {children}
+        </div>
+      ) : null}
     </section>
   );
 }

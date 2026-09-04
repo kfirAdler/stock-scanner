@@ -3,6 +3,7 @@
 import { useState, type FormEvent, type MouseEvent } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
+import { useModalDialog } from "@/hooks/useModalDialog";
 
 interface SaveScreenDialogProps {
   defaultName: string;
@@ -24,6 +25,10 @@ export function SaveScreenDialog({
   const t = useTranslations("screener");
   const [name, setName] = useState(defaultName);
   const [nameError, setNameError] = useState<string | null>(null);
+  const dialogRef = useModalDialog<HTMLFormElement>({
+    onClose,
+    closeDisabled: loading,
+  });
 
   function handleBackdropClick(event: MouseEvent<HTMLDivElement>) {
     if (event.target === event.currentTarget && !loading) onClose();
@@ -44,17 +49,17 @@ export function SaveScreenDialog({
     <div
       className="fixed inset-0 z-[80] flex items-center justify-center bg-text/55 p-4 backdrop-blur-sm"
       onMouseDown={handleBackdropClick}
-      onKeyDown={(event) => {
-        if (event.key === "Escape" && !loading) onClose();
-      }}
     >
       <form
+        ref={dialogRef}
         onSubmit={handleSubmit}
         className="ui-panel-strong w-full max-w-md overflow-hidden rounded-[24px] shadow-[0_30px_80px_rgba(15,23,42,0.3)]"
         role="dialog"
         aria-modal="true"
         aria-labelledby="save-screen-title"
         aria-describedby="save-screen-description"
+        aria-busy={loading}
+        tabIndex={-1}
       >
         <div className="border-b border-border bg-surface-alt/65 px-5 py-4">
           <div className="flex items-start justify-between gap-4">
@@ -73,7 +78,7 @@ export function SaveScreenDialog({
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="ui-control inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-lg text-text-secondary transition-colors hover:border-border-strong hover:text-text disabled:opacity-50"
+              className="ui-control inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg text-text-secondary transition-colors hover:border-border-strong hover:text-text disabled:opacity-50"
               aria-label={t("saveDialog.close")}
             >
               ×
@@ -85,7 +90,7 @@ export function SaveScreenDialog({
           <label className="block">
             <span className="text-xs font-bold text-text">{t("saveDialog.nameLabel")}</span>
             <input
-              autoFocus
+              data-autofocus
               value={name}
               maxLength={80}
               onChange={(event) => {

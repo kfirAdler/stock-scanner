@@ -32,7 +32,7 @@ export function MoneyCelebration({ message }: MoneyCelebrationProps) {
       <div
         className="absolute left-1/2 top-5 flex -translate-x-1/2 items-center gap-2 rounded-full border border-success/25 bg-success-soft px-4 py-2.5 text-sm font-bold text-success shadow-[0_16px_42px_rgba(22,163,74,0.2)] backdrop-blur-md"
         role="status"
-        aria-live="assertive"
+        aria-live="polite"
       >
         <span className="flex h-5 w-5 items-center justify-center rounded-full bg-success text-xs text-white" aria-hidden="true">
           ✓

@@ -88,6 +88,9 @@ export function FilterPanel({
     () => firstActiveTabState(filters, definitions)?.category ?? "sequence"
   );
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [activeSummaryOpen, setActiveSummaryOpen] = useState(
+    () => countActiveFilters(filters) <= 4
+  );
   const [density, setDensity] = useState<DensityMode>(() => {
     if (typeof window === "undefined") return "compact";
     const stored = window.localStorage.getItem("scanner.sidebar.density");
@@ -231,8 +234,10 @@ export function FilterPanel({
 
   return (
     <ScannerSidebar
+      eyebrow={t("workspace.builderEyebrow")}
       title={t("workspace.compactTitle")}
       filterCount={activeFilterCount}
+      closeLabel={t("workspace.closeFilters")}
       onClose={onClose}
       statusBar={
         <ScannerStatusBar
@@ -246,8 +251,8 @@ export function FilterPanel({
         />
       }
       footer={
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
             <Button type="button" variant="ghost" size="sm" onClick={clearAll} disabled={activeFilterCount === 0}>
               {t("clearFilters")}
             </Button>
@@ -264,7 +269,7 @@ export function FilterPanel({
             ) : null}
           </div>
           <div className="flex items-center gap-2">
-            <Button size="sm" onClick={onApply} loading={loading}>
+            <Button size="sm" onClick={onApply} loading={loading} className="w-full sm:w-auto">
               {t("workspace.quickApply")}
             </Button>
           </div>
@@ -559,14 +564,35 @@ export function FilterPanel({
         </div>
       </AdvancedFiltersPanel>
 
-      <section className="space-y-2.5 rounded-2xl">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-text-muted">
-            {t("workspace.sections.active")}
-          </p>
-          <p className="mt-0.5 text-[11px] text-text-muted">{t("workspace.sections.activeHint")}</p>
-        </div>
-        <div className={clsx("flex flex-wrap", density === "compact" ? "gap-2" : "gap-2.5")}>
+      <section className="overflow-hidden rounded-2xl border border-border/80 bg-surface-alt/45">
+        <button
+          type="button"
+          onClick={() => setActiveSummaryOpen((current) => !current)}
+          className="flex min-h-12 w-full items-center justify-between gap-3 px-3.5 py-2.5 text-start"
+          aria-expanded={activeSummaryOpen}
+          aria-controls="active-scanner-filters"
+        >
+          <span>
+            <span className="block text-[10px] font-bold uppercase tracking-[0.22em] text-text-muted">
+              {t("workspace.sections.active")}
+            </span>
+            <span className="mt-0.5 block text-[11px] text-text-secondary">
+              {t("workspace.activeSummary", { count: activeFilterCount })}
+            </span>
+          </span>
+          <span className="inline-flex items-center gap-2 text-[11px] font-bold text-primary">
+            {activeSummaryOpen ? t("workspace.hideActive") : t("workspace.viewActive")}
+            <span aria-hidden="true">{activeSummaryOpen ? "⌃" : "⌄"}</span>
+          </span>
+        </button>
+        {activeSummaryOpen ? (
+          <div
+            id="active-scanner-filters"
+            className={clsx(
+              "flex flex-wrap border-t border-border/80 px-3.5 py-3",
+              density === "compact" ? "gap-2" : "gap-2.5"
+            )}
+          >
           {activeRulePills.length === 0 &&
           !filters.listing_market &&
           filters.market_cap_gte === undefined &&
@@ -579,6 +605,7 @@ export function FilterPanel({
                   density={density}
                   label={`${t("listingMarket.label")} · ${t(`listingMarket.${filters.listing_market.toLowerCase()}`)}`}
                   onRemove={() => onChange({ ...filters, listing_market: undefined })}
+                  removeLabel={t("workspace.removeFilter")}
                 />
               ) : null}
               {filters.market_cap_gte !== undefined ? (
@@ -586,6 +613,7 @@ export function FilterPanel({
                   density={density}
                   label={`${t("marketCap.gte")} ${filters.market_cap_gte}`}
                   onRemove={() => onChange({ ...filters, market_cap_gte: undefined })}
+                  removeLabel={t("workspace.removeFilter")}
                 />
               ) : null}
               {filters.market_cap_lte !== undefined ? (
@@ -593,6 +621,7 @@ export function FilterPanel({
                   density={density}
                   label={`${t("marketCap.lte")} ${filters.market_cap_lte}`}
                   onRemove={() => onChange({ ...filters, market_cap_lte: undefined })}
+                  removeLabel={t("workspace.removeFilter")}
                 />
               ) : null}
               {activeRulePills.map((pill) => (
@@ -601,11 +630,13 @@ export function FilterPanel({
                   density={density}
                   label={pill.label}
                   onRemove={pill.remove}
+                  removeLabel={t("workspace.removeFilter")}
                 />
               ))}
             </>
           )}
-        </div>
+          </div>
+        ) : null}
       </section>
     </ScannerSidebar>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useModalDialog } from "@/hooks/useModalDialog";
 
 interface ScreenerHelpModalProps {
   open: boolean;
@@ -13,17 +14,32 @@ function MockRow() {
 
 export function ScreenerHelpModal({ open, onClose }: ScreenerHelpModalProps) {
   const t = useTranslations("screener");
+  const dialogRef = useModalDialog<HTMLDivElement>({ open, onClose });
 
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/65 p-4 backdrop-blur-sm">
-      <div className="ui-panel-strong relative max-h-[90vh] w-full max-w-6xl overflow-hidden rounded-[28px]">
+    <div
+      className="fixed inset-0 z-[70] flex items-center justify-center bg-black/65 p-4 backdrop-blur-sm"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <div
+        ref={dialogRef}
+        className="ui-panel-strong relative max-h-[90vh] w-full max-w-6xl overflow-y-auto rounded-[28px]"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="screener-help-title"
+        aria-describedby="screener-help-description"
+        tabIndex={-1}
+      >
         <button
           type="button"
           onClick={onClose}
           className="ui-control absolute end-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full text-text-secondary transition-colors hover:border-border-strong hover:text-text"
           aria-label={t("workspace.help.close")}
+          data-autofocus
         >
           ×
         </button>
@@ -33,8 +49,8 @@ export function ScreenerHelpModal({ open, onClose }: ScreenerHelpModalProps) {
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary">
               {t("workspace.help.eyebrow")}
             </p>
-            <h2 className="mt-2 text-2xl font-bold text-text">{t("workspace.help.title")}</h2>
-            <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+            <h2 id="screener-help-title" className="mt-2 text-2xl font-bold text-text">{t("workspace.help.title")}</h2>
+            <p id="screener-help-description" className="mt-2 text-sm leading-relaxed text-text-secondary">
               {t("workspace.help.body")}
             </p>
 

@@ -62,27 +62,46 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "name and filter_json required" }, { status: 400 });
   }
 
+  let savedScreen;
   if (id) {
-    const { error } = await supabase
+    if (typeof id !== "string" || !UUID_PATTERN.test(id)) {
+      return NextResponse.json({ error: "Valid screen id required" }, { status: 400 });
+    }
+    const { data, error } = await supabase
       .from("saved_screens")
       .update({ name, filter_json, updated_at: new Date().toISOString() })
       .eq("id", id)
-      .eq("user_id", user.id);
+      .eq("user_id", user.id)
+      .select("*")
+      .maybeSingle();
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+    if (!data) {
+      return NextResponse.json({ error: "Saved screen not found" }, { status: 404 });
+    }
+    savedScreen = data;
   } else {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("saved_screens")
-      .insert({ user_id: user.id, name, filter_json });
+      .insert({ user_id: user.id, name, filter_json })
+      .select("*")
+      .single();
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+    savedScreen = data;
   }
 
-  return NextResponse.json({ success: true });
+  return NextResponse.json({
+    success: true,
+    screen: {
+      ...savedScreen,
+      filter_json: coerceStoredScreen(savedScreen.filter_json),
+    },
+  });
 }
 
 export async function DELETE(request: NextRequest) {

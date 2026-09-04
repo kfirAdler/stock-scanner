@@ -24,14 +24,15 @@ export function TimeframeSegmentedControl({
   density = "compact",
 }: TimeframeSegmentedControlProps) {
   return (
-    <div className="ui-segment grid grid-cols-3 gap-1 rounded-2xl p-1">
+    <div className="ui-segment grid grid-cols-3 gap-1 rounded-2xl p-1" role="group">
       {items.map((item) => (
         <button
           key={item.id}
           type="button"
           onClick={() => onChange(item.id)}
+          aria-pressed={value === item.id}
           className={clsx(
-            "rounded-[14px] text-left transition-all duration-150",
+            "rounded-[14px] text-start transition-all duration-150",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-alt",
             density === "compact" ? "px-3 py-2" : "px-3.5 py-2.5",
             value === item.id
