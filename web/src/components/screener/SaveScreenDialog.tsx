@@ -47,13 +47,13 @@ export function SaveScreenDialog({
 
   return (
     <div
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-text/55 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[80] flex items-center justify-center overflow-y-auto bg-text/55 p-3 backdrop-blur-sm sm:p-4"
       onMouseDown={handleBackdropClick}
     >
       <form
         ref={dialogRef}
         onSubmit={handleSubmit}
-        className="ui-panel-strong w-full max-w-md overflow-hidden rounded-[24px] shadow-[0_30px_80px_rgba(15,23,42,0.3)]"
+        className="ui-panel-strong max-h-[calc(100dvh-1.5rem)] w-full max-w-md overflow-y-auto rounded-[24px] shadow-[0_30px_80px_rgba(15,23,42,0.3)] sm:max-h-[calc(100dvh-2rem)]"
         role="dialog"
         aria-modal="true"
         aria-labelledby="save-screen-title"
@@ -111,11 +111,11 @@ export function SaveScreenDialog({
           ) : null}
         </div>
 
-        <div className="flex items-center justify-end gap-2 border-t border-border bg-surface-alt/45 px-5 py-3.5">
-          <Button type="button" variant="ghost" size="sm" onClick={onClose} disabled={loading}>
+        <div className="flex flex-col-reverse gap-2 border-t border-border bg-surface-alt/45 px-5 py-3.5 sm:flex-row sm:items-center sm:justify-end">
+          <Button type="button" variant="ghost" size="sm" onClick={onClose} disabled={loading} className="w-full sm:w-auto">
             {t("saveDialog.cancel")}
           </Button>
-          <Button type="submit" size="sm" loading={loading}>
+          <Button type="submit" size="sm" loading={loading} className="w-full sm:w-auto">
             {t("saveDialog.save")}
           </Button>
         </div>

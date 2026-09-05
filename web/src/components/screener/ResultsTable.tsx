@@ -621,7 +621,7 @@ export function ResultsTable({
               <button
                 type="button"
                 onClick={() => toggleExpanded(row.ticker)}
-                className="flex min-h-[76px] w-full items-center justify-between gap-3 px-4 py-3 text-start transition-colors hover:bg-surface-hover/70"
+                className="flex min-h-[76px] w-full items-center justify-between gap-2.5 px-3 py-3 text-start transition-colors hover:bg-surface-hover/70 sm:px-4"
                 aria-expanded={expanded}
                 aria-controls={`mobile-result-${row.ticker}`}
               >
@@ -658,7 +658,7 @@ export function ResultsTable({
               </button>
 
               {expanded ? (
-                <div id={`mobile-result-${row.ticker}`} className="space-y-3 border-t border-border bg-surface-alt/65 px-4 py-3.5">
+                <div id={`mobile-result-${row.ticker}`} className="space-y-3 border-t border-border bg-surface-alt/65 px-3 py-3.5 sm:px-4">
                   <MatchExplanation row={row} guided={!!screenerFilters?.discovery_goal} />
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div className="ui-control rounded-lg px-3 py-2.5">
@@ -700,12 +700,12 @@ export function ResultsTable({
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     <a
                       href={tradingViewFullChartUrlForTicker(row.ticker, row.market)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="ui-control inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold uppercase tracking-wide text-text-secondary transition-colors hover:border-border-strong hover:text-text"
+                      className="ui-control inline-flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-center text-[11px] font-bold uppercase tracking-wide text-text-secondary transition-colors hover:border-border-strong hover:text-text"
                     >
                       {t("workspace.openTradingView")}
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5 opacity-60" aria-hidden="true">
@@ -715,7 +715,7 @@ export function ResultsTable({
                     </a>
                     <Link
                       href={`/ticker/${row.ticker}${tickerQuery}`}
-                      className="ui-control inline-flex items-center rounded-lg px-3 py-2 text-xs font-bold uppercase tracking-wide text-text-secondary transition-colors hover:border-border-strong hover:text-text"
+                      className="ui-control inline-flex min-w-0 items-center justify-center rounded-lg px-2 py-2 text-center text-[11px] font-bold uppercase tracking-wide text-text-secondary transition-colors hover:border-border-strong hover:text-text"
                     >
                       {t("workspace.openTicker")}
                     </Link>

@@ -94,6 +94,7 @@ function ScreenerPageContent() {
   const [filters, setFilters] = useState<ScreenerPayload>(urlFilters);
   const filtersRef = useRef<ScreenerPayload>(urlFilters);
   const [appliedFilters, setAppliedFilters] = useState<ScreenerPayload>(urlFilters);
+  const appliedFiltersRef = useRef<ScreenerPayload>(urlFilters);
   const [favoriteFilters, setFavoriteFilters] = useState<ScreenerPayload | null>(null);
   const [favoriteLoading, setFavoriteLoading] = useState(true);
   const [favoriteSaving, setFavoriteSaving] = useState(false);
@@ -153,12 +154,14 @@ function ScreenerPageContent() {
     append = false,
     nextSortKey = sortKey,
     nextSortDir = sortDir,
+    syncUrl = true,
   }: {
     nextFilters?: ScreenerPayload;
     nextOffset?: number;
     append?: boolean;
     nextSortKey?: ScannerSortKey;
     nextSortDir?: ScannerSortDir;
+    syncUrl?: boolean;
   } = {}) => {
     if (append && requestInFlightRef.current) return;
     if (!append) {
@@ -183,13 +186,18 @@ function ScreenerPageContent() {
     setHasSearched(true);
     setGate(null);
     if (!append) {
+      appliedFiltersRef.current = normalizedFilters;
       setAppliedFilters(normalizedFilters);
     }
-    if (!append && typeof window !== "undefined") {
+    if (!append && syncUrl && typeof window !== "undefined") {
       const query = screenToQueryString(normalizedFilters);
       const pathname = window.location.pathname;
       handledSearchParamsRef.current = query.startsWith("?") ? query.slice(1) : "";
-      window.history.replaceState({}, "", query ? `${pathname}${query}` : pathname);
+      window.history.replaceState(
+        window.history.state,
+        "",
+        query ? `${pathname}${query}` : pathname
+      );
     }
     try {
       const res = await fetch("/api/screener", {
@@ -345,20 +353,38 @@ function ScreenerPageContent() {
     let cancelled = false;
 
     queueMicrotask(() => {
-      if (cancelled || handledSearchParamsRef.current === searchParamsKey) return;
+      if (cancelled) return;
+      const urlScreenSignature = screenToQueryString(urlFilters);
+      const appliedScreenSignature = screenToQueryString(appliedFiltersRef.current);
+      if (
+        handledSearchParamsRef.current === searchParamsKey &&
+        urlScreenSignature === appliedScreenSignature
+      ) return;
       handledSearchParamsRef.current = searchParamsKey;
+      const nextSortKey: ScannerSortKey = urlFilters.discovery_goal ? "match_score" : "ticker";
+      const nextSortDir: ScannerSortDir = urlFilters.discovery_goal ? "desc" : "asc";
       filtersRef.current = urlFilters;
+      appliedFiltersRef.current = urlFilters;
       setFilters(urlFilters);
       setAppliedFilters(urlFilters);
+      setSortKey(nextSortKey);
+      setSortDir(nextSortDir);
       setScannerMode(
         urlFilters.discovery_goal || countActiveFilters(urlFilters) === 0 ? "guided" : "advanced"
       );
       setGoalPickerOpen(!urlFilters.discovery_goal);
+      setMobileFiltersOpen(false);
+      setMultiFilterGateOpen(false);
       setFilterPanelResetKey((current) => current + 1);
       setFavoriteStatus(null);
 
       if (countActiveFilters(urlFilters) > 0) {
-        void fetchResults({ nextFilters: urlFilters });
+        void fetchResults({
+          nextFilters: urlFilters,
+          nextSortKey,
+          nextSortDir,
+          syncUrl: false,
+        });
         return;
       }
 
@@ -726,7 +752,7 @@ function ScreenerPageContent() {
   return (
     <div className="page-shell max-w-[1580px]">
       <div className="space-y-3">
-        <section className="page-card-strong sticky top-3 z-30 !p-3.5 sm:!p-4">
+        <section className="page-card-strong z-30 !p-3.5 sm:sticky sm:top-16 sm:!p-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
@@ -760,13 +786,13 @@ function ScreenerPageContent() {
               ) : null}
             </div>
 
-            <div className="flex shrink-0 items-center gap-2">
+            <div className="flex w-full shrink-0 items-center gap-2 sm:w-auto">
               {hasPendingChanges ? (
-                <Button type="button" size="sm" onClick={handleApply} loading={loading}>
+                <Button type="button" size="sm" onClick={handleApply} loading={loading} className="flex-1 sm:flex-none">
                   {t("workspace.quickApply")}
                 </Button>
               ) : (
-                <Button type="button" size="sm" onClick={openAdvancedBuilder}>
+                <Button type="button" size="sm" onClick={openAdvancedBuilder} className="flex-1 sm:flex-none">
                   {t("workspace.editScan")}
                 </Button>
               )}
@@ -958,23 +984,10 @@ function ScreenerPageContent() {
               ref={mobileFiltersDialogRef}
               role="dialog"
               aria-modal="true"
-              aria-labelledby="mobile-filter-title"
+              aria-label={t("mobile.filtersTitle")}
               tabIndex={-1}
-              className="ui-panel-strong absolute inset-x-2 bottom-2 top-10 overflow-y-auto overscroll-contain rounded-[28px] px-3 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-18px_50px_rgba(15,23,42,0.18)] sm:inset-x-4 sm:px-4"
+              className="ui-panel-strong absolute inset-x-2 bottom-[max(0.5rem,env(safe-area-inset-bottom))] top-[max(0.5rem,env(safe-area-inset-top))] overflow-y-auto overscroll-contain rounded-[24px] px-2.5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-2.5 shadow-[0_-18px_50px_rgba(15,23,42,0.18)] sm:inset-x-4 sm:rounded-[28px] sm:px-4 sm:pt-3"
             >
-              <div className="sticky top-0 z-20 mb-3 flex items-center justify-between rounded-2xl border border-border/80 bg-surface-overlay px-3 py-2 backdrop-blur-xl">
-                <div>
-                  <p id="mobile-filter-title" className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
-                    {t("mobile.filtersTitle")}
-                  </p>
-                  <p className="mt-1 text-sm text-text-secondary">
-                    {t("mobile.filtersBody")}
-                  </p>
-                </div>
-                <Button type="button" variant="ghost" size="sm" onClick={closeMobileFilters} data-autofocus>
-                  {t("mobile.closeFilters")}
-                </Button>
-              </div>
               <FilterPanel
                 key={`mobile-${filterPanelResetKey}`}
                 filters={filters}
@@ -1000,10 +1013,10 @@ function ScreenerPageContent() {
         )}
 
         {multiFilterGateOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-text/45 px-4 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-text/45 px-3 py-3 backdrop-blur-sm sm:px-4">
             <div
               ref={multiFilterGateDialogRef}
-              className="relative w-full max-w-2xl"
+              className="relative max-h-[calc(100dvh-1.5rem)] w-full max-w-2xl overflow-y-auto rounded-3xl"
               role="dialog"
               aria-modal="true"
               aria-label={t("guestLimit.dialogLabel")}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type MouseEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition, type FormEvent, type MouseEvent } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import { clsx } from "clsx";
@@ -87,6 +87,7 @@ function TrashIcon({ className }: { className?: string }) {
 function AlertToggle({
   enabled,
   loading,
+  disabled = false,
   canUseAlerts,
   onToggle,
   lastCheckedAt,
@@ -95,6 +96,7 @@ function AlertToggle({
 }: {
   enabled: boolean;
   loading: boolean;
+  disabled?: boolean;
   canUseAlerts: boolean;
   onToggle: (next: boolean) => void;
   lastCheckedAt: string | null;
@@ -103,12 +105,12 @@ function AlertToggle({
 }) {
   if (!canUseAlerts) {
     return (
-      <div title={t("savedScreens.alertsPremiumHint")}>
+      <div className="w-full sm:w-auto" title={t("savedScreens.alertsPremiumHint")}>
         <Button
           size="sm"
           variant="ghost"
           disabled
-          className="justify-center border border-dashed border-amber-400/20 bg-warning-soft/55 text-warning hover:bg-warning-soft/70"
+          className="w-full justify-center border border-dashed border-amber-400/20 bg-warning-soft/55 text-warning hover:bg-warning-soft/70 sm:w-auto"
         >
           <PremiumStar />
           {t("savedScreens.enableAlerts")}
@@ -121,8 +123,8 @@ function AlertToggle({
   }
 
   return (
-    <div className="flex flex-col items-end gap-1">
-      <div className="flex items-center gap-2.5">
+    <div className="flex w-full flex-col items-stretch gap-1 sm:w-auto sm:items-end">
+      <div className="flex items-center justify-between gap-2.5">
         <span className="text-xs font-medium text-text-secondary">
           {t("savedScreens.alertsLabel")}
         </span>
@@ -130,13 +132,13 @@ function AlertToggle({
           role="switch"
           aria-checked={enabled}
           aria-label={t("savedScreens.alertToggleLabel")}
-          disabled={loading}
+          disabled={loading || disabled}
           onClick={() => onToggle(!enabled)}
           className={clsx(
             "relative inline-flex h-7 w-12 flex-shrink-0 items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
             enabled ? "bg-[color:var(--color-neon)]" : "bg-border-strong",
-            loading && "cursor-not-allowed opacity-60"
+            (loading || disabled) && "cursor-not-allowed opacity-60"
           )}
         >
           <span
@@ -167,6 +169,8 @@ function ScreenCard({
   screen,
   alert,
   canUseAlerts,
+  applying,
+  navigationPending,
   onApply,
   onRename,
   onDuplicate,
@@ -178,6 +182,8 @@ function ScreenCard({
   screen: SavedScreen;
   alert: AlertRow | null;
   canUseAlerts: boolean;
+  applying: boolean;
+  navigationPending: boolean;
   onApply: () => void;
   onRename: () => void;
   onDuplicate: () => void;
@@ -202,9 +208,11 @@ function ScreenCard({
 
   return (
     <div
+      aria-busy={applying || undefined}
       className={clsx(
-        "page-card relative flex flex-col gap-4 transition-all duration-200 md:flex-row md:items-center md:justify-between",
-        alertEnabled && "ring-1 ring-[color:var(--color-neon)]/20 shadow-[0_0_0_1px_var(--color-neon-soft)]"
+        "page-card relative flex flex-col gap-4 !p-4 transition-all duration-200 sm:!p-5 md:flex-row md:items-center md:justify-between",
+        alertEnabled && "ring-1 ring-[color:var(--color-neon)]/20 shadow-[0_0_0_1px_var(--color-neon-soft)]",
+        applying && "border-primary/40 bg-primary-soft/30 ring-1 ring-primary/20"
       )}
     >
       {alertEnabled ? (
@@ -241,22 +249,23 @@ function ScreenCard({
         ) : null}
       </div>
 
-      <div className="flex flex-col gap-3 md:items-end">
-        <div className="flex flex-wrap items-center gap-2">
-        <Button size="sm" variant="secondary" onClick={onApply} className="flex-1 md:flex-none">
+      <div className="flex w-full flex-col gap-3 md:w-auto md:items-end">
+        <div className="grid w-full grid-cols-2 gap-2 md:flex md:w-auto md:flex-wrap md:items-center">
+        <Button size="sm" variant="secondary" onClick={onApply} loading={applying} disabled={navigationPending} className="col-span-2 w-full md:w-auto">
           {t("savedScreens.viewScan")}
         </Button>
-        <Button size="sm" variant="ghost" onClick={onRename}>
+        <Button size="sm" variant="ghost" onClick={onRename} disabled={navigationPending} className="w-full md:w-auto">
           {t("savedScreens.rename")}
         </Button>
-        <Button size="sm" variant="ghost" onClick={onDuplicate}>
+        <Button size="sm" variant="ghost" onClick={onDuplicate} disabled={navigationPending} className="w-full md:w-auto">
           {t("savedScreens.duplicate")}
         </Button>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-3 md:justify-end">
+        <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between md:justify-end">
         <AlertToggle
           enabled={alertEnabled}
           loading={toggling}
+          disabled={navigationPending}
           canUseAlerts={canUseAlerts}
           onToggle={handleToggle}
           lastCheckedAt={alert?.last_checked_at ?? null}
@@ -267,7 +276,8 @@ function ScreenCard({
           size="sm"
           variant="ghost"
           onClick={onDelete}
-          className="justify-center text-danger hover:bg-danger-soft hover:text-danger"
+          disabled={navigationPending}
+          className="w-full justify-center text-danger hover:bg-danger-soft hover:text-danger sm:w-auto"
         >
           <TrashIcon className="h-4 w-4" />
           {t("savedScreens.remove")}
@@ -304,12 +314,12 @@ function DeleteScreenDialog({
 
   return (
     <div
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-text/55 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[80] flex items-center justify-center overflow-y-auto bg-text/55 p-3 backdrop-blur-sm sm:p-4"
       onMouseDown={handleBackdropClick}
     >
       <div
         ref={dialogRef}
-        className="ui-panel-strong w-full max-w-md overflow-hidden rounded-[24px] shadow-[0_30px_80px_rgba(15,23,42,0.3)]"
+        className="ui-panel-strong max-h-[calc(100dvh-1.5rem)] w-full max-w-md overflow-y-auto rounded-[24px] shadow-[0_30px_80px_rgba(15,23,42,0.3)] sm:max-h-[calc(100dvh-2rem)]"
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="delete-screen-title"
@@ -352,10 +362,10 @@ function DeleteScreenDialog({
         </div>
 
         <div className="flex flex-col-reverse gap-2 border-t border-border bg-surface-alt/45 px-5 py-3.5 sm:flex-row sm:justify-end">
-          <Button type="button" variant="secondary" size="sm" onClick={onCancel} disabled={loading} data-autofocus>
+          <Button type="button" variant="secondary" size="sm" onClick={onCancel} disabled={loading} data-autofocus className="w-full sm:w-auto">
             {t("savedScreens.deleteCancel")}
           </Button>
-          <Button type="button" variant="danger" size="sm" onClick={onConfirm} loading={loading}>
+          <Button type="button" variant="danger" size="sm" onClick={onConfirm} loading={loading} className="w-full sm:w-auto">
             {t("savedScreens.deleteConfirm")}
           </Button>
         </div>
@@ -410,13 +420,13 @@ function ScreenNameDialog({
 
   return (
     <div
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-text/55 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[80] flex items-center justify-center overflow-y-auto bg-text/55 p-3 backdrop-blur-sm sm:p-4"
       onMouseDown={handleBackdropClick}
     >
       <form
         ref={dialogRef}
         onSubmit={handleSubmit}
-        className="ui-panel-strong w-full max-w-md overflow-hidden rounded-[24px] shadow-[0_30px_80px_rgba(15,23,42,0.3)]"
+        className="ui-panel-strong max-h-[calc(100dvh-1.5rem)] w-full max-w-md overflow-y-auto rounded-[24px] shadow-[0_30px_80px_rgba(15,23,42,0.3)] sm:max-h-[calc(100dvh-2rem)]"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
@@ -473,11 +483,11 @@ function ScreenNameDialog({
           ) : null}
         </div>
 
-        <div className="flex justify-end gap-2 border-t border-border bg-surface-alt/45 px-5 py-3.5">
-          <Button type="button" variant="ghost" size="sm" onClick={onCancel} disabled={loading}>
+        <div className="flex flex-col-reverse gap-2 border-t border-border bg-surface-alt/45 px-5 py-3.5 sm:flex-row sm:justify-end">
+          <Button type="button" variant="ghost" size="sm" onClick={onCancel} disabled={loading} className="w-full sm:w-auto">
             {t("savedScreens.actionCancel")}
           </Button>
-          <Button type="submit" size="sm" loading={loading}>
+          <Button type="submit" size="sm" loading={loading} className="w-full sm:w-auto">
             {t(`savedScreens.${mode}Confirm`)}
           </Button>
         </div>
@@ -506,6 +516,8 @@ export default function SavedScreensPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortMode, setSortMode] = useState<"recent" | "name">("recent");
   const [recentlyDeleted, setRecentlyDeleted] = useState<RecentlyDeleted | null>(null);
+  const [applyingScreenId, setApplyingScreenId] = useState<string | null>(null);
+  const [navigationPending, startNavigation] = useTransition();
   const toastTimerRef = useRef<number | null>(null);
 
   const loadAll = useCallback(async () => {
@@ -562,7 +574,15 @@ export default function SavedScreensPage() {
   }, []);
 
   function applyScreen(screen: SavedScreen) {
-    router.push(`/screener${screen.filter_json ? screenToQueryString(screen.filter_json) : ""}`);
+    if (navigationPending) return;
+    setApplyingScreenId(screen.id);
+    const params = new URLSearchParams(
+      screen.filter_json ? screenToQueryString(screen.filter_json).slice(1) : ""
+    );
+    params.set("saved_screen", screen.id);
+    startNavigation(() => {
+      router.push(`/screener?${params.toString()}`);
+    });
   }
 
   function openDeleteDialog(screen: SavedScreen) {
@@ -782,8 +802,8 @@ export default function SavedScreensPage() {
           <h1 className="text-3xl font-bold tracking-tight text-text">{t("savedScreens.title")}</h1>
           <p className="max-w-xl text-sm text-text-secondary">{t("savedScreens.subtitle")}</p>
         </div>
-        <Link href="/screener">
-          <Button size="sm" variant="secondary" className="mt-2 sm:mt-0">
+        <Link href="/screener" className="w-full sm:w-auto">
+          <Button size="sm" variant="secondary" className="mt-2 w-full sm:mt-0 sm:w-auto">
             {t("savedScreens.goToScreener")}
           </Button>
         </Link>
@@ -809,17 +829,17 @@ export default function SavedScreensPage() {
 
       {screens.length > 0 ? (
         <section className="grid grid-cols-2 gap-2 sm:grid-cols-3" aria-label={t("savedScreens.overviewLabel")}>
-          <div className="premium-metric-card">
+          <div className="premium-metric-card !p-3.5 sm:!p-5">
             <p className="premium-metric-label">{t("savedScreens.savedCountLabel")}</p>
             <p className="premium-metric-value">{screens.length}</p>
             <p className="premium-metric-meta">{t("savedScreens.savedCountMeta")}</p>
           </div>
-          <div className="premium-metric-card">
+          <div className="premium-metric-card !p-3.5 sm:!p-5">
             <p className="premium-metric-label">{t("savedScreens.activeAlertsLabel")}</p>
             <p className="premium-metric-value">{activeAlerts}</p>
             <p className="premium-metric-meta">{t("savedScreens.activeAlertsMeta")}</p>
           </div>
-          <div className="premium-metric-card col-span-2 sm:col-span-1">
+          <div className="premium-metric-card col-span-2 !p-3.5 sm:col-span-1 sm:!p-5">
             <p className="premium-metric-label">{t("savedScreens.lastSavedLabel")}</p>
             <p className="premium-metric-value text-base">
               {mostRecentlyUpdated
@@ -873,13 +893,13 @@ export default function SavedScreensPage() {
                 className="ui-control min-h-11 w-full rounded-xl ps-9 pe-3 text-sm outline-none focus:border-primary"
               />
             </label>
-            <label className="flex items-center gap-2 text-xs font-semibold text-text-secondary" htmlFor="saved-screen-sort">
+            <label className="flex w-full items-center gap-2 text-xs font-semibold text-text-secondary sm:w-auto" htmlFor="saved-screen-sort">
               {t("savedScreens.sortLabel")}
               <select
                 id="saved-screen-sort"
                 value={sortMode}
                 onChange={(event) => setSortMode(event.target.value as "recent" | "name")}
-                className="ui-control min-h-11 rounded-xl px-3 text-sm outline-none focus:border-primary"
+                className="ui-control min-h-11 min-w-0 flex-1 rounded-xl px-3 text-sm outline-none focus:border-primary sm:flex-none"
               >
                 <option value="recent">{t("savedScreens.sortRecent")}</option>
                 <option value="name">{t("savedScreens.sortName")}</option>
@@ -900,6 +920,8 @@ export default function SavedScreensPage() {
               screen={screen}
               alert={alertMap.get(screen.id) ?? null}
               canUseAlerts={canUseAlerts}
+              applying={navigationPending && applyingScreenId === screen.id}
+              navigationPending={navigationPending}
               onApply={() => applyScreen(screen)}
               onRename={() => openNameDialog("rename", screen)}
               onDuplicate={() => openNameDialog("duplicate", screen)}

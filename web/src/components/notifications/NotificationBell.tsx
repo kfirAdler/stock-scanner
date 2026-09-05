@@ -234,7 +234,7 @@ export function NotificationBell({ loggedIn }: { loggedIn: boolean }) {
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           <div
             ref={panelRef}
-            className="ui-panel-strong absolute end-0 z-50 mt-1.5 w-80 overflow-hidden rounded-2xl shadow-xl"
+            className="ui-panel-strong fixed inset-x-3 top-16 z-50 max-h-[calc(100dvh-5rem)] overflow-y-auto rounded-2xl shadow-xl sm:absolute sm:inset-x-auto sm:end-0 sm:top-auto sm:mt-1.5 sm:max-h-[min(32rem,calc(100dvh-5rem))] sm:w-80"
             role="dialog"
             aria-label={t("notifications.title")}
           >

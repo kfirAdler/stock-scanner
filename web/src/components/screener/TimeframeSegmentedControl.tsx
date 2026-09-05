@@ -40,7 +40,7 @@ export function TimeframeSegmentedControl({
               : "ui-segment-item text-text-secondary hover:text-text"
           )}
         >
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
             <span className="text-[12px] font-semibold">{item.label}</span>
             <span
               className={clsx(

@@ -27,7 +27,7 @@ export function ScannerSidebar({
 }: ScannerSidebarProps) {
   return (
     <aside className="rounded-[24px] border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-raised)] shadow-[var(--color-shadow-panel-strong)]">
-      <div className="border-b border-border/70 bg-[color:var(--color-surface-raised)] px-4 py-3">
+      <div className="sticky top-0 z-20 border-b border-border/70 bg-[color:var(--color-surface-raised)] px-4 py-3 xl:static">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-text-muted">
@@ -46,6 +46,7 @@ export function ScannerSidebar({
               <button
                 type="button"
                 onClick={onClose}
+                data-autofocus
                 className="ui-control inline-flex h-10 w-10 items-center justify-center rounded-full text-text-muted transition-colors hover:text-text"
                 aria-label={closeLabel}
               >
@@ -56,7 +57,7 @@ export function ScannerSidebar({
         </div>
       </div>
 
-      <div className="sticky top-0 z-10 border-b border-border/60 bg-[color:var(--color-surface-raised)] px-4 py-2.5">
+      <div className="border-b border-border/60 bg-[color:var(--color-surface-raised)] px-4 py-2.5 xl:sticky xl:top-0 xl:z-10">
         {statusBar}
       </div>
 

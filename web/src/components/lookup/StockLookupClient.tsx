@@ -844,7 +844,7 @@ export function StockLookupClient() {
   return (
     <div className="page-shell max-w-[1480px]">
       <div className="space-y-5">
-        <section className="ui-panel-overlay sticky top-[4.75rem] z-20 rounded-[24px] px-4 py-4">
+        <section className="ui-panel-overlay z-20 rounded-[24px] px-4 py-4 md:sticky md:top-[4.75rem]">
           <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.kicker")}</p>

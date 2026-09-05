@@ -309,7 +309,7 @@ export function FilterPanel({
       </details>
 
       <section className="space-y-2.5 rounded-2xl">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-text-muted">
               {t("workspace.sections.timeframes")}
