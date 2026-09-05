@@ -91,6 +91,10 @@ function ScreenerPageContent() {
     () => parseScreenFromSearchParams(new URLSearchParams(searchParamsKey)),
     [searchParamsKey]
   );
+  const savedScreenId = useMemo(
+    () => new URLSearchParams(searchParamsKey).get("saved_screen"),
+    [searchParamsKey]
+  );
   const [filters, setFilters] = useState<ScreenerPayload>(urlFilters);
   const filtersRef = useRef<ScreenerPayload>(urlFilters);
   const [appliedFilters, setAppliedFilters] = useState<ScreenerPayload>(urlFilters);
@@ -99,6 +103,7 @@ function ScreenerPageContent() {
   const [favoriteLoading, setFavoriteLoading] = useState(true);
   const [favoriteSaving, setFavoriteSaving] = useState(false);
   const [favoriteStatus, setFavoriteStatus] = useState<string | null>(null);
+  const [activeSavedScreenName, setActiveSavedScreenName] = useState<string | null>(null);
   const [saveScanLoading, setSaveScanLoading] = useState(false);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [saveDialogError, setSaveDialogError] = useState<string | null>(null);
@@ -351,6 +356,7 @@ function ScreenerPageContent() {
 
   useEffect(() => {
     let cancelled = false;
+    const savedScreenAbortController = new AbortController();
 
     queueMicrotask(() => {
       if (cancelled) return;
@@ -358,55 +364,127 @@ function ScreenerPageContent() {
       const appliedScreenSignature = screenToQueryString(appliedFiltersRef.current);
       if (
         handledSearchParamsRef.current === searchParamsKey &&
-        urlScreenSignature === appliedScreenSignature
+        (savedScreenId || urlScreenSignature === appliedScreenSignature)
       ) return;
-      handledSearchParamsRef.current = searchParamsKey;
-      const nextSortKey: ScannerSortKey = urlFilters.discovery_goal ? "match_score" : "ticker";
-      const nextSortDir: ScannerSortDir = urlFilters.discovery_goal ? "desc" : "asc";
-      filtersRef.current = urlFilters;
-      appliedFiltersRef.current = urlFilters;
-      setFilters(urlFilters);
-      setAppliedFilters(urlFilters);
-      setSortKey(nextSortKey);
-      setSortDir(nextSortDir);
-      setScannerMode(
-        urlFilters.discovery_goal || countActiveFilters(urlFilters) === 0 ? "guided" : "advanced"
-      );
-      setGoalPickerOpen(!urlFilters.discovery_goal);
-      setMobileFiltersOpen(false);
-      setMultiFilterGateOpen(false);
-      setFilterPanelResetKey((current) => current + 1);
-      setFavoriteStatus(null);
+      if (!savedScreenId) {
+        handledSearchParamsRef.current = searchParamsKey;
+      }
 
-      if (countActiveFilters(urlFilters) > 0) {
-        void fetchResults({
-          nextFilters: urlFilters,
-          nextSortKey,
-          nextSortDir,
-          syncUrl: false,
-        });
+      function stopCurrentResultsRequest() {
+        requestSequenceRef.current += 1;
+        requestAbortControllerRef.current?.abort();
+        requestAbortControllerRef.current = null;
+        requestInFlightRef.current = false;
+        setResults([]);
+        setTotalMatches(null);
+        setSectorBreakdown([]);
+        setHasMore(false);
+        setResultsError(null);
+        setGate(null);
+        setLoadingMore(false);
+      }
+
+      function applyResolvedScreen(nextFilters: ScreenerPayload, savedScreenName: string | null) {
+        if (cancelled) return;
+        const nextSortKey: ScannerSortKey = nextFilters.discovery_goal ? "match_score" : "ticker";
+        const nextSortDir: ScannerSortDir = nextFilters.discovery_goal ? "desc" : "asc";
+        filtersRef.current = nextFilters;
+        appliedFiltersRef.current = nextFilters;
+        setFilters(nextFilters);
+        setAppliedFilters(nextFilters);
+        setActiveSavedScreenName(savedScreenName);
+        setSortKey(nextSortKey);
+        setSortDir(nextSortDir);
+        setScannerMode(
+          nextFilters.discovery_goal || countActiveFilters(nextFilters) === 0 ? "guided" : "advanced"
+        );
+        setGoalPickerOpen(!nextFilters.discovery_goal);
+        setMobileFiltersOpen(false);
+        setMultiFilterGateOpen(false);
+        setFilterPanelResetKey((current) => current + 1);
+        setFavoriteStatus(null);
+
+        if (countActiveFilters(nextFilters) > 0) {
+          void fetchResults({
+            nextFilters,
+            nextSortKey,
+            nextSortDir,
+            syncUrl: false,
+          });
+          return;
+        }
+
+        stopCurrentResultsRequest();
+        setHasSearched(false);
+        setLoading(false);
+      }
+
+      async function loadSavedScreen() {
+        if (!savedScreenId) return;
+
+        // Remove the previous scan immediately. The URL copy provides a smooth
+        // placeholder while the authoritative saved version is loaded by id.
+        stopCurrentResultsRequest();
+        const pendingFilters = countActiveFilters(urlFilters) > 0
+          ? urlFilters
+          : DEFAULT_SCREENER_PAYLOAD;
+        filtersRef.current = pendingFilters;
+        appliedFiltersRef.current = pendingFilters;
+        setFilters(pendingFilters);
+        setAppliedFilters(pendingFilters);
+        setActiveSavedScreenName(null);
+        setHasSearched(true);
+        setLoading(true);
+
+        try {
+          const response = await fetch(`/api/saved-screens?id=${encodeURIComponent(savedScreenId)}`, {
+            cache: "no-store",
+            signal: savedScreenAbortController.signal,
+          });
+          if (cancelled) return;
+          handledSearchParamsRef.current = searchParamsKey;
+          if (response.status === 401) {
+            setGate("login");
+            setLoading(false);
+            return;
+          }
+          if (response.status === 403) {
+            setGate("subscribe");
+            setLoading(false);
+            return;
+          }
+          if (!response.ok) throw new Error("Failed to load saved screen");
+
+          const data = (await response.json()) as {
+            screen?: { name?: unknown; filter_json?: unknown };
+          };
+          const storedFilters = coerceStoredScreen(data.screen?.filter_json);
+          if (!storedFilters) throw new Error("Saved screen has no valid filters");
+          const storedName = typeof data.screen?.name === "string" ? data.screen.name : null;
+          applyResolvedScreen(storedFilters, storedName);
+        } catch (error) {
+          if (error instanceof Error && error.name === "AbortError") return;
+          if (cancelled) return;
+          handledSearchParamsRef.current = searchParamsKey;
+          setLoading(false);
+          setHasSearched(false);
+          setResultsError(t("savedScreenLoadError"));
+        }
+      }
+
+      if (savedScreenId) {
+        void loadSavedScreen();
         return;
       }
 
-      requestSequenceRef.current += 1;
-      requestAbortControllerRef.current?.abort();
-      requestAbortControllerRef.current = null;
-      requestInFlightRef.current = false;
-      setResults([]);
-      setTotalMatches(null);
-      setSectorBreakdown([]);
-      setHasMore(false);
-      setHasSearched(false);
-      setResultsError(null);
-      setGate(null);
-      setLoading(false);
-      setLoadingMore(false);
+      applyResolvedScreen(urlFilters, null);
     });
 
     return () => {
       cancelled = true;
+      savedScreenAbortController.abort();
     };
-  }, [fetchResults, searchParamsKey, urlFilters]);
+  }, [fetchResults, savedScreenId, searchParamsKey, t, urlFilters]);
 
   useEffect(() => {
     return () => {
@@ -510,6 +588,7 @@ function ScreenerPageContent() {
     const preset = buildDiscoveryPayload(goal, filtersRef.current);
     setFilterPanelResetKey((current) => current + 1);
     setFavoriteStatus(null);
+    setActiveSavedScreenName(null);
     setFilters(preset);
     filtersRef.current = preset;
 
@@ -550,6 +629,7 @@ function ScreenerPageContent() {
     const preset = coerceStoredScreen(TURNING_POINT_PRESET) ?? TURNING_POINT_PRESET;
     setFilterPanelResetKey((current) => current + 1);
     setFavoriteStatus(null);
+    setActiveSavedScreenName(null);
     setFilters(preset);
     filtersRef.current = preset;
 
@@ -566,6 +646,7 @@ function ScreenerPageContent() {
     const preset = coerceStoredScreen(BREAKOUT_LEADER_PRESET) ?? BREAKOUT_LEADER_PRESET;
     setFilterPanelResetKey((current) => current + 1);
     setFavoriteStatus(null);
+    setActiveSavedScreenName(null);
     setFilters(preset);
     filtersRef.current = preset;
 
@@ -582,6 +663,7 @@ function ScreenerPageContent() {
     const preset = coerceStoredScreen(GETTING_UP_PRESET) ?? GETTING_UP_PRESET;
     setFilterPanelResetKey((current) => current + 1);
     setFavoriteStatus(null);
+    setActiveSavedScreenName(null);
     setFilters(preset);
     filtersRef.current = preset;
 
@@ -683,6 +765,7 @@ function ScreenerPageContent() {
     }
 
     setMobileFiltersOpen(false);
+    setActiveSavedScreenName(null);
     await fetchResults();
   }
 
@@ -735,6 +818,7 @@ function ScreenerPageContent() {
       append: false,
       nextSortKey: key,
       nextSortDir: nextDir,
+      syncUrl: false,
     });
   }
 
@@ -760,9 +844,9 @@ function ScreenerPageContent() {
               </p>
               <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
                 <h1 className="truncate text-lg font-bold tracking-tight text-text">
-                  {appliedFilters.discovery_goal
+                  {activeSavedScreenName ?? (appliedFilters.discovery_goal
                     ? t(`discovery.goals.${appliedFilters.discovery_goal}.title`)
-                    : t("workspace.customScan")}
+                    : t("workspace.customScan"))}
                 </h1>
                 <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-text-secondary" aria-live="polite">
                   <span

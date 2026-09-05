@@ -507,6 +507,7 @@
       "hint": "Filters last daily close (USD)."
     },
     "resultsError": "Could not load scanner results. Try running the scan again.",
+    "savedScreenLoadError": "Could not open that saved scan. Return to Saved Screens and try again.",
     "table": {
       "ticker": "Ticker",
       "matchScore": "Match",

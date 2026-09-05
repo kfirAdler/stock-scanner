@@ -12,7 +12,7 @@ function normalizeScreenName(value: unknown) {
   return name && name.length <= SCREEN_NAME_MAX_LENGTH ? name : null;
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const gate = await assertScreenerAccess();
   if (!gate.allowed) return gate.response;
 
@@ -21,6 +21,34 @@ export async function GET() {
 
   if (authError || !user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const id = request.nextUrl.searchParams.get("id");
+  if (id && !UUID_PATTERN.test(id)) {
+    return NextResponse.json({ error: "Valid screen id required" }, { status: 400 });
+  }
+
+  if (id) {
+    const { data, error } = await supabase
+      .from("saved_screens")
+      .select("*")
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    if (!data) {
+      return NextResponse.json({ error: "Saved screen not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({
+      screen: {
+        ...data,
+        filter_json: coerceStoredScreen(data.filter_json),
+      },
+    });
   }
 
   const { data, error } = await supabase
