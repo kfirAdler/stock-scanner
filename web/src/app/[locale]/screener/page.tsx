@@ -456,8 +456,11 @@ function ScreenerPageContent() {
           if (!response.ok) throw new Error("Failed to load saved screen");
 
           const data = (await response.json()) as {
-            screen?: { name?: unknown; filter_json?: unknown };
+            screen?: { id?: unknown; name?: unknown; filter_json?: unknown };
           };
+          if (data.screen?.id !== savedScreenId) {
+            throw new Error("Saved screen response did not match the requested id");
+          }
           const storedFilters = coerceStoredScreen(data.screen?.filter_json);
           if (!storedFilters) throw new Error("Saved screen has no valid filters");
           const storedName = typeof data.screen?.name === "string" ? data.screen.name : null;
@@ -1153,7 +1156,15 @@ export default function ScreenerPage() {
         </div>
       )}
     >
-      <ScreenerPageContent />
+      <ScreenerPageFromUrl />
     </Suspense>
   );
+}
+
+function ScreenerPageFromUrl() {
+  const searchParams = useSearchParams();
+  const savedScreenId = searchParams.get("saved_screen");
+
+  // Different saved ids must never share the scanner's client-side state.
+  return <ScreenerPageContent key={savedScreenId ?? "custom-scan"} />;
 }

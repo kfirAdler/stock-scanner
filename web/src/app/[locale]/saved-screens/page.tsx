@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, useTransition, type FormEvent, type MouseEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type MouseEvent } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import { clsx } from "clsx";
@@ -517,7 +517,7 @@ export default function SavedScreensPage() {
   const [sortMode, setSortMode] = useState<"recent" | "name">("recent");
   const [recentlyDeleted, setRecentlyDeleted] = useState<RecentlyDeleted | null>(null);
   const [applyingScreenId, setApplyingScreenId] = useState<string | null>(null);
-  const [navigationPending, startNavigation] = useTransition();
+  const navigationPending = applyingScreenId !== null;
   const toastTimerRef = useRef<number | null>(null);
 
   const loadAll = useCallback(async () => {
@@ -580,9 +580,10 @@ export default function SavedScreensPage() {
       screen.filter_json ? screenToQueryString(screen.filter_json).slice(1) : ""
     );
     params.set("saved_screen", screen.id);
-    startNavigation(() => {
-      router.push(`/screener?${params.toString()}`);
-    });
+
+    // A document navigation intentionally resets any cached screener component
+    // state. The saved payload is still revalidated by id on the destination.
+    window.location.assign(`/${locale}/screener?${params.toString()}`);
   }
 
   function openDeleteDialog(screen: SavedScreen) {
@@ -920,7 +921,7 @@ export default function SavedScreensPage() {
               screen={screen}
               alert={alertMap.get(screen.id) ?? null}
               canUseAlerts={canUseAlerts}
-              applying={navigationPending && applyingScreenId === screen.id}
+              applying={applyingScreenId === screen.id}
               navigationPending={navigationPending}
               onApply={() => applyScreen(screen)}
               onRename={() => openNameDialog("rename", screen)}
