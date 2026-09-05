@@ -16,6 +16,7 @@ interface DiscoveryGoalPickerProps {
   market?: ListingMarketFilter;
   availability: ScreenerFilterAvailability | null;
   loadingGoal?: DiscoveryGoal | null;
+  initiallyExpanded?: boolean;
   onSelectGoal: (goal: DiscoveryGoal) => void;
   onMarketChange: (market?: ListingMarketFilter) => void;
 }
@@ -33,11 +34,12 @@ export function DiscoveryGoalPicker({
   market,
   availability,
   loadingGoal,
+  initiallyExpanded,
   onSelectGoal,
   onMarketChange,
 }: DiscoveryGoalPickerProps) {
   const t = useTranslations("screener.discovery");
-  const [expanded, setExpanded] = useState(!selectedGoal);
+  const [expanded, setExpanded] = useState(initiallyExpanded ?? !selectedGoal);
 
   if (selectedGoal && !expanded) {
     return (

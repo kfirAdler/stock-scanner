@@ -88,6 +88,7 @@ export function FilterPanel({
     () => firstActiveTabState(filters, definitions)?.category ?? "sequence"
   );
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [filterSearch, setFilterSearch] = useState("");
   const [activeSummaryOpen, setActiveSummaryOpen] = useState(
     () => countActiveFilters(filters) <= 4
   );
@@ -193,8 +194,11 @@ export function FilterPanel({
     return filterAvailability?.[timeframe]?.[field] ?? true;
   }
 
-  const currentDefinitions = RULE_DEFINITIONS.filter(
-    (definition) => definition.category === activeCategory
+  const normalizedFilterSearch = filterSearch.trim().toLocaleLowerCase();
+  const currentDefinitions = RULE_DEFINITIONS.filter((definition) =>
+    normalizedFilterSearch
+      ? t(definition.labelKey).toLocaleLowerCase().includes(normalizedFilterSearch)
+      : definition.category === activeCategory
   );
   const booleanDefinitions = currentDefinitions.filter((definition) => definition.input === "none");
   const numericDefinitions = currentDefinitions.filter((definition) => definition.input === "number");
@@ -216,21 +220,26 @@ export function FilterPanel({
     ).length,
   }));
 
-  const activeRulePills = filters.rules.map((rule) => {
-    const definition = definitions[rule.field];
-    let suffix = "";
-    if (typeof rule.value === "number") {
-      suffix = ` ${t(`operators.${rule.operator}`)} ${rule.value}`;
-    }
-    if (typeof rule.value === "string" && rule.field === "fib_zone") {
-      suffix = ` ${t("operators.eq")} ${t(`fibZones.${rule.value}`)}`;
-    }
-    return {
-      key: `${rule.timeframe}-${rule.field}`,
-      label: `${t(`timeframes.${rule.timeframe}`)} · ${t(definition.labelKey)}${suffix}`,
-      remove: () => removeRule(rule.timeframe, rule.field),
-    };
-  });
+  const activeRuleGroups = TIMEFRAME_TABS.map((timeframe) => ({
+    timeframe,
+    pills: filters.rules
+      .filter((rule) => rule.timeframe === timeframe)
+      .map((rule) => {
+        const definition = definitions[rule.field];
+        let suffix = "";
+        if (typeof rule.value === "number") {
+          suffix = ` ${t(`operators.${rule.operator}`)} ${rule.value}`;
+        }
+        if (typeof rule.value === "string" && rule.field === "fib_zone") {
+          suffix = ` ${t("operators.eq")} ${t(`fibZones.${rule.value}`)}`;
+        }
+        return {
+          key: `${rule.timeframe}-${rule.field}`,
+          label: `${t(definition.labelKey)}${suffix}`,
+          remove: () => removeRule(rule.timeframe, rule.field),
+        };
+      }),
+  })).filter((group) => group.pills.length > 0);
 
   return (
     <ScannerSidebar
@@ -276,49 +285,28 @@ export function FilterPanel({
         </div>
       }
     >
-      <section className="ui-panel-subtle space-y-3 rounded-2xl p-3">
-        <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
-            {t("workspace.presetsTitle")}
-          </p>
-          <p className="mt-1 text-[12px] leading-relaxed text-text-secondary">
-            {t("workspace.presetsHint")}
-          </p>
+      <details className="ui-panel-subtle group rounded-2xl p-3">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+          <span>
+            <span className="block text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
+              {t("workspace.presetsTitle")}
+            </span>
+            <span className="mt-0.5 block text-[11px] text-text-secondary">{t("workspace.presetsHint")}</span>
+          </span>
+          <span className="text-text-muted transition-transform group-open:rotate-180" aria-hidden="true">⌄</span>
+        </summary>
+        <div className="mt-3 space-y-2 border-t border-border pt-3">
+          <Button type="button" size="sm" variant="secondary" onClick={onApplyTurningPointPreset} className="w-full justify-start" disabled={!canApplyTurningPointPreset} title={!canApplyTurningPointPreset ? presetDisabledReason ?? undefined : undefined}>
+            {t("workspace.presets.turningPoint")}
+          </Button>
+          <Button type="button" size="sm" variant="secondary" onClick={onApplyBreakoutPreset} className="w-full justify-start" disabled={!canApplyBreakoutPreset} title={!canApplyBreakoutPreset ? presetDisabledReason ?? undefined : undefined}>
+            {t("workspace.presets.breakoutLeader")}
+          </Button>
+          <Button type="button" size="sm" variant="secondary" onClick={onApplyGettingUpPreset} className="w-full justify-start" disabled={!canApplyGettingUpPreset} title={!canApplyGettingUpPreset ? presetDisabledReason ?? undefined : undefined}>
+            {t("workspace.presets.gettingUp")}
+          </Button>
         </div>
-        <Button
-          type="button"
-          size="sm"
-          variant="secondary"
-          onClick={onApplyTurningPointPreset}
-          className="w-full justify-start"
-          disabled={!canApplyTurningPointPreset}
-          title={!canApplyTurningPointPreset ? presetDisabledReason ?? undefined : undefined}
-        >
-          {t("workspace.presets.turningPoint")}
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant="secondary"
-          onClick={onApplyBreakoutPreset}
-          className="w-full justify-start"
-          disabled={!canApplyBreakoutPreset}
-          title={!canApplyBreakoutPreset ? presetDisabledReason ?? undefined : undefined}
-        >
-          {t("workspace.presets.breakoutLeader")}
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant="secondary"
-          onClick={onApplyGettingUpPreset}
-          className="w-full justify-start"
-          disabled={!canApplyGettingUpPreset}
-          title={!canApplyGettingUpPreset ? presetDisabledReason ?? undefined : undefined}
-        >
-          {t("workspace.presets.gettingUp")}
-        </Button>
-      </section>
+      </details>
 
       <section className="space-y-2.5 rounded-2xl">
         <div className="flex items-center justify-between gap-3">
@@ -352,12 +340,37 @@ export function FilterPanel({
           </p>
           <p className="mt-0.5 text-[11px] text-text-muted">{t("workspace.sections.builderHint")}</p>
         </div>
-        <FilterCategoryTabs
-          tabs={categorySummary}
-          activeTab={activeCategory}
-          onChange={(value) => setActiveCategory(value as CategoryTab)}
-          density={density}
-        />
+        <label className="relative block">
+          <span className="sr-only">{t("workspace.filterSearchLabel")}</span>
+          <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-sm text-text-muted" aria-hidden="true">⌕</span>
+          <input
+            type="search"
+            value={filterSearch}
+            onChange={(event) => setFilterSearch(event.target.value)}
+            placeholder={t("workspace.filterSearchPlaceholder")}
+            className="ui-control min-h-10 w-full rounded-xl ps-9 pe-9 text-sm outline-none transition focus:ring-2 focus:ring-primary/25"
+          />
+          {filterSearch ? (
+            <button
+              type="button"
+              onClick={() => setFilterSearch("")}
+              className="absolute end-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-text-muted hover:bg-surface-hover hover:text-text"
+              aria-label={t("workspace.clearFilterSearch")}
+            >
+              ×
+            </button>
+          ) : null}
+        </label>
+        {normalizedFilterSearch ? (
+          <p className="text-[11px] text-text-muted">{t("workspace.filterSearchHint", { timeframe: t(`timeframes.${activeTimeframe}`) })}</p>
+        ) : (
+          <FilterCategoryTabs
+            tabs={categorySummary}
+            activeTab={activeCategory}
+            onChange={(value) => setActiveCategory(value as CategoryTab)}
+            density={density}
+          />
+        )}
 
         <div className={clsx("flex flex-wrap", density === "compact" ? "gap-2" : "gap-2.5")}>
           {booleanDefinitions.map((definition) => {
@@ -402,10 +415,17 @@ export function FilterPanel({
                       : undefined
                 }
                 disabled={disabled}
-                onClick={() => setAdvancedOpen(true)}
+                onClick={() => {
+                  setActiveCategory(definition.category as CategoryTab);
+                  setFilterSearch("");
+                  setAdvancedOpen(true);
+                }}
               />
             );
           })}
+          {currentDefinitions.length === 0 ? (
+            <p className="py-3 text-sm text-text-muted">{t("workspace.noFilterSearchResults")}</p>
+          ) : null}
         </div>
       </section>
 
@@ -588,50 +608,40 @@ export function FilterPanel({
         {activeSummaryOpen ? (
           <div
             id="active-scanner-filters"
-            className={clsx(
-              "flex flex-wrap border-t border-border/80 px-3.5 py-3",
-              density === "compact" ? "gap-2" : "gap-2.5"
-            )}
+            className="space-y-3 border-t border-border/80 px-3.5 py-3"
           >
-          {activeRulePills.length === 0 &&
+          {activeRuleGroups.length === 0 &&
           !filters.listing_market &&
           filters.market_cap_gte === undefined &&
           filters.market_cap_lte === undefined ? (
             <p className="text-sm text-text-muted">{t("activeFiltersEmpty")}</p>
           ) : (
             <>
-              {filters.listing_market ? (
-                <ActiveFilterPill
-                  density={density}
-                  label={`${t("listingMarket.label")} · ${t(`listingMarket.${filters.listing_market.toLowerCase()}`)}`}
-                  onRemove={() => onChange({ ...filters, listing_market: undefined })}
-                  removeLabel={t("workspace.removeFilter")}
-                />
+              {(filters.listing_market || filters.market_cap_gte !== undefined || filters.market_cap_lte !== undefined) ? (
+                <div>
+                  <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.sections.universe")}</p>
+                  <div className={clsx("flex flex-wrap", density === "compact" ? "gap-2" : "gap-2.5")}>
+                    {filters.listing_market ? (
+                      <ActiveFilterPill density={density} label={`${t("listingMarket.label")} · ${t(`listingMarket.${filters.listing_market.toLowerCase()}`)}`} onRemove={() => onChange({ ...filters, listing_market: undefined })} removeLabel={t("workspace.removeFilter")} />
+                    ) : null}
+                    {filters.market_cap_gte !== undefined ? (
+                      <ActiveFilterPill density={density} label={`${t("marketCap.gte")} ${filters.market_cap_gte}`} onRemove={() => onChange({ ...filters, market_cap_gte: undefined })} removeLabel={t("workspace.removeFilter")} />
+                    ) : null}
+                    {filters.market_cap_lte !== undefined ? (
+                      <ActiveFilterPill density={density} label={`${t("marketCap.lte")} ${filters.market_cap_lte}`} onRemove={() => onChange({ ...filters, market_cap_lte: undefined })} removeLabel={t("workspace.removeFilter")} />
+                    ) : null}
+                  </div>
+                </div>
               ) : null}
-              {filters.market_cap_gte !== undefined ? (
-                <ActiveFilterPill
-                  density={density}
-                  label={`${t("marketCap.gte")} ${filters.market_cap_gte}`}
-                  onRemove={() => onChange({ ...filters, market_cap_gte: undefined })}
-                  removeLabel={t("workspace.removeFilter")}
-                />
-              ) : null}
-              {filters.market_cap_lte !== undefined ? (
-                <ActiveFilterPill
-                  density={density}
-                  label={`${t("marketCap.lte")} ${filters.market_cap_lte}`}
-                  onRemove={() => onChange({ ...filters, market_cap_lte: undefined })}
-                  removeLabel={t("workspace.removeFilter")}
-                />
-              ) : null}
-              {activeRulePills.map((pill) => (
-                <ActiveFilterPill
-                  key={pill.key}
-                  density={density}
-                  label={pill.label}
-                  onRemove={pill.remove}
-                  removeLabel={t("workspace.removeFilter")}
-                />
+              {activeRuleGroups.map((group) => (
+                <div key={group.timeframe}>
+                  <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{t(`timeframes.${group.timeframe}`)}</p>
+                  <div className={clsx("flex flex-wrap", density === "compact" ? "gap-2" : "gap-2.5")}>
+                    {group.pills.map((pill) => (
+                      <ActiveFilterPill key={pill.key} density={density} label={pill.label} onRemove={pill.remove} removeLabel={t("workspace.removeFilter")} />
+                    ))}
+                  </div>
+                </div>
               ))}
             </>
           )}

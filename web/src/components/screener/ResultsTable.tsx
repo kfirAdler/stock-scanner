@@ -36,6 +36,7 @@ interface ResultsTableProps {
   totalCount?: number | null;
   sectorBreakdown?: ScreenerSectorBreakdownItem[];
   lastUpdatedLabel?: string | null;
+  onEditFilters?: () => void;
 }
 
 const SECTOR_TRANSLATION_KEYS: Record<string, string> = {
@@ -301,6 +302,7 @@ export function ResultsTable({
   totalCount,
   sectorBreakdown,
   lastUpdatedLabel,
+  onEditFilters,
 }: ResultsTableProps) {
   const t = useTranslations("screener");
   const [density, setDensity] = useState<DensityMode>("compact");
@@ -337,7 +339,6 @@ export function ResultsTable({
   const resultSummary = useMemo(() => {
     const bullish = rows.filter((row) => row.buy_signal || row.strong_buy_signal).length;
     const bearish = rows.filter((row) => row.sell_signal || row.strong_sell_signal).length;
-    const strong = rows.filter((row) => row.strong_buy_signal || row.strong_sell_signal).length;
     const risks = rows.filter((row) => (row.risk_flags?.length ?? 0) > 0).length;
     const atrValues = rows
       .map((row) => row.atr_percent)
@@ -349,7 +350,7 @@ export function ResultsTable({
       : atrValues.length % 2 === 0
         ? (atrValues[midpoint - 1] + atrValues[midpoint]) / 2
         : atrValues[midpoint];
-    return { bullish, bearish, strong, risks, medianAtr };
+    return { bullish, bearish, risks, medianAtr };
   }, [rows]);
 
   const effectiveSectorBreakdown = useMemo(() => {
@@ -442,104 +443,113 @@ export function ResultsTable({
 
   return (
     <section className="space-y-3" aria-live="polite" aria-busy={loadingMore}>
-      <div className="flex min-w-0 flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 className="shrink-0 text-[15px] font-bold text-text">{t("symbols", { count: matchedCount })}</h2>
-            {activeScanSummary.map((block) => (
-              <span
-                key={block.timeframe}
-                className="ui-badge-default inline-flex min-w-0 max-w-full items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium"
-              >
-                <span className="shrink-0 font-semibold text-text">{t(`timeframes.${block.timeframe}`)}</span>
-                <span className="min-w-0 truncate text-text-secondary" title={block.labels.join(" · ")}>
-                  {block.labels.join(" · ")}
-                </span>
-              </span>
-            ))}
-          </div>
-        </div>
-        <div className="flex shrink-0 flex-wrap items-center gap-2">
-          {!screenerFilters?.discovery_goal ? (
-            <>
-          <span className="rounded-full bg-success-soft px-2.5 py-1 text-[11px] font-semibold text-success ring-1 ring-success/15">
-            {resultSummary.bullish} {t("workspace.cards.bullish")}
-          </span>
-          <span className="rounded-full bg-danger-soft px-2.5 py-1 text-[11px] font-semibold text-danger ring-1 ring-danger/15">
-            {resultSummary.bearish} {t("workspace.cards.bearish")}
-          </span>
-          <span className="rounded-full bg-primary-soft px-2.5 py-1 text-[11px] font-semibold text-primary ring-1 ring-primary/10">
-            {resultSummary.strong} {t("workspace.cards.strong")}
-          </span>
-            </>
-          ) : null}
-          <div className="ui-segment inline-flex items-center rounded-full p-1" role="group" aria-label={t("workspace.density")}>
-            <button
-              type="button"
-              onClick={() => setDensity("comfortable")}
-              aria-pressed={density === "comfortable"}
-              className={clsx(
-                "min-h-8 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors",
-                density === "comfortable" ? "ui-segment-item-active" : "ui-segment-item hover:text-text"
-              )}
+      <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
+        <h2 className="text-[15px] font-bold text-text">{t("symbols", { count: matchedCount })}</h2>
+        <div className="flex items-center gap-2">
+          <details className="relative">
+            <summary className="ui-control inline-flex min-h-9 cursor-pointer list-none items-center gap-2 rounded-full px-3 text-[11px] font-bold text-text-secondary [&::-webkit-details-marker]:hidden">
+              <span aria-hidden="true">≡</span>
+              {t("workspace.activeFilterButton", { count: countActiveFilters(screenerFilters ?? { version: 1, rules: [] }) })}
+              <span aria-hidden="true">⌄</span>
+            </summary>
+            <div className="ui-panel-overlay absolute end-0 top-11 z-30 w-[min(22rem,calc(100vw-2rem))] rounded-2xl p-3">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-xs font-bold text-text">{t("workspace.filterSummaryTitle")}</p>
+                {onEditFilters ? (
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.currentTarget.closest("details")?.removeAttribute("open");
+                      onEditFilters();
+                    }}
+                    className="text-[11px] font-bold text-primary hover:underline"
+                  >
+                    {t("workspace.editFilters")}
+                  </button>
+                ) : null}
+              </div>
+              {(screenerFilters?.listing_market || screenerFilters?.market_cap_gte !== undefined || screenerFilters?.market_cap_lte !== undefined) ? (
+                <div className="mt-3 border-t border-border pt-2">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.sections.universe")}</p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-text-secondary">
+                    {[
+                      screenerFilters?.listing_market ? t(`listingMarket.${screenerFilters.listing_market.toLowerCase()}`) : null,
+                      screenerFilters?.market_cap_gte !== undefined ? `${t("marketCap.gte")} ${screenerFilters.market_cap_gte}` : null,
+                      screenerFilters?.market_cap_lte !== undefined ? `${t("marketCap.lte")} ${screenerFilters.market_cap_lte}` : null,
+                    ].filter(Boolean).join(" · ")}
+                  </p>
+                </div>
+              ) : null}
+              {activeScanSummary.map((block) => (
+                <div key={block.timeframe} className="mt-3 border-t border-border pt-2">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{t(`timeframes.${block.timeframe}`)}</p>
+                  <ul className="mt-1 space-y-1 text-[11px] leading-relaxed text-text-secondary">
+                    {block.labels.map((label) => <li key={label}>• {label}</li>)}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </details>
+          <details className="relative">
+            <summary
+              className="ui-control inline-flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-full text-sm text-text-secondary [&::-webkit-details-marker]:hidden"
+              aria-label={t("workspace.displaySettings")}
             >
-              {t("workspace.density.comfortable")}
-            </button>
-            <button
-              type="button"
-              onClick={() => setDensity("compact")}
-              aria-pressed={density === "compact"}
-              className={clsx(
-                "min-h-8 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors",
-                density === "compact" ? "ui-segment-item-active" : "ui-segment-item hover:text-text"
-              )}
-            >
-              {t("workspace.density.compact")}
-            </button>
-          </div>
+              <span aria-hidden="true">⚙</span>
+            </summary>
+            <div className="ui-panel-overlay absolute end-0 top-11 z-30 w-44 rounded-2xl p-2">
+              <p className="px-2 pb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.density")}</p>
+              {(["comfortable", "compact"] as DensityMode[]).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setDensity(mode)}
+                  aria-pressed={density === mode}
+                  className={clsx(
+                    "min-h-9 w-full rounded-xl px-2 text-start text-xs font-semibold",
+                    density === mode ? "bg-primary-soft text-primary" : "text-text-secondary hover:bg-surface-hover"
+                  )}
+                >
+                  {t(`workspace.density.${mode}`)}
+                </button>
+              ))}
+            </div>
+          </details>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-        <div className="premium-metric-card">
-          <p className="premium-metric-label">{t("insights.matches")}</p>
-          <p className="premium-metric-value">{matchedCount}</p>
-          <p className="premium-metric-meta">{t("insights.loaded", { count: rows.length })}</p>
+      <div className="ui-panel-subtle flex min-w-0 flex-wrap items-center gap-x-5 gap-y-2 rounded-2xl px-4 py-2.5">
+        <div className="flex items-baseline gap-2">
+          <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-text-muted">{t("insights.medianAtr")}</span>
+          <span className="text-sm font-bold tabular-nums text-text">{resultSummary.medianAtr == null ? "—" : `${fmt(resultSummary.medianAtr, 1)}%`}</span>
         </div>
-        <div className="premium-metric-card">
-          <p className="premium-metric-label">{t("insights.medianAtr")}</p>
-          <p className="premium-metric-value">
-            {resultSummary.medianAtr == null ? "—" : `${fmt(resultSummary.medianAtr, 1)}%`}
-          </p>
-          <p className="premium-metric-meta">{t("insights.visibleResults")}</p>
+        <div className="h-4 w-px bg-border" aria-hidden="true" />
+        <div className="flex items-baseline gap-2">
+          <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-text-muted">{t("insights.riskFlags")}</span>
+          <span className={clsx("text-sm font-bold tabular-nums", resultSummary.risks > 0 ? "text-warning" : "text-success")}>{resultSummary.risks}</span>
         </div>
-        <div className="premium-metric-card">
-          <p className="premium-metric-label">{t("insights.riskFlags")}</p>
-          <p className="premium-metric-value">{resultSummary.risks}</p>
-          <p className="premium-metric-meta">
-            {resultSummary.risks > 0 ? t("insights.reviewFlags") : t("insights.noFlags")}
-          </p>
-        </div>
-        <div className="premium-metric-card">
-          <p className="premium-metric-label">{t("insights.dataFreshness")}</p>
-          <p className="premium-metric-value text-base">
-            {lastUpdatedLabel ?? rows[0]?.last_trade_date ?? "—"}
-          </p>
-          <p className="premium-metric-meta">{t("insights.latestAvailable")}</p>
-        </div>
+        {!screenerFilters?.discovery_goal ? (
+          <>
+            <div className="h-4 w-px bg-border" aria-hidden="true" />
+            <span className="text-[11px] font-semibold text-success">{resultSummary.bullish} {t("workspace.cards.bullish")}</span>
+            <span className="text-[11px] font-semibold text-danger">{resultSummary.bearish} {t("workspace.cards.bearish")}</span>
+          </>
+        ) : null}
+        <span className="ms-auto text-[10px] text-text-muted">{t("workspace.statusUpdated")} {lastUpdatedLabel ?? rows[0]?.last_trade_date ?? "—"}</span>
       </div>
 
       {sectorSegments.length > 0 ? (
-        <section
-          className="ui-panel-subtle space-y-3 rounded-2xl px-4 py-3"
+        <details
+          className="ui-panel-subtle group rounded-2xl px-4 py-3"
           aria-label={t("sectorMix.title")}
         >
-          <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-            <div>
+          <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+            <div className="flex items-center gap-3">
+              <div className="min-w-0 flex-1">
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">
                 {t("sectorMix.title")}
               </p>
-              <p className="mt-1 text-sm font-semibold text-text">
+              <p className="mt-0.5 truncate text-sm font-semibold text-text">
                 {t("sectorMix.leader", {
                   sector: sectorLabel(effectiveSectorBreakdown[0]?.sector, t),
                   percentage: formatPercentage(
@@ -548,8 +558,9 @@ export function ResultsTable({
                   ),
                 })}
               </p>
-              <p className={clsx(
-                "mt-1.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold",
+              </div>
+              <span className={clsx(
+                "hidden items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold sm:inline-flex",
                 leadingSectorPercentage >= 50
                   ? "bg-warning-soft text-warning ring-1 ring-warning/15"
                   : "bg-success-soft text-success ring-1 ring-success/15"
@@ -558,24 +569,21 @@ export function ResultsTable({
                 {leadingSectorPercentage >= 50
                   ? t("sectorMix.concentrated")
                   : t("sectorMix.diversified")}
-              </p>
+              </span>
+              <div className="hidden h-2 w-36 overflow-hidden rounded-full bg-surface-hover md:flex" aria-hidden="true">
+                {sectorSegments.map((item, index) => (
+                  <span key={`${item.isOther ? "other" : item.sector ?? "unknown"}-${index}`} className={clsx("h-full", SECTOR_COLORS[index % SECTOR_COLORS.length])} style={{ width: `${(item.count / Math.max(matchedCount, 1)) * 100}%` }} />
+                ))}
+              </div>
+              <span className="text-text-muted transition-transform group-open:rotate-180" aria-hidden="true">⌄</span>
             </div>
-            <p className="text-[11px] text-text-muted">
-              {t("sectorMix.basedOn", { count: matchedCount })}
-            </p>
+          </summary>
+          <div className="mt-3 flex h-2.5 overflow-hidden rounded-full bg-surface-hover" aria-hidden="true">
+              {sectorSegments.map((item, index) => (
+                <span key={`${item.isOther ? "other" : item.sector ?? "unknown"}-${index}-detail`} className={clsx("h-full", SECTOR_COLORS[index % SECTOR_COLORS.length])} style={{ width: `${(item.count / Math.max(matchedCount, 1)) * 100}%` }} />
+              ))}
           </div>
-
-          <div className="flex h-2.5 overflow-hidden rounded-full bg-surface-hover" aria-hidden="true">
-            {sectorSegments.map((item, index) => (
-              <span
-                key={`${item.isOther ? "other" : item.sector ?? "unknown"}-${index}`}
-                className={clsx("h-full", SECTOR_COLORS[index % SECTOR_COLORS.length])}
-                style={{ width: `${(item.count / Math.max(matchedCount, 1)) * 100}%` }}
-              />
-            ))}
-          </div>
-
-          <div className="flex flex-wrap gap-x-4 gap-y-2">
+          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
             {sectorSegments.map((item, index) => {
               const label = item.isOther
                 ? t("sectorMix.other")
@@ -600,7 +608,8 @@ export function ResultsTable({
               );
             })}
           </div>
-        </section>
+          <p className="mt-2 text-[10px] text-text-muted">{t("sectorMix.basedOn", { count: matchedCount })}</p>
+        </details>
       ) : null}
 
       <div className="ui-table-shell overflow-hidden rounded-[20px]">
@@ -801,9 +810,25 @@ export function ResultsTable({
                   </div>
                 </td>
                 <td className={clsx(densityRowClass, "min-w-[220px]")}>
-                  <div className="space-y-2">
-                    {screenerFilters?.discovery_goal ? <MatchScoreBadge score={row.match_score} /> : null}
-                    <MatchExplanation row={row} guided={!!screenerFilters?.discovery_goal} />
+                  <div className="space-y-1.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {screenerFilters?.discovery_goal ? <MatchScoreBadge score={row.match_score} /> : null}
+                      <button
+                        type="button"
+                        onClick={() => toggleExpanded(row.ticker)}
+                        aria-expanded={!!expandedTickers[row.ticker]}
+                        aria-controls={`match-context-${row.ticker}`}
+                        className="inline-flex min-h-8 items-center gap-1 rounded-lg px-2 text-[10px] font-bold text-primary hover:bg-primary-soft"
+                      >
+                        {expandedTickers[row.ticker] ? t("workspace.hideWhyMatched") : t("workspace.showWhyMatched")}
+                        <span className={clsx("transition-transform", expandedTickers[row.ticker] && "rotate-180")} aria-hidden="true">⌄</span>
+                      </button>
+                    </div>
+                    {expandedTickers[row.ticker] ? (
+                      <div id={`match-context-${row.ticker}`}>
+                        <MatchExplanation row={row} guided={!!screenerFilters?.discovery_goal} />
+                      </div>
+                    ) : null}
                   </div>
                 </td>
                 <td className={clsx(densityRowClass, "min-w-[130px]")}>

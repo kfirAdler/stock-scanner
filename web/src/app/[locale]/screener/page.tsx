@@ -120,6 +120,7 @@ function ScreenerPageContent() {
   const [scannerMode, setScannerMode] = useState<ScannerMode>(() =>
     urlFilters.discovery_goal || countActiveFilters(urlFilters) === 0 ? "guided" : "advanced"
   );
+  const [goalPickerOpen, setGoalPickerOpen] = useState(() => !urlFilters.discovery_goal);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [refreshTicker, setRefreshTicker] = useState(() => Date.now());
   const [sortKey, setSortKey] = useState<ScannerSortKey>(
@@ -134,6 +135,7 @@ function ScreenerPageContent() {
   const requestSequenceRef = useRef(0);
   const handledSearchParamsRef = useRef<string | null>(null);
   const celebrationTimerRef = useRef<number | null>(null);
+  const actionsMenuRef = useRef<HTMLDetailsElement | null>(null);
   const closeMobileFilters = useCallback(() => setMobileFiltersOpen(false), []);
   const closeMultiFilterGate = useCallback(() => setMultiFilterGateOpen(false), []);
   const mobileFiltersDialogRef = useModalDialog<HTMLDivElement>({
@@ -351,6 +353,7 @@ function ScreenerPageContent() {
       setScannerMode(
         urlFilters.discovery_goal || countActiveFilters(urlFilters) === 0 ? "guided" : "advanced"
       );
+      setGoalPickerOpen(!urlFilters.discovery_goal);
       setFilterPanelResetKey((current) => current + 1);
       setFavoriteStatus(null);
 
@@ -422,25 +425,20 @@ function ScreenerPageContent() {
   const activeFilterCount = useMemo(() => countActiveFilters(filters), [filters]);
   const appliedFilterCount = useMemo(() => countActiveFilters(appliedFilters), [appliedFilters]);
   const hasFavorite = !!favoriteFilters && countActiveFilters(favoriteFilters) > 0;
+  const currentIsFavorite = useMemo(() => {
+    if (!favoriteFilters || appliedFilterCount === 0) return false;
+    return JSON.stringify(favoriteFilters) === JSON.stringify(appliedFilters);
+  }, [appliedFilterCount, appliedFilters, favoriteFilters]);
   const hasPendingChanges = useMemo(() => {
     const normalizedDraft = coerceStoredScreen(filters) ?? DEFAULT_SCREENER_PAYLOAD;
     const normalizedApplied = coerceStoredScreen(appliedFilters) ?? DEFAULT_SCREENER_PAYLOAD;
     return JSON.stringify(normalizedDraft) !== JSON.stringify(normalizedApplied);
   }, [appliedFilters, filters]);
   const resultSummary = useMemo(() => {
-    const strongSignals = results.filter(
-      (row) => row.strong_buy_signal || row.strong_sell_signal
-    ).length;
-    const higherTimeframeRules = appliedFilters.rules.filter(
-      (rule) => rule.timeframe === "1W" || rule.timeframe === "1M"
-    ).length;
     return {
       rows: totalMatches ?? results.length,
-      rules: appliedFilterCount,
-      strongSignals,
-      higherTimeframeRules,
     };
-  }, [appliedFilterCount, appliedFilters.rules, results, totalMatches]);
+  }, [results.length, totalMatches]);
   const formattedLastUpdated = useMemo(() => {
     if (!lastUpdated) return null;
     try {
@@ -497,6 +495,7 @@ function ScreenerPageContent() {
     setSortKey("match_score");
     setSortDir("desc");
     setScannerMode("guided");
+    setGoalPickerOpen(false);
     setMobileFiltersOpen(false);
     setLoadingGoal(goal);
     try {
@@ -651,21 +650,6 @@ function ScreenerPageContent() {
     }
   }
 
-  async function handleLoadFavorite() {
-    if (!favoriteFilters) {
-      setFavoriteStatus(t("favorite.empty"));
-      return;
-    }
-
-    setFilterPanelResetKey((current) => current + 1);
-    setFilters(favoriteFilters);
-    filtersRef.current = favoriteFilters;
-    setFavoriteStatus(t("favorite.loaded"));
-    setScannerMode(favoriteFilters.discovery_goal ? "guided" : "advanced");
-    setMobileFiltersOpen(false);
-    await fetchResults({ nextFilters: favoriteFilters });
-  }
-
   async function handleApply() {
     if (!loggedIn && activeFilterCount > 1) {
       setMultiFilterGateOpen(true);
@@ -681,12 +665,35 @@ function ScreenerPageContent() {
   }
 
   function handleModeChange(mode: ScannerMode) {
-    setScannerMode(mode);
     if (mode === "advanced") {
+      openAdvancedBuilder();
+      return;
+    }
+    setScannerMode(mode);
+    setMobileFiltersOpen(false);
+    setGoalPickerOpen(!filtersRef.current.discovery_goal);
+  }
+
+  function openAdvancedBuilder() {
+    setScannerMode("advanced");
+    setGoalPickerOpen(false);
+    if (window.matchMedia("(min-width: 1280px)").matches) {
       setDesktopFiltersOpen(true);
     } else {
-      setMobileFiltersOpen(false);
+      setMobileFiltersOpen(true);
     }
+  }
+
+  function openGoalPicker() {
+    actionsMenuRef.current?.removeAttribute("open");
+    setScannerMode("guided");
+    setDesktopFiltersOpen(false);
+    setMobileFiltersOpen(false);
+    setGoalPickerOpen(true);
+  }
+
+  function closeActionsMenu() {
+    actionsMenuRef.current?.removeAttribute("open");
   }
 
   function handleSortChange(key: ScannerSortKey) {
@@ -720,10 +727,17 @@ function ScreenerPageContent() {
     <div className="page-shell max-w-[1580px]">
       <div className="space-y-3">
         <section className="page-card-strong sticky top-3 z-30 !p-3.5 sm:!p-4">
-          <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                <h1 className="text-lg font-bold tracking-tight text-text">{t("title")}</h1>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
+                {t("workspace.commandEyebrow")}
+              </p>
+              <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+                <h1 className="truncate text-lg font-bold tracking-tight text-text">
+                  {appliedFilters.discovery_goal
+                    ? t(`discovery.goals.${appliedFilters.discovery_goal}.title`)
+                    : t("workspace.customScan")}
+                </h1>
                 <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-text-secondary" aria-live="polite">
                   <span
                     className={hasPendingChanges ? "h-2 w-2 rounded-full bg-warning" : "h-2 w-2 rounded-full bg-success"}
@@ -739,83 +753,119 @@ function ScreenerPageContent() {
                 })}
                 {relativeLastUpdated ? ` · ${t("workspace.statusUpdated")} ${relativeLastUpdated}` : ""}
               </p>
+              {favoriteStatus ? (
+                <p className="mt-1 text-[11px] font-semibold text-primary" aria-live="polite">
+                  {favoriteStatus}
+                </p>
+              ) : null}
             </div>
 
-            <div
-              className="ui-segment grid grid-cols-2 rounded-xl p-1"
-              role="group"
-              aria-label={t("workspace.modeLabel")}
-            >
-              {(["guided", "advanced"] as ScannerMode[]).map((mode) => (
-                <button
-                  key={mode}
-                  type="button"
-                  aria-pressed={scannerMode === mode}
-                  onClick={() => handleModeChange(mode)}
-                  className={scannerMode === mode
-                    ? "ui-segment-item-active min-h-10 rounded-lg px-4 text-xs font-bold"
-                    : "ui-segment-item min-h-10 rounded-lg px-4 text-xs font-bold"
-                  }
-                >
-                  {t(`workspace.modes.${mode}`)}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex items-center gap-2">
-              {scannerMode === "advanced" ? (
-                <>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setDesktopFiltersOpen((current) => !current)}
-                    className="hidden xl:inline-flex"
-                  >
-                    {desktopFiltersOpen ? t("workspace.hideFilters") : t("workspace.openFilters")}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setMobileFiltersOpen(true)}
-                    className="flex-1 justify-center xl:hidden"
-                  >
-                    {t("mobile.openFilters", { count: activeFilterCount })}
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    onClick={handleApply}
-                    loading={loading}
-                    className="flex-1 xl:flex-none"
-                  >
-                    {t("workspace.quickApply")}
-                  </Button>
-                </>
+            <div className="flex shrink-0 items-center gap-2">
+              {hasPendingChanges ? (
+                <Button type="button" size="sm" onClick={handleApply} loading={loading}>
+                  {t("workspace.quickApply")}
+                </Button>
               ) : (
-                <p className="text-xs text-text-secondary">{t("workspace.guidedHint")}</p>
+                <Button type="button" size="sm" onClick={openAdvancedBuilder}>
+                  {t("workspace.editScan")}
+                </Button>
               )}
+
+              <details ref={actionsMenuRef} className="relative">
+                <summary
+                  className="ui-control flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-lg text-lg font-black text-text-secondary [&::-webkit-details-marker]:hidden"
+                  aria-label={t("workspace.moreActions")}
+                >
+                  ···
+                </summary>
+                <div className="ui-panel-overlay absolute end-0 top-12 z-50 w-60 overflow-hidden rounded-2xl p-1.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closeActionsMenu();
+                      void handleSaveFavorite();
+                    }}
+                    disabled={favoriteLoading || favoriteSaving || appliedFilterCount === 0 || currentIsFavorite}
+                    className="flex min-h-10 w-full items-center gap-2 rounded-xl px-3 text-start text-xs font-bold text-text-secondary hover:bg-surface-hover hover:text-text disabled:opacity-50"
+                  >
+                    <span aria-hidden="true">{currentIsFavorite ? "★" : "☆"}</span>
+                    {currentIsFavorite
+                      ? t("favorite.current")
+                      : hasFavorite ? t("favorite.update") : t("favorite.save")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closeActionsMenu();
+                      handleOpenSaveScan();
+                    }}
+                    disabled={appliedFilterCount === 0}
+                    className="flex min-h-10 w-full items-center gap-2 rounded-xl px-3 text-start text-xs font-bold text-text-secondary hover:bg-surface-hover hover:text-text disabled:opacity-50"
+                  >
+                    <span aria-hidden="true">▣</span>
+                    {t("saveScan")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={openGoalPicker}
+                    className="flex min-h-10 w-full items-center gap-2 rounded-xl px-3 text-start text-xs font-bold text-text-secondary hover:bg-surface-hover hover:text-text"
+                  >
+                    <span aria-hidden="true">↗</span>
+                    {t("workspace.changeGoalShort")}
+                  </button>
+                  <Link
+                    href="/saved-screens"
+                    onClick={closeActionsMenu}
+                    className="flex min-h-10 w-full items-center gap-2 rounded-xl px-3 text-start text-xs font-bold text-text-secondary hover:bg-surface-hover hover:text-text"
+                  >
+                    <span aria-hidden="true">☰</span>
+                    {t("workspace.savedScreensLink")}
+                  </Link>
+                  <div className="my-1 border-t border-border" />
+                  <Link
+                    href="/terms"
+                    onClick={closeActionsMenu}
+                    className="flex min-h-9 w-full items-center gap-2 rounded-xl px-3 text-start text-[11px] font-semibold text-text-muted hover:bg-surface-hover hover:text-text"
+                  >
+                    <span aria-hidden="true">ⓘ</span>
+                    {t("legalNotice.inlineShort")} {t("legalNotice.link")}
+                  </Link>
+                </div>
+              </details>
             </div>
           </div>
+
+          {!hasSearched && appliedFilterCount === 0 ? (
+            <div className="mt-3 flex items-center gap-2 border-t border-border/70 pt-3">
+              <span className="text-xs font-semibold text-text-muted">{t("workspace.modeLabel")}</span>
+              <div className="ui-segment grid grid-cols-2 rounded-xl p-1" role="group" aria-label={t("workspace.modeLabel")}>
+                {(["guided", "advanced"] as ScannerMode[]).map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    aria-pressed={scannerMode === mode}
+                    onClick={() => handleModeChange(mode)}
+                    className={scannerMode === mode
+                      ? "ui-segment-item-active min-h-9 rounded-lg px-3 text-xs font-bold"
+                      : "ui-segment-item min-h-9 rounded-lg px-3 text-xs font-bold"
+                    }
+                  >
+                    {t(`workspace.modes.${mode}`)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </section>
 
-        <div className="ui-panel-subtle flex items-center gap-2 rounded-2xl px-3 py-2 text-[11px] text-text-secondary">
-          <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-warning-soft text-[10px] text-warning">
-            i
-          </span>
-          <span>{t("legalNotice.inlineShort")}</span>
-          <Link href="/terms" className="link-hover font-semibold text-primary hover:underline">
-            {t("legalNotice.link")}
-          </Link>
-        </div>
-
-        {scannerMode === "guided" ? (
+        {scannerMode === "guided" && goalPickerOpen ? (
           <DiscoveryGoalPicker
+            key={`goal-picker-${filters.discovery_goal ?? "empty"}-${goalPickerOpen}`}
             selectedGoal={filters.discovery_goal}
             market={filters.listing_market}
             availability={filterAvailability}
             loadingGoal={loadingGoal}
+            initiallyExpanded
             onSelectGoal={(goal) => void handleApplyDiscoveryGoal(goal)}
             onMarketChange={handleDiscoveryMarketChange}
           />
@@ -866,86 +916,6 @@ function ScreenerPageContent() {
             </div>
 
             <div className="min-w-0 space-y-3">
-              <div className="ui-panel-subtle flex flex-col gap-2.5 rounded-2xl px-3.5 py-2.5 text-text-secondary sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="ui-badge-default rounded-full px-2.5 py-1 text-[11px] font-semibold text-text">
-                    {t("workspace.appliedCount", { count: appliedFilterCount })}
-                  </span>
-                  <span className="ui-badge-default rounded-full px-2.5 py-1 text-[11px] font-semibold text-text">
-                    {t("terminalHeader.appliedRules", { count: appliedFilters.rules.length })}
-                  </span>
-                  {resultSummary.strongSignals > 0 ? (
-                    <span className="rounded-full bg-success-soft px-2.5 py-1 text-[11px] font-semibold text-success ring-1 ring-success/15">
-                      {resultSummary.strongSignals} {t("terminalHeader.cards.strong")}
-                    </span>
-                  ) : null}
-                  {resultSummary.higherTimeframeRules > 0 ? (
-                    <span className="rounded-full bg-primary-soft px-2.5 py-1 text-[11px] font-semibold text-primary ring-1 ring-primary/20 dark:text-[#dbe6ff]">
-                      {t("terminalHeader.multiBlocks", { count: resultSummary.higherTimeframeRules })}
-                    </span>
-                  ) : null}
-                </div>
-                <div className="flex flex-col items-start gap-1.5 sm:items-end">
-                  <div className="flex flex-wrap items-center gap-2">
-                    {hasFavorite ? (
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="sm"
-                        onClick={handleLoadFavorite}
-                        loading={favoriteLoading}
-                        className="border-warning/30 bg-warning-soft text-warning shadow-none hover:bg-warning-soft/80"
-                      >
-                        <span aria-hidden="true">★</span>
-                        {t("workspace.loadFavoriteShort")}
-                      </Button>
-                    ) : null}
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      onClick={handleSaveFavorite}
-                      loading={favoriteSaving}
-                      disabled={appliedFilterCount === 0}
-                      className="border-warning/30 bg-warning-soft text-warning shadow-none hover:bg-warning-soft/80"
-                    >
-                      <span className="inline-flex items-center gap-1.5">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5" aria-hidden="true">
-                          <path d="M10 1.5l2.6 5.27 5.82.85-4.21 4.1.99 5.79L10 14.77l-5.2 2.73.99-5.79L1.58 7.62l5.82-.85L10 1.5z" />
-                        </svg>
-                        {hasFavorite ? t("favorite.update") : t("favorite.save")}
-                      </span>
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      onClick={handleOpenSaveScan}
-                      loading={saveScanLoading}
-                      disabled={appliedFilterCount === 0}
-                    >
-                      <span className="inline-flex items-center gap-1.5">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5" aria-hidden="true">
-                          <path d="M3.5 2.5h10.586L16.5 4.914V17.5h-13v-15zm2 2v4h8v-4h-8zm1 7v4h7v-4h-7z" />
-                        </svg>
-                        {t("saveScan")}
-                      </span>
-                    </Button>
-                    <Link
-                      href="/saved-screens"
-                      className="ui-control inline-flex min-h-10 items-center rounded-lg px-3 text-xs font-semibold text-text-secondary transition-colors hover:border-border-strong hover:text-text"
-                    >
-                      {t("workspace.savedScreensLink")}
-                    </Link>
-                  </div>
-                  {favoriteStatus ? (
-                    <p className="text-[11px] font-semibold text-text-secondary" aria-live="polite">
-                      {favoriteStatus}
-                    </p>
-                  ) : null}
-                </div>
-              </div>
-
               {hasSearched ? (
                 <ResultsTable
                   rows={results}
@@ -960,6 +930,7 @@ function ScreenerPageContent() {
                   totalCount={totalMatches ?? undefined}
                   sectorBreakdown={sectorBreakdown}
                   lastUpdatedLabel={formattedLastUpdated}
+                  onEditFilters={openAdvancedBuilder}
                 />
               ) : (
                 <div className="ui-panel flex min-h-[520px] items-center justify-center rounded-2xl border-dashed px-6 text-center">
