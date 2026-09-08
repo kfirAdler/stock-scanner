@@ -28,6 +28,8 @@ interface BarData {
 }
 
 interface ChartProps {
+  patternLines?: import("@/lib/patterns/types").PatternLine[];
+  patternLevels?: { breakout: number; invalidation: number; breakoutLabel: string; invalidationLabel: string };
   bars: BarData[];
   height?: number;
   /** SMA lengths to plot (default 20 and 50). */
@@ -72,6 +74,8 @@ const DARK_THEME = {
 
 export function CandlestickChart({
   bars,
+  patternLines,
+  patternLevels,
   height = 420,
   smaPeriods = [20, 50],
   signalBarDate,
@@ -195,7 +199,19 @@ export function CandlestickChart({
       series.setData(smaData);
     });
 
+    for (const line of patternLines ?? []) {
+      const first = bars[line.x1];
+      const last = bars[line.x2];
+      if (!first || !last || line.x1 >= line.x2) continue;
+      const series = chart.addSeries(LineSeries, { color: line.style === 'support' ? '#22c55e' : line.style === 'guide' ? '#a78bfa' : '#3b82f6', lineWidth: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+      series.setData([{ time: first.trade_date as Time, value: line.y1 }, { time: last.trade_date as Time, value: line.y2 }]);
+    }
+    if (patternLevels) {
+      candleSeries.createPriceLine({ price: patternLevels.breakout, color: '#3b82f6', lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: patternLevels.breakoutLabel });
+      candleSeries.createPriceLine({ price: patternLevels.invalidation, color: '#ef4444', lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: patternLevels.invalidationLabel });
+    }
     chart.timeScale().fitContent();
+    if (patternLines?.length) chart.timeScale().setVisibleLogicalRange({ from: Math.max(0, Math.min(...patternLines.map(l => l.x1)) - 12), to: bars.length + 4 });
 
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
@@ -212,6 +228,8 @@ export function CandlestickChart({
     };
   }, [
     bars,
+    patternLines,
+    patternLevels,
     resolvedTheme,
     height,
     smaPeriods,

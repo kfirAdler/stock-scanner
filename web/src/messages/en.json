@@ -27,7 +27,8 @@
     "terms": "Terms of Use",
     "menu": "Open navigation",
     "primaryLabel": "Main navigation",
-    "mobileLabel": "Mobile navigation"
+    "mobileLabel": "Mobile navigation",
+    "patterns": "Patterns"
   },
   "marketing": {
     "badge": "Precomputed market scans",
@@ -604,7 +605,10 @@
       "quickActions": "Quick actions",
       "advanced": "Advanced",
       "advancedHint": "Universe, saved scans, and precision thresholds stay tucked away until you need them.",
-      "density": "Density",
+      "density": {
+        "comfortable": "Comfortable",
+        "compact": "Compact"
+      },
       "densityCompact": "Compact",
       "densityComfortable": "Comfortable",
       "statusFilters": "filters active",
@@ -695,10 +699,6 @@
         "signal": "Signal",
         "matrix": "D/W/M matrix",
         "whyMatched": "Why matched"
-      },
-      "density": {
-        "comfortable": "Comfortable",
-        "compact": "Compact"
       },
       "cards": {
         "bullish": "Bullish",
@@ -1142,5 +1142,44 @@
         "body": "We may update these terms from time to time. Continued use of the platform after updated terms become effective constitutes acceptance of the revised terms."
       }
     }
+  },
+  "patterns": {
+    "title": "Patterns",
+    "eyebrow": "THE SHAPE OF THE MARKET",
+    "subtitle": "Explore developing chart structures. Open a setup to see the levels that define it.",
+    "all": "All patterns",
+    "ascending_triangle": "Ascending triangle",
+    "channel": "Channel",
+    "cup_and_handle": "Cup & handle",
+    "US": "US market",
+    "TA": "Tel Aviv",
+    "search": "Search symbol or company",
+    "fit": "Pattern fit",
+    "breakout": "Breakout",
+    "invalidation": "Invalidation",
+    "close": "Last close",
+    "open": "Explore chart",
+    "hide": "Close chart",
+    "loading": "Loading patterns…",
+    "error": "Patterns are unavailable right now. Please try again.",
+    "retry": "Try again",
+    "login": "Sign in to explore patterns",
+    "subscribe": "Your plan does not include scanner access.",
+    "settings": "View account",
+    "empty": "No setups match your filters",
+    "emptyBody": "Try another pattern or symbol. New setups appear after market data refreshes.",
+    "waiting": "Waiting for the first pattern snapshot",
+    "waitingBody": "Patterns will appear here after the next successful refresh.",
+    "scanned": "Symbols scanned",
+    "setups": "Matching symbols",
+    "stale": "Stale histories",
+    "insufficient": "Short histories",
+    "updated": "Updated",
+    "asOf": "Price data",
+    "quality": "Fit measures geometric similarity, not the probability of a successful trade.",
+    "daily": "Daily candles",
+    "staleDetail": "This setup has changed or become stale. Reload the gallery.",
+    "noChart": "Chart data is unavailable.",
+    "reset": "Reset filters"
   }
 }

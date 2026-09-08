@@ -150,6 +150,7 @@ export function Header() {
 
           <nav className="hidden items-center gap-1 md:flex" aria-label={t("nav.primaryLabel")}>
             <NavLink href="/screener" label={t("nav.screener")} />
+            <NavLink href="/patterns" label={t("nav.patterns")} />
             <NavLink href="/stock-lookup" label={t("nav.stockLookup")} />
             <NavLink href="/#features" label={t("nav.features")} />
             {showSavedScreensLink && <NavLink href="/saved-screens" label={t("nav.savedScreens")} />}
@@ -261,6 +262,7 @@ export function Header() {
 
             <nav className="space-y-1" aria-label={t("nav.mobileLabel")}>
               <NavLink href="/screener" label={t("nav.screener")} mobile onClick={closeMenus} />
+              <NavLink href="/patterns" label={t("nav.patterns")} mobile onClick={closeMenus} />
               <NavLink href="/stock-lookup" label={t("nav.stockLookup")} mobile onClick={closeMenus} />
               <NavLink href="/#features" label={t("nav.features")} mobile onClick={closeMenus} />
               {showSavedScreensLink && (

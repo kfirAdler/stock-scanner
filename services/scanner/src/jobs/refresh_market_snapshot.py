@@ -15,6 +15,7 @@ from ..repositories.market_data_repository import (
     upsert_snapshots,
     upsert_symbol_metadata,
 )
+from .pattern_snapshots import pattern_input, publish_pattern_snapshots
 from .universe import tickers_for_refresh_universe
 from ..utils.market_data_fetcher import fetch_bars
 from ..utils.symbol_metadata import fetch_symbol_metadata_yfinance
@@ -52,6 +53,7 @@ def run(
     processed = 0
     failed = 0
     errors: list[str] = []
+    pattern_series = []
 
     today = date.today()
 
@@ -109,6 +111,7 @@ def run(
             )
             logger.info("Snapshots updated for %s", ticker)
 
+            pattern_series.append(pattern_input(ticker, daily_history, metadata.get("company_name")))
             processed += 1
             time.sleep(BATCH_DELAY_SECONDS)
 
@@ -118,8 +121,16 @@ def run(
             errors.append(msg)
             logger.exception("Failed to process %s", ticker)
 
+    pattern_error = None
+    try:
+        publish_pattern_snapshots(pattern_series)
+    except Exception as exc:
+        pattern_error = str(exc)
+        errors.append(f"Pattern snapshots: {exc}")
+        logger.exception("Failed to publish pattern snapshots")
+
     finished_at = datetime.utcnow()
-    status = "completed" if failed == 0 else "completed_with_errors"
+    status = "completed" if failed == 0 and pattern_error is None else "completed_with_errors"
 
     log_scan_run(
         job_name=JOB_NAME,
@@ -138,6 +149,7 @@ def run(
         "total": total,
         "processed": processed,
         "failed": failed,
+        "pattern_error": pattern_error,
         "duration_seconds": (finished_at - started_at).total_seconds(),
     }
     logger.info("Job finished: %s", result)
