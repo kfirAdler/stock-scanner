@@ -36,3 +36,12 @@ test('deduplicates dates and clears prior matches on insufficient history',()=>{
   assert.equal(row.bars_count,30);
   assert.deepEqual(row.matches,[]);
 });
+
+test('a selected pattern runs alone with no fallback to other detectors',()=>{
+  const input=candles();
+  const channel=scanSeries([{ticker:'TEST',candles:input}],now,'channel')[0];
+  assert.deepEqual(channel.matches.map(m=>m.pattern),['channel']);
+  const triangle=scanSeries([{ticker:'TEST',candles:input}],now,'ascending_triangle')[0];
+  assert.deepEqual(triangle.matches,[]);
+  assert.throws(()=>scanSeries([],now,'all'), /Invalid pattern/);
+});
