@@ -13,8 +13,9 @@ function load(file, overrides) {
 const candle={date:new Date().toISOString().slice(0,10),open:100,high:105,low:98,close:103};
 const row={ticker:'TEST',market:'US',as_of:candle.date,updated_at:new Date().toISOString(),status:'scanned',matches:[{pattern:'ascending_triangle'}],candles:[candle]};
 test('shared summaries contain real compact candles while detail retains dated OHLC',async()=>{
- const route=load('app/api/patterns/route.ts',{'next/server':{NextResponse},'@/lib/market-access':{getCurrentEntitlement:async()=>({loggedIn:true,canUseScreener:true})},'@/lib/patterns/data':{loadPatterns:async()=>[row]}});
+ const route=load('app/api/patterns/route.ts',{'next/server':{NextResponse},'@/lib/market-access':{getCurrentEntitlement:async()=>({loggedIn:true,canUseScreener:true})},'@/lib/patterns/data':{loadPatterns:async()=>[row],loadLastPatternAttempt:async()=>({startedAt:row.updated_at,status:"completed"})}});
  const summary=await (await route.GET(new NextRequest('http://localhost/api/patterns'))).json();
+ assert.equal(summary.lastAttempt.status,"completed");
  assert.deepEqual(summary.rows[0].preview,{offset:0,candles:[[100,105,98,103]]});
  assert.equal(summary.rows[0].candles,undefined);
  const detail=await(await route.GET(new NextRequest('http://localhost/api/patterns?ticker=TEST'))).json();

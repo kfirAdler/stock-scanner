@@ -28,3 +28,20 @@ export function loadPatterns(market: 'US' | 'TA', ticker?: string) {
   void value.catch(() => { if (cache.get(key)?.value === value) cache.delete(key); });
   return value;
 }
+
+// One shared status read per five minutes, across users and markets.
+let attemptCache: { expires: number; value: Promise<{ startedAt: string; status: string } | null> } | undefined;
+export function loadLastPatternAttempt() {
+  if (attemptCache && attemptCache.expires > Date.now()) return attemptCache.value;
+  const value = (async () => {
+    const db = await createServiceClient();
+    const { data, error } = await db.from('scan_runs').select('started_at,status')
+      .eq('job_name', 'refresh_market_snapshot').order('started_at', { ascending: false })
+      .order('id', { ascending: false }).limit(1);
+    if (error) throw new Error('Scan status read failed', { cause: error });
+    return data?.[0] ? { startedAt: data[0].started_at, status: data[0].status } : null;
+  })();
+  attemptCache = { expires: Date.now() + 300_000, value };
+  void value.catch(() => { if (attemptCache?.value === value) attemptCache = undefined; });
+  return value;
+}

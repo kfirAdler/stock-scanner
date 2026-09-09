@@ -1209,7 +1209,7 @@
     "scanComplete": "Scan complete",
     "snapshotOverview": "Latest snapshots",
     "scanHeadline": "{scanned} stocks checked · {matches} strict matches",
-    "completedAt": "Completed",
+    "completedAt": "Results updated",
     "scanDuration": "Scan time: {seconds}s",
     "strictMatches": "Strict matches",
     "developingSetups": "Developing setups",
@@ -1241,7 +1241,12 @@
     "missedBoundaryRule": "Missed check: 1% boundary tolerance",
     "breachDetail": "{count} candles breached a boundary · Largest breach: {percent}%",
     "noChannels": "No strict channels in this snapshot",
-    "noChannelsBody": "The scan checked these stocks, but none passed every channel rule. This detector looks for rising or falling channels, not sideways ranges. Request a Channel search to see rejection reasons and any developing setups separately.",
-    "prepareChannelSearch": "Choose Channel search"
+    "noChannelsBody": "These stocks were checked, but none passed every channel rule. The detector looks for rising or falling channels, not sideways ranges. Results update after the next successful automatic scan.",
+    "prepareChannelSearch": "Choose Channel search",
+    "automaticSearchInfo": "Patterns are checked automatically during market refreshes. This page shows the latest available results.",
+    "lastAutomaticAttempt": "Last automatic refresh attempt (all markets)",
+    "autoRunning": "In progress",
+    "autoCompleted": "Completed",
+    "autoErrors": "Finished with errors"
   }
 }
