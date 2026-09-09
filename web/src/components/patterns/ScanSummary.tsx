@@ -5,8 +5,8 @@ import type { PatternPayload, PatternKind } from '@/lib/patterns/types';
 export function ScanSummary({ data, pattern, requested }: {data:PatternPayload;pattern?:PatternKind;requested:boolean}) {
   const t=useTranslations('patterns');
   const locale=useLocale();
-  const strict=data.rows.filter(r=>r.matches.length>0).length;
-  const developing=data.rows.filter(r=>r.developing?.length).length;
+  const strict=data.rows.filter(r=>r.matches.some(m=>!pattern||m.pattern===pattern)).length;
+  const developing=data.rows.filter(r=>r.developing?.some(d=>!pattern||d.match.pattern===pattern)).length;
   const rejected=Object.entries(data.diagnostics?.rejected??{}).sort((a,b)=>b[1]-a[1]);
   return <section className="page-card !p-5 sm:!p-6">
     <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-widest text-success">{t(requested?'scanComplete':'snapshotOverview')}</p><h2 className="mt-2 text-xl font-extrabold">{pattern?t(pattern)+' · ':''}{t('scanHeadline',{scanned:data.coverage.scanned,matches:strict})}</h2></div><div className="text-xs text-text-muted">{data.updatedAt && <p>{t('completedAt')}: {new Date(data.updatedAt).toLocaleString(locale)}</p>}{data.durationSeconds!==undefined && <p className="mt-1">{t('scanDuration',{seconds:data.durationSeconds})}</p>}</div></div>

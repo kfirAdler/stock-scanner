@@ -6,6 +6,8 @@ import type { PatternSnapshot } from './types';
 // Each server instance may make its own cold read; failures are never cached.
 const cache = new Map<string, { expires: number; value: Promise<PatternSnapshot[]> }>();
 export function loadPatterns(market: 'US' | 'TA', ticker?: string) {
+  const shared = cache.get(market + ':*');
+  if (ticker && shared && shared.expires > Date.now()) return shared.value.then(rows => rows.filter(row => row.ticker === ticker));
   const key = market + ':' + (ticker ?? '*');
   const existing = cache.get(key);
   if (existing && existing.expires > Date.now()) return existing.value;
@@ -14,7 +16,7 @@ export function loadPatterns(market: 'US' | 'TA', ticker?: string) {
     const db = await createServiceClient();
     const rows: PatternSnapshot[] = [];
     for (let offset = 0; ; offset += 500) {
-      let query = db.from('symbol_pattern_snapshot').select(ticker ? '*' : 'ticker,market,company_name,as_of,updated_at,status,bars_count,close,matches').eq('market', market).order('ticker');
+      let query = db.from('symbol_pattern_snapshot').select('*').eq('market', market).order('ticker');
       if (ticker) query = query.eq('ticker', ticker);
       const { data, error } = await query.range(offset, offset + 499);
       if (error) throw new Error('Pattern snapshot read failed', { cause: error });

@@ -1239,6 +1239,9 @@
     "viewDeveloping": "Review {count} developing setups",
     "developingBadge": "Developing channel",
     "missedBoundaryRule": "Missed check: 1% boundary tolerance",
-    "breachDetail": "{count} candles breached a boundary · Largest breach: {percent}%"
+    "breachDetail": "{count} candles breached a boundary · Largest breach: {percent}%",
+    "noChannels": "No strict channels in this snapshot",
+    "noChannelsBody": "The scan checked these stocks, but none passed every channel rule. This detector looks for rising or falling channels, not sideways ranges. Request a Channel search to see rejection reasons and any developing setups separately.",
+    "prepareChannelSearch": "Choose Channel search"
   }
 }

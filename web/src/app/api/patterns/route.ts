@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     const rows = snapshots.map(row => ({ ...row, status: row.status === 'scanned' && (!row.as_of || Date.now() - Date.parse(row.as_of) > 7 * 86400000) ? 'stale' as const : row.status }));
     if (ticker) return NextResponse.json({ row: rows[0] ?? null }, { headers: { 'Cache-Control': 'private, no-store' } });
     return NextResponse.json({
-      rows: rows.filter(row => row.status === 'scanned' && row.matches.length > 0),
+      rows: rows.filter(row => row.status === 'scanned' && row.matches.length > 0).map(({ candles, ...row }) => ({ ...row, preview: candles?.length ? { offset: 0, candles: candles.map(c => [c.open, c.high, c.low, c.close]) } : null })),
       coverage: { total: rows.length, scanned: rows.filter(r => r.status === 'scanned').length, stale: rows.filter(r => r.status === 'stale').length, insufficient: rows.filter(r => r.status === 'insufficient_history').length },
       updatedAt: rows.reduce<string | null>((latest, row) => !latest || row.updated_at > latest ? row.updated_at : latest, null),
     }, { headers: { 'Cache-Control': 'private, no-store' } });

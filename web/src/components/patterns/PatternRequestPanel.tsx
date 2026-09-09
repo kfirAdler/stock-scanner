@@ -6,12 +6,13 @@ import { Link } from '@/i18n/navigation';
 import type { PatternKind } from '@/lib/patterns/types';
 import type { PatternRequestStatus, PatternSearchJob } from '@/lib/patterns/request-types';
 
-export function PatternRequestPanel({ market, onViewResults }: {
+export function PatternRequestPanel({ market, pattern, onPatternChange, onViewResults }: {
   market: 'US' | 'TA';
+  pattern: PatternKind;
+  onPatternChange: (pattern: PatternKind) => void;
   onViewResults: (job: PatternSearchJob) => void;
 }) {
   const t = useTranslations('patterns');
-  const [pattern, setPattern] = useState<PatternKind>('ascending_triangle');
   const [state, setState] = useState<PatternRequestStatus | null>(null);
   const [remaining, setRemaining] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -90,7 +91,7 @@ export function PatternRequestPanel({ market, onViewResults }: {
     <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
       <div className="max-w-xl"><h2 id="pattern-request-title" className="text-lg font-extrabold">{t('requestTitle')}</h2><p className="mt-1 text-sm text-text-muted">{t('requestHint')}</p></div>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-        <label className="min-w-48 text-xs font-semibold text-text-secondary">{t('requestPattern')}<select value={pattern} onChange={e => setPattern(e.target.value as PatternKind)} className="ui-control mt-1 block w-full rounded-xl px-3 py-3 text-sm">{(['ascending_triangle','channel','cup_and_handle'] as const).map(p => <option key={p} value={p}>{t(p)}</option>)}</select></label>
+        <label className="min-w-48 text-xs font-semibold text-text-secondary">{t('requestPattern')}<select id="pattern-request-selection" value={pattern} onChange={e => onPatternChange(e.target.value as PatternKind)} className="ui-control mt-1 block w-full rounded-xl px-3 py-3 text-sm">{(['ascending_triangle','channel','cup_and_handle'] as const).map(p => <option key={p} value={p}>{t(p)}</option>)}</select></label>
         <button onClick={submit} disabled={busy || !state || remaining > 0 || pending || !!error} className="rounded-xl bg-primary px-5 py-3 text-sm font-bold text-on-primary disabled:cursor-not-allowed">{t(busy ? 'requestSubmitting' : remaining > 0 ? 'requestLocked' : pending ? 'requestPending' : 'requestSearch')}</button>
       </div>
     </div>
