@@ -12,16 +12,25 @@ function loadRoute(relative, overrides) {
   new Function('require', 'module', 'exports', compiled)(name => overrides[name] ?? require(name), module, module.exports);
   return module.exports;
 }
-function fixture(data, gate = { response: null, userId: 'trusted-user' }) {
+function fixture(data, gate = { response: null, userId: 'trusted-user' }, options = {}) {
+  data = structuredClone(data);
   const calls = [];
+  const background = [];
+  const processed = [];
+  let claims = 0;
   const overrides = {
+    'next/server': { NextRequest, NextResponse, after: callback => background.push(callback) },
+    '@/lib/patterns/worker': {
+      claimPatternRequest: async () => { claims++; if (options.claimError) throw new Error('claim failed'); return options.claimed ?? null; },
+      processPatternRequests: async job => { processed.push(job); },
+    },
     '@/lib/patterns/request-access': { authorizePatternRequest: async () => gate },
     '@/lib/supabase/server': { createServiceClient: async () => ({ rpc: async (...args) => { calls.push(args); return { data, error: null }; } }) },
   };
-  return { route: loadRoute('app/api/patterns/requests/route.ts', overrides), detail: loadRoute('app/api/patterns/requests/detail/route.ts', overrides), calls };
+  return { route: loadRoute('app/api/patterns/requests/route.ts', overrides), detail: loadRoute('app/api/patterns/requests/detail/route.ts', overrides), calls, background, processed, get claims() { return claims; } };
 }
 const post = body => new NextRequest('http://localhost/api/patterns/requests', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify(body) });
-const accepted = { accepted:true, serverTime:'2026-09-08T12:00:00Z', nextAllowedAt:'2026-09-08T14:00:00Z', job:{status:'queued'} };
+const accepted = { accepted:true, serverTime:'2026-09-08T12:00:00Z', nextAllowedAt:'2026-09-08T14:00:00Z', job:{id:'job-1',status:'queued'} };
 
 test('anonymous and forbidden requests stop before database access', async () => {
   for (const status of [401,403]) {
@@ -66,4 +75,38 @@ test('chart lookup passes authenticated identity and returns 404 for inaccessibl
   const response=await f.detail.GET(new NextRequest('http://localhost/api/patterns/requests/detail?jobId='+id+'&ticker=ABC'));
   assert.equal(response.status,404);
   assert.deepEqual(f.calls,[['pattern_scan_detail',{p_user_id:'trusted-user',p_job_id:id,p_ticker:'ABC'}]]);
+});
+
+test('button claims queued work before responding and runs it after the response', async () => {
+  const claimed = {id:'job-1', leaseId:'lease-1', pattern:'channel', market:'US'};
+  const f = fixture(accepted, undefined, {claimed});
+  const response = await f.route.POST(post({pattern:'channel',market:'US'}));
+  assert.equal(response.status,202);
+  assert.equal((await response.json()).job.status,'running');
+  assert.equal(f.claims,1);
+  assert.equal(f.background.length,1);
+  assert.equal(f.processed.length,0);
+  await f.background[0]();
+  assert.deepEqual(f.processed,[claimed]);
+});
+test('already running and reusable completed jobs do not start duplicate workers', async () => {
+  for (const status of ['running','completed']) {
+    const f = fixture({...accepted,job:{id:'job-1',status}});
+    await f.route.POST(post({pattern:'channel',market:'US'}));
+    assert.equal(f.claims,0);
+    assert.equal(f.background.length,0);
+  }
+});
+test('a queued request resumes on return without consuming another quota', async () => {
+  const f=fixture(accepted,undefined,{claimed:{id:'job-1',leaseId:'lease-1'}});
+  await f.route.GET();
+  assert.equal(f.background.length,1);
+  assert.deepEqual(f.calls,[['pattern_scan_request_status',{p_user_id:'trusted-user'}]]);
+});
+test('startup failure reaches the UI instead of silently acknowledging a start', async () => {
+  const f=fixture(accepted,undefined,{claimError:true});
+  const old=console.error; console.error=()=>{};
+  try { assert.equal((await f.route.POST(post({pattern:'channel',market:'US'}))).status,503); }
+  finally { console.error=old; }
+  assert.equal(f.background.length,0);
 });

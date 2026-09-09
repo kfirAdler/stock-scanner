@@ -30,6 +30,8 @@ def read_batch(client, market, cursor):
 
 
 def scan_job(client, job):
+    started = time.monotonic()
+    diagnostics = {"pattern": "channel", "rejected": {}, "strictMatches": 0, "developingSetups": 0} if job["pattern"] == "channel" else None
     cursor = ""
     matches = []
     coverage = {"total": 0, "scanned": 0, "stale": 0, "insufficient": 0}
@@ -51,7 +53,13 @@ def scan_job(client, job):
             coverage["total"] += 1
             key = "insufficient" if row["status"] == "insufficient_history" else row["status"]
             coverage[key] += 1
-            if row["matches"]:
+            if diagnostics is not None and row["status"] == "scanned":
+                reason = row.get("rejectionReason")
+                if reason:
+                    diagnostics["rejected"][reason] = diagnostics["rejected"].get(reason, 0) + 1
+                diagnostics["strictMatches"] += int(bool(row["matches"]))
+                diagnostics["developingSetups"] += int(bool(row.get("developing")))
+            if row["matches"] or row.get("developing"):
                 matches.append(row)
         next_cursor = batch[-1]["ticker"]
         if next_cursor <= cursor:
@@ -59,7 +67,9 @@ def scan_job(client, job):
         cursor = next_cursor
     if coverage["total"] == 0:
         raise ValueError("No symbol metadata available for the requested market")
-    return {"rows": matches, "coverage": coverage, "updatedAt": datetime.now(timezone.utc).isoformat()}
+    return {"rows": matches, "coverage": coverage, "updatedAt": datetime.now(timezone.utc).isoformat(),
+            "durationSeconds": round(time.monotonic() - started),
+            **({"diagnostics": diagnostics} if diagnostics is not None else {})}
 
 
 def run(max_jobs=6):

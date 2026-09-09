@@ -28,6 +28,7 @@ interface BarData {
 }
 
 interface ChartProps {
+  patternBreachIndices?: number[];
   patternLines?: import("@/lib/patterns/types").PatternLine[];
   patternLevels?: { breakout: number; invalidation: number; breakoutLabel: string; invalidationLabel: string };
   bars: BarData[];
@@ -75,6 +76,7 @@ const DARK_THEME = {
 export function CandlestickChart({
   bars,
   patternLines,
+  patternBreachIndices,
   patternLevels,
   height = 420,
   smaPeriods = [20, 50],
@@ -158,6 +160,11 @@ export function CandlestickChart({
       atr14: atr14 ?? null,
       isDark,
     });
+    for (const index of patternBreachIndices ?? []) {
+      const bar = bars[index];
+      if (bar) signalMarkers.push({ time: bar.trade_date as Time, position: 'aboveBar', shape: 'circle', color: '#f59e0b', size: 1 });
+    }
+    signalMarkers.sort((a,b) => String(a.time).localeCompare(String(b.time)));
     let markersApi: ISeriesMarkersPluginApi<Time> | null = null;
     if (signalMarkers.length > 0) {
       markersApi = createSeriesMarkers(candleSeries, signalMarkers);
@@ -227,6 +234,7 @@ export function CandlestickChart({
       chartRef.current = null;
     };
   }, [
+    patternBreachIndices,
     bars,
     patternLines,
     patternLevels,

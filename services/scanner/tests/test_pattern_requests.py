@@ -38,6 +38,18 @@ class PatternWorkerTests(unittest.TestCase):
         self.assertEqual(result["coverage"]["scanned"], 1)
         self.assertEqual(result["rows"], [])
 
+    def test_developing_results_keep_diagnostics_and_candles(self):
+        candidate = series("NEAR")
+        candidate["candles"][-1]["high"] = 130
+        with patch.object(worker, "read_batch", side_effect=[[candidate], []]):
+            result = worker.scan_job(Mock(), {"market": "US", "pattern": "channel"})
+        self.assertEqual(result["diagnostics"]["strictMatches"], 0)
+        self.assertEqual(result["diagnostics"]["developingSetups"], 1)
+        self.assertEqual(result["diagnostics"]["rejected"], {"upper_breach": 1})
+        self.assertEqual(result["rows"][0]["matches"], [])
+        self.assertEqual(len(result["rows"][0]["candles"]), 160)
+        self.assertEqual(len(result["rows"][0]["preview"]["candles"]), 48)
+
     def test_empty_universe_is_reported_as_failure(self):
         with patch.object(worker, "read_batch", return_value=[]):
             with self.assertRaisesRegex(ValueError, "No symbol metadata"):

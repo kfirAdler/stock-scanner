@@ -1,6 +1,6 @@
 # Pattern snapshot integration
 
-The original demo detectors and pivots are preserved as dependency-free ES modules. The local HTTP server, credentials, launch scripts and database scanning strategy are not imported.
+The original demo detectors and pivots are preserved as dependency-free ES modules in web/src/lib/patterns/engine. The Python worker entrypoints re-export that same implementation; deploy the full repository when using the Python worker. The local HTTP server, credentials, launch scripts and database scanning strategy are not imported.
 
 ## Data flow
 
@@ -24,10 +24,22 @@ Migration 025_pattern_scan_requests.sql adds a persistent, atomic two-hour coold
 
 The new request panel is independent of free browsing/filtering of existing snapshots. It shows a server-clock countdown, queued/running/completed/failed states, and an explicit View results action. Requested results keep their original candle arrays, so chart indices never accidentally use newer scheduled snapshots.
 
-The process-pattern-requests GitHub workflow drains the queue approximately every ten minutes using the existing Supabase secrets; GitHub may delay scheduled runs. It also supports workflow_dispatch. Apply migration 025 and deploy the updated app and workflow to enable requests. No new GitHub token or browser credential is required. The implementation does not itself apply this migration or deploy the workflow.
+The request API claims queued work immediately, then executes the in-app Node worker with Next.js after(). A successful claim reports running before the response is sent; startup errors return 503 rather than silently reporting a start. Returning to the page also resumes existing queued work without consuming another quota. The in-app worker and Python worker use the same database leases and the same detector implementation.
+
+The process-pattern-requests GitHub workflow remains a fallback every ten minutes using existing Supabase secrets; GitHub may delay scheduled runs. It also supports workflow_dispatch. No additional app cron or CRON_SECRET is required. Button-triggered scans need no new secret or migration beyond 025.
+
+The request route declares maxDuration=300 and the worker uses a four-minute processing budget. Vercel deployments need Fluid compute for the 300-second Hobby duration, or another hosting configuration supporting that duration. Reference: https://vercel.com/docs/functions/limitations. No deployment settings are changed automatically.
 
 Queued/running jobs and completed results less than two hours old are shared by pattern and market across users. The worker requests 20 symbols per database call, each with at most the latest 160 candles, using metadata keyset pagination and indexed raw-history lookups. A 500-symbol search takes about 26 history reads, one claim, and one publication; it does not refresh prices or run other detectors. Summary/status responses exclude candles. The UI polls only pending work, once per minute in visible tabs, and stops on completion/failure. Idle queue checks and authentication reads are additional.
 
-Workers have a twenty-minute lease and a fifteen-minute processing budget. Read failures retry three times. A crashed worker can be reclaimed up to three attempts; expired workers cannot publish over a newer lease. Job results are published atomically.
+Workers share a twenty-minute lease. The Python worker has a fifteen-minute processing budget; the in-app worker has a four-minute budget. Read failures retry three times. A crashed worker can be reclaimed up to three attempts; expired workers cannot publish over a newer lease. Job results are published atomically.
 
 Checks: node --test supabase/tests/pattern_scan_requests.test.mjs services/scanner/patterns/scan.test.mjs (local PostgreSQL binaries required); node --test tests/pattern-requests.test.cjs from web; python3 -m unittest tests.test_pattern_requests from services/scanner. Database tests create and remove their own isolated cluster, never use Supabase credentials.
+
+## Result diagnostics and developing channels
+
+New requested channel scans record the first failed strict check for every eligible stock. Strict matches are unchanged. Developing setups use the same pivot coverage, fit, slope, and current-price checks, relaxing only historical boundary breaches from 1% to a maximum of 4%. They remain outside matches and carry breach counts, maximum breach percentage, and exact candle indices for highlights.
+
+Both workers aggregate diagnostics and retain near-match rows in the existing result JSON. No migration is required. The existing completion RPC strips full candles from summaries while preserving a compact 48-candle preview and original offset. Full charts still load on demand from the same stored series. No extra history reads or per-card API calls are added. Scheduled snapshots retain their existing strict-only table schema.
+
+Diagnostics, developing candidates and preview candles require a new requested scan after deployment. Older completed scans show a diagnostics-unavailable explanation. Developing counts display an em dash when they were never computed. Previews explicitly show 48 real daily candles; amber markers identify candles that failed the strict boundary rule.

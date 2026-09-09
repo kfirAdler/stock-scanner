@@ -1,7 +1,24 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { after, NextRequest, NextResponse } from 'next/server';
 import { authorizePatternRequest } from '@/lib/patterns/request-access';
 import { createServiceClient } from '@/lib/supabase/server';
 import type { PatternRequestStatus } from '@/lib/patterns/request-types';
+
+import { claimPatternRequest, processPatternRequests } from '@/lib/patterns/worker';
+
+export const runtime = 'nodejs';
+export const maxDuration = 300;
+
+async function startQueuedWork(state: PatternRequestStatus) {
+  if (state.job?.status !== 'queued') return;
+  // Claim before acknowledging startup, so failures reach the UI immediately.
+  const job = await claimPatternRequest();
+  if (!job) return;
+  if (state.job.id === job.id) state.job.status = 'running';
+  after(async () => {
+    try { await processPatternRequests(job); }
+    catch (error) { console.error('Could not start pattern worker', error); }
+  });
+}
 
 const headers = { 'Cache-Control': 'private, no-store' };
 
@@ -12,6 +29,8 @@ export async function GET() {
     const db = await createServiceClient();
     const { data, error } = await db.rpc('pattern_scan_request_status', { p_user_id: gate.userId });
     if (error) throw error;
+    // Recover previously queued work when the requester returns to the page.
+    await startQueuedWork(data as PatternRequestStatus);
     return NextResponse.json(data, { headers });
   } catch (error) {
     console.error('Pattern request status unavailable', error);
@@ -35,6 +54,7 @@ export async function POST(request: NextRequest) {
     });
     if (error) throw error;
     const state = data as PatternRequestStatus;
+    await startQueuedWork(state);
     if (!state.accepted) {
       const retryAfter = Math.max(1, Math.ceil((Date.parse(state.nextAllowedAt!) - Date.parse(state.serverTime)) / 1000));
       return NextResponse.json(state, { status: 429, headers: { ...headers, 'Retry-After': String(retryAfter) } });
