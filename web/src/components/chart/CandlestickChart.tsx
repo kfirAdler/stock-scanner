@@ -98,6 +98,15 @@ export function CandlestickChart({
 
     const isDark = resolvedTheme === "dark";
     const colors = isDark ? DARK_THEME : LIGHT_THEME;
+    const styles = getComputedStyle(containerRef.current);
+    const token = (name: string, fallback: string) => styles.getPropertyValue(name).trim() || fallback;
+    const patternColors = {
+      support: token('--color-neon', isDark ? '#3df5a0' : '#0f9d58'),
+      resistance: token('--color-primary', isDark ? '#5b7cff' : '#1e40af'),
+      guide: token('--color-accent', isDark ? '#97abff' : '#7c3aed'),
+      invalidation: token('--color-danger', isDark ? '#f1aaaa' : '#dc2626'),
+      breach: token('--color-warning', isDark ? '#e6c983' : '#d97706'),
+    };
 
     const chart = createChart(containerRef.current, {
       width: containerRef.current.clientWidth,
@@ -162,7 +171,7 @@ export function CandlestickChart({
     });
     for (const index of patternBreachIndices ?? []) {
       const bar = bars[index];
-      if (bar) signalMarkers.push({ time: bar.trade_date as Time, position: 'aboveBar', shape: 'circle', color: '#f59e0b', size: 1 });
+      if (bar) signalMarkers.push({ time: bar.trade_date as Time, position: 'aboveBar', shape: 'circle', color: patternColors.breach, size: 1 });
     }
     signalMarkers.sort((a,b) => String(a.time).localeCompare(String(b.time)));
     let markersApi: ISeriesMarkersPluginApi<Time> | null = null;
@@ -210,12 +219,12 @@ export function CandlestickChart({
       const first = bars[line.x1];
       const last = bars[line.x2];
       if (!first || !last || line.x1 >= line.x2) continue;
-      const series = chart.addSeries(LineSeries, { color: line.style === 'support' ? '#22c55e' : line.style === 'guide' ? '#a78bfa' : '#3b82f6', lineWidth: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+      const series = chart.addSeries(LineSeries, { color: line.style === 'support' ? patternColors.support : line.style === 'guide' ? patternColors.guide : patternColors.resistance, lineWidth: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
       series.setData([{ time: first.trade_date as Time, value: line.y1 }, { time: last.trade_date as Time, value: line.y2 }]);
     }
     if (patternLevels) {
-      candleSeries.createPriceLine({ price: patternLevels.breakout, color: '#3b82f6', lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: patternLevels.breakoutLabel });
-      candleSeries.createPriceLine({ price: patternLevels.invalidation, color: '#ef4444', lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: patternLevels.invalidationLabel });
+      candleSeries.createPriceLine({ price: patternLevels.breakout, color: patternColors.resistance, lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: patternLevels.breakoutLabel });
+      candleSeries.createPriceLine({ price: patternLevels.invalidation, color: patternColors.invalidation, lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: patternLevels.invalidationLabel });
     }
     chart.timeScale().fitContent();
     if (patternLines?.length) chart.timeScale().setVisibleLogicalRange({ from: Math.max(0, Math.min(...patternLines.map(l => l.x1)) - 12), to: bars.length + 4 });

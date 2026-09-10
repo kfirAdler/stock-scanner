@@ -1,7 +1,8 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
-@theme inline {
+/* Keep color utilities as CSS variables so .dark overrides work at runtime. */
+@theme {
   --color-primary: #1e40af;
   --color-primary-hover: #1d3c9c;
   --color-primary-soft: #dbeafe;
@@ -46,6 +47,9 @@
   --color-neon-strong: #0b7a44;
   --color-neon-soft: rgba(15, 157, 88, 0.12);
 
+}
+
+@theme inline {
   --font-sans: var(--font-assistant);
 }
 
@@ -54,7 +58,7 @@
   --color-primary-hover: #7a94ff;
   --color-primary-soft: rgba(91, 124, 255, 0.18);
   --color-primary-ring: rgba(91, 124, 255, 0.4);
-  --color-on-primary: #eef3ff;
+  --color-on-primary: #08111f;
   --color-ambient-glow: rgba(57, 92, 214, 0.18);
   --color-surface: #08111f;
   --color-surface-alt: #0d1728;
