@@ -8,8 +8,8 @@
 import { findPivots, linearFit } from "./pivots.mjs";
 const pct = (a, b) => Math.abs(a - b) / ((a + b) / 2);
 // ---------------------------------------------------------------------------
-// 1) Ascending triangle: flat resistance across pivot highs + rising support
-//    across pivot lows, with price still coiled under the resistance.
+// 1) Ascending triangle: a near-flat fitted edge across pivot highs + rising
+//    support across pivot lows, with price still coiled between converging lines.
 // ---------------------------------------------------------------------------
 export function detectAscendingTriangle(candles, lookback = 90, opts = {}) {
     const FLAT_TOLERANCE = opts.flatTolerance ?? 0.02; // pivot highs within 2% of each other
@@ -24,7 +24,9 @@ export function detectAscendingTriangle(candles, lookback = 90, opts = {}) {
     const lows = pivots.filter((p) => p.kind === "low");
     if (highs.length < MIN_TOUCHES || lows.length < MIN_TOUCHES)
         return null;
-    // Flat resistance: cluster the top pivot highs and check tightness.
+    // Cluster the top pivot highs to preserve the ascending-triangle rule, then
+    // fit their actual edge. A perfectly horizontal average hides the wedge
+    // visible in the price action when those highs slope slightly.
     const sortedHighs = [...highs].sort((a, b) => b.price - a.price);
     if (sortedHighs.length < 3)
         return null;
@@ -33,6 +35,7 @@ export function detectAscendingTriangle(candles, lookback = 90, opts = {}) {
     const flatEnough = top.every((p) => pct(p.price, resistance) <= FLAT_TOLERANCE);
     if (!flatEnough)
         return null;
+    const resistanceFit = linearFit(top);
     // Structure requirement: the touches must be spread out in time, not one
     // random cluster — this alone cuts most random-walk false positives.
     const touchIdx = top.map((p) => p.index);
@@ -44,6 +47,11 @@ export function detectAscendingTriangle(candles, lookback = 90, opts = {}) {
     if (fit.slope <= 0 || fit.r2 < MIN_RISE_R2)
         return null;
     const lastIdx = window.length - 1;
+    const resistanceAtLast = resistanceFit.slope * lastIdx + resistanceFit.intercept;
+    // Both edges must converge. This excludes rising wedges whose upper edge
+    // climbs as fast as (or faster than) support.
+    if (resistanceFit.slope >= fit.slope)
+        return null;
     // The fit only touches 4 pivot lows, then gets extrapolated all the way to
     // the last bar for drawing — if price actually dipped below that
     // projection in between, it isn't a support line the market is still
@@ -55,11 +63,11 @@ export function detectAscendingTriangle(candles, lookback = 90, opts = {}) {
             return null;
     }
     const lastClose = window[window.length - 1].close;
-    if (lastClose > resistance)
+    if (lastClose > resistanceAtLast)
         return null; // already broken out
-    if ((resistance - lastClose) / resistance > MAX_DIST_FROM_RESISTANCE)
+    if ((resistanceAtLast - lastClose) / resistanceAtLast > MAX_DIST_FROM_RESISTANCE)
         return null; // too far from the apex to be actionable
-    const firstIdx = Math.min(top[top.length - 1].index, recentLows[0].index);
+    const firstHighIdx = Math.min(...touchIdx);
     const offset = candles.length - window.length; // map back to full-series idx
     const confidence = 0.5 * fit.r2 +
         0.5 * (1 - Math.max(...top.map((p) => pct(p.price, resistance))) / FLAT_TOLERANCE);
@@ -69,11 +77,11 @@ export function detectAscendingTriangle(candles, lookback = 90, opts = {}) {
         confidence: Math.round(confidence * 100) / 100,
         lines: [
             {
-                x1: firstIdx + offset,
-                y1: resistance,
+                x1: firstHighIdx + offset,
+                y1: resistanceFit.slope * firstHighIdx + resistanceFit.intercept,
                 x2: lastIdx + offset,
-                y2: resistance,
-                label: `Resistance ${resistance.toFixed(2)}`,
+                y2: resistanceAtLast,
+                label: `Resistance ${resistanceAtLast.toFixed(2)}`,
                 style: "resistance",
             },
             {
@@ -85,9 +93,9 @@ export function detectAscendingTriangle(candles, lookback = 90, opts = {}) {
                 style: "support",
             },
         ],
-        breakoutLevel: resistance,
+        breakoutLevel: resistanceAtLast,
         invalidationLevel: fit.slope * lastIdx + fit.intercept,
-        notes: `Flat resistance near ${resistance.toFixed(2)} with rising lows (R²=${fit.r2.toFixed(2)}). Watch a close above resistance.`,
+        notes: `Resistance near ${resistanceAtLast.toFixed(2)} with rising lows (R²=${fit.r2.toFixed(2)}). Watch a close above resistance.`,
     };
 }
 // ---------------------------------------------------------------------------
