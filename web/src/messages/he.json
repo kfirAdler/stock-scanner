@@ -1263,6 +1263,7 @@
     "lastAutomaticAttempt": "ניסיון הרענון האוטומטי האחרון (כל השווקים)",
     "autoRunning": "בתהליך",
     "autoCompleted": "הושלם",
-    "autoErrors": "הסתיים עם שגיאות"
+    "autoErrors": "הסתיים עם שגיאות",
+    "ALL": "כל השווקים"
   }
 }

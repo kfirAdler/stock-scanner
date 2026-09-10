@@ -9,10 +9,12 @@ export async function GET(request: NextRequest) {
   if (!entitlement.canUseScreener) return NextResponse.json({ code: 'SUBSCRIPTION_REQUIRED' }, { status: 403 });
   const market = request.nextUrl.searchParams.get('market') ?? 'US';
   const ticker = request.nextUrl.searchParams.get('ticker')?.toUpperCase();
-  if (!['US', 'TA'].includes(market) || (ticker !== undefined && !/^[A-Z0-9.^-]{1,24}$/.test(ticker))) {
+  if (!['ALL', 'US', 'TA'].includes(market) || (ticker !== undefined && !/^[A-Z0-9.^-]{1,24}$/.test(ticker))) {
     return NextResponse.json({ code: 'INVALID_QUERY' }, { status: 400 });
   }
-    const snapshots = await loadPatterns(market as 'US' | 'TA', ticker);
+    const snapshots = market === 'ALL'
+      ? (await Promise.all([loadPatterns('US', ticker), loadPatterns('TA', ticker)])).flat()
+      : await loadPatterns(market as 'US' | 'TA', ticker);
     const rows = snapshots.map(row => ({ ...row, status: row.status === 'scanned' && (!row.as_of || Date.now() - Date.parse(row.as_of) > 7 * 86400000) ? 'stale' as const : row.status }));
     if (ticker) return NextResponse.json({ row: rows[0] ?? null }, { headers: { 'Cache-Control': 'private, no-store' } });
     const lastAttempt = await loadLastPatternAttempt().catch(() => null);

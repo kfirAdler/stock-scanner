@@ -1247,6 +1247,7 @@
     "lastAutomaticAttempt": "Last automatic refresh attempt (all markets)",
     "autoRunning": "In progress",
     "autoCompleted": "Completed",
-    "autoErrors": "Finished with errors"
+    "autoErrors": "Finished with errors",
+    "ALL": "All markets"
   }
 }

@@ -29,3 +29,17 @@ test('shared cache coalesces reads and serves chart details without another data
  assert.deepEqual(first,second);assert.equal(reads,1);
  assert.deepEqual(await data.loadPatterns('US','TEST'),[row]);assert.equal(reads,1);
 });
+
+test('all markets merges cached market results and coverage, retaining each chart market',async()=>{
+ const calls=[];
+ const ta={...row,ticker:'TEST.TA',market:'TA'};
+ const stale={...row,ticker:'OLD',as_of:'2000-01-01'};
+ const route=load('app/api/patterns/route.ts',{'next/server':{NextResponse},'@/lib/market-access':{getCurrentEntitlement:async()=>({loggedIn:true,canUseScreener:true})},'@/lib/patterns/data':{loadPatterns:async(market)=>{calls.push(market);return market==='US'?[row,stale]:[ta];},loadLastPatternAttempt:async()=>null}});
+ const result=await(await route.GET(new NextRequest('http://localhost/api/patterns?market=ALL'))).json();
+ assert.deepEqual(calls.sort(),['TA','US']);
+ assert.deepEqual(result.coverage,{total:3,scanned:2,stale:1,insufficient:0});
+ assert.deepEqual(result.rows.map(r=>r.market),['US','TA']);
+ assert.deepEqual(result.rows.map(r=>r.ticker),['TEST','TEST.TA']);
+ const invalid=await route.GET(new NextRequest('http://localhost/api/patterns?market=INVALID'));
+ assert.equal(invalid.status,400);
+});
