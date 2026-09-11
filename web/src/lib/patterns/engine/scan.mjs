@@ -27,7 +27,7 @@ export function scanSeries(series, now = new Date(), pattern) {
     return { ticker, market: ticker.endsWith('.TA') ? 'TA' : 'US', company_name,
       as_of: latest?.date ?? null, updated_at: now.toISOString(), status,
       bars_count: candles.length, close: latest?.close ?? null, matches,
-      candles: hasSetup ? candles : [], detector_version: 1,
+      candles: hasSetup ? candles : [], detector_version: 2,
       // Enrichment belongs to JSON request results. Scheduled table rows retain
       // their existing schema and strict-only behavior.
       ...(pattern !== undefined ? {
@@ -38,4 +38,3 @@ export function scanSeries(series, now = new Date(), pattern) {
     };
   });
 }
-

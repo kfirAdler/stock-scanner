@@ -30,6 +30,16 @@ test('preserves channel detection and overlay coordinates in stored candles',()=
   assert.equal(row.candles.length,160);
   for(const m of row.matches) for(const l of m.lines){assert.ok(row.candles[l.x1]);assert.ok(row.candles[l.x2]);}
 });
+test('detects a horizontal trading channel instead of rejecting its near-zero slopes',()=>{
+  const input=candles().map((c,i)=>{const close=100+3*Math.sin(i*Math.PI/10);return {...c,open:close-.1,high:close+.5,low:close-.5,close};});
+  const match=detectChannel(input);
+  assert.ok(match);
+  assert.equal(match.patternLabel,'Sideways channel');
+});
+test('rejects an expanding wedge whose upper and lower boundaries diverge',()=>{
+  const input=candles().map((c,i)=>{const amplitude=2+i*.07;const close=100+i*.1+amplitude*Math.sin(i*Math.PI/10);return {...c,open:close-.1,high:close+.5,low:close-.5,close};});
+  assert.equal(detectChannel(input),null);
+});
 test('deduplicates dates and clears prior matches on insufficient history',()=>{
   const input=candles(30);
   const [row]=scanSeries([{ticker:'DUP',candles:[...input,...input]}],now);
