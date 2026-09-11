@@ -807,24 +807,34 @@ export function StockLookupClient() {
   return (
     <div className="page-shell max-w-[1480px]">
       <div className="space-y-5">
-        <section className="ui-panel-overlay z-20 rounded-[24px] px-4 py-4">
+        <section className="ui-panel-overlay relative z-40 rounded-[22px] px-4 py-5 sm:rounded-[24px] sm:py-4">
           <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <div>
+            <div className="min-w-0">
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-neon">{t("workspace.kicker")}</p>
-              <h1 className="mt-1 text-[22px] font-bold tracking-[-0.02em] text-text">{t("workspace.title")}</h1>
-              <p className="mt-1 text-sm text-text-secondary">{t("workspace.subtitle")}</p>
+              <h1 className="mt-1 text-xl font-bold tracking-[-0.02em] text-text sm:text-[22px]">{t("workspace.title")}</h1>
+              <p className="mt-1 max-w-2xl text-sm leading-6 text-text-secondary">{t("workspace.subtitle")}</p>
             </div>
 
             <div ref={wrapRef} className="relative w-full max-w-[760px]">
-              <div className="ui-panel-subtle rounded-[22px] p-2">
-                <div className="flex items-center gap-2">
+              <form
+                className="ui-panel-subtle rounded-[18px] p-1.5 sm:rounded-[22px] sm:p-2"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  const upper = q.trim().toUpperCase();
+                  if (upper) void loadCoverage(upper);
+                }}
+              >
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                   <div className="min-w-0 flex-1">
                     <Input
                       ref={inputRef}
                       id={`${listId}-input`}
                       type="text"
                       autoComplete="off"
+                      autoCapitalize="characters"
+                      enterKeyHint="search"
                       spellCheck={false}
+                      dir="ltr"
                       placeholder={t("placeholder")}
                       value={q}
                       onChange={(e) => {
@@ -835,27 +845,24 @@ export function StockLookupClient() {
                       aria-autocomplete="list"
                       aria-controls={suggestOpen ? `${listId}-listbox` : undefined}
                       aria-expanded={suggestOpen}
-                      className="h-11 rounded-2xl border-0 bg-surface-raised px-4 text-[15px] shadow-sm ring-1 ring-border"
+                      className="h-12 rounded-[14px] border-0 bg-surface-raised px-4 text-base shadow-sm ring-1 ring-border sm:h-11 sm:rounded-2xl sm:text-[15px]"
                     />
                   </div>
                   <Button
-                    className="h-11 rounded-2xl px-5"
-                    onClick={() => {
-                      const upper = q.trim().toUpperCase();
-                      if (upper) void loadCoverage(upper);
-                    }}
+                    type="submit"
+                    className="h-12 w-full rounded-[14px] px-5 text-base sm:h-11 sm:w-auto sm:rounded-2xl sm:text-sm"
                     loading={loadingCoverage}
                   >
                     {t("actions.lookup")}
                   </Button>
                 </div>
-              </div>
+              </form>
 
               {suggestOpen && (q.trim().length > 0 || suggestions.length > 0) && (
                 <ul
                   id={`${listId}-listbox`}
                   role="listbox"
-                  className="absolute z-30 mt-2 max-h-72 w-full overflow-auto rounded-[20px] bg-surface-elevated py-2 shadow-2xl ring-1 ring-border"
+                  className="absolute z-50 mt-2 max-h-[min(18rem,45vh)] w-full overflow-auto rounded-[18px] bg-surface-elevated py-2 shadow-2xl ring-1 ring-border sm:rounded-[20px]"
                 >
                   {loadingSuggest && (
                     <li className="px-4 py-3 text-sm text-text-muted">{t("loadingSuggest")}</li>
@@ -873,11 +880,11 @@ export function StockLookupClient() {
                           void loadCoverage(s.ticker);
                         }}
                       >
-                        <div>
-                          <p className="text-sm font-bold text-text">{s.ticker}</p>
-                          <p className="mt-1 text-[12px] text-text-muted">{s.market ?? "—"} · {s.last_trade_date}</p>
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-bold text-text" dir="ltr">{s.ticker}</p>
+                          <p className="mt-1 truncate text-[12px] text-text-muted">{s.market ?? "—"} · {s.last_trade_date}</p>
                         </div>
-                        <span className="text-sm font-semibold tabular-nums text-text-secondary">
+                        <span className="shrink-0 text-sm font-semibold tabular-nums text-text-secondary" dir="ltr">
                           {formatCurrency(s.close)}
                         </span>
                       </button>
