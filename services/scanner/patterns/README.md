@@ -26,7 +26,7 @@ The new request panel is independent of free browsing/filtering of existing snap
 
 The request API claims queued work immediately, then executes the in-app Node worker with Next.js after(). A successful claim reports running before the response is sent; startup errors return 503 rather than silently reporting a start. Returning to the page also resumes existing queued work without consuming another quota. The in-app worker and Python worker use the same database leases and the same detector implementation.
 
-The process-pattern-requests GitHub workflow remains a fallback every ten minutes using existing Supabase secrets; GitHub may delay scheduled runs. It also supports workflow_dispatch. No additional app cron or CRON_SECRET is required. Button-triggered scans need no new secret or migration beyond 025.
+The legacy request queue and its database functions remain for backward compatibility, but the app no longer creates request jobs and no queue worker is scheduled.
 
 The request route declares maxDuration=300 and the worker uses a four-minute processing budget. Vercel deployments need Fluid compute for the 300-second Hobby duration, or another hosting configuration supporting that duration. Reference: https://vercel.com/docs/functions/limitations. No deployment settings are changed automatically.
 
@@ -48,4 +48,4 @@ Shared snapshot cards include all stored daily candles (up to 160) with pattern 
 
 ## Informational page
 
-The Patterns page is read-only. Manual request endpoints return 410 and never start work; the request form and polling are removed. Scheduled market refreshes continue publishing all pattern snapshots. The summary distinguishes result publication time from the latest automatic refresh attempt recorded in scan_runs (global across refreshes, not a per-market completion guarantee). Status is cached for five minutes across users; a status-read failure does not hide existing results. The previous on-demand request workflow described above is retired from the UI; existing queued jobs can still drain through the GitHub worker.
+The Patterns page is read-only. Manual request endpoints return 410 and never start work; the request form and polling are removed. Scheduled market refreshes explicitly run the combined S&P 500 and TA-125 universe and publish all pattern snapshots. The summary distinguishes result publication time from the latest automatic refresh attempt recorded in scan_runs (global across refreshes, not a per-market completion guarantee). Status is cached for five minutes across users; a status-read failure does not hide existing results. The previous on-demand request workflow described above is retired.

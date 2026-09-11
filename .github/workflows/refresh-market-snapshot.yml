@@ -2,7 +2,7 @@
 # Stooq/yfinance are only called when start<=today; after today’s bar exists, HTTP
 # load drops, but DB work stays high. If a run exceeds 15 minutes, the next run
 # queues (concurrency) instead of overlapping—reduces 429 risk vs parallel runs.
-name: Refresh market snapshot
+name: Refresh all stocks and patterns
 
 on:
   schedule:
@@ -78,7 +78,8 @@ jobs:
           elif [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
             python run_refresh.py --universe "${GHA_REFRESH_UNIVERSE:-all}"
           else
-            python run_refresh.py
+            # Scheduled runs always refresh the complete S&P 500 + TA-125 universe.
+            python run_refresh.py --universe all
           fi
 
       - name: Check alert triggers
