@@ -4,7 +4,7 @@ The original demo detectors and pivots are preserved as dependency-free ES modul
 
 ## Data flow
 
-The existing Python refresh collects the last 160 daily candles from each history it already loaded. After processing the universe it invokes Node once through stdin, with no shell, and upserts pattern snapshots in batches of 50. No additional OHLC reads are performed. Node 22 is configured in the refresh workflow and is also required for local refresh runs.
+The existing Python refresh collects the last 160 daily candles from each history it already loaded. After processing the universe it invokes Node once through stdin, with no shell, and upserts pattern snapshots in batches of 50. No additional OHLC reads are performed. Node 24 is configured in the refresh workflow and is also required for local refresh runs.
 
 Apply supabase/migrations/024_pattern_snapshots.sql before running the updated refresh. The next successful refresh populates the table; until then the page shows a waiting state (or an unavailable state if the migration is missing). Deploy the web changes through the app's existing deployment workflow. No migration or deployment was performed by this implementation.
 
