@@ -1,7 +1,9 @@
 "use client";
 
 import { clsx } from "clsx";
-import { useId } from "react";
+import { useLocale } from "next-intl";
+import { TradingViewAdvancedChart } from "@/components/chart/TradingViewAdvancedChart";
+import { tradingViewSymbol } from "@/lib/screener-query";
 import type { LookupCondition, LookupCoveragePayload, TrendTone } from "./types";
 
 type HeaderBadge = {
@@ -12,7 +14,6 @@ type HeaderBadge = {
 
 type StockLookupHeaderProps = {
   coverage: LookupCoveragePayload;
-  sparklinePoints: string;
   dailyChangePct: number | null;
   overallTone: TrendTone;
   headerBadges: HeaderBadge[];
@@ -31,58 +32,8 @@ function toneClass(tone: TrendTone | "accent") {
   return "bg-surface-elevated text-text-secondary ring-border";
 }
 
-function sparklineTone(changePct: number | null) {
-  if (changePct != null && changePct > 0) {
-    return {
-      strokeFrom: "#86efac",
-      strokeTo: "#16a34a",
-      fillFrom: "rgba(34,197,94,0.18)",
-      fillTo: "rgba(34,197,94,0.02)",
-      dot: "#16a34a",
-    };
-  }
-  if (changePct != null && changePct < 0) {
-    return {
-      strokeFrom: "#fca5a5",
-      strokeTo: "#dc2626",
-      fillFrom: "rgba(239,68,68,0.16)",
-      fillTo: "rgba(239,68,68,0.02)",
-      dot: "#dc2626",
-    };
-  }
-  return {
-    strokeFrom: "#a5b4fc",
-    strokeTo: "#6366f1",
-    fillFrom: "rgba(99,102,241,0.16)",
-    fillTo: "rgba(99,102,241,0.02)",
-    dot: "#6366f1",
-  };
-}
-
-function sparklineAreaPath(points: string) {
-  const entries = points
-    .split(" ")
-    .map((pair) => pair.split(",").map(Number))
-    .filter((pair): pair is [number, number] => pair.length === 2 && pair.every(Number.isFinite));
-  if (entries.length === 0) return "";
-  const first = entries[0];
-  const last = entries[entries.length - 1];
-  return `M ${first[0]} 36 L ${first[0]} ${first[1]} ${entries
-    .map(([x, y]) => `L ${x} ${y}`)
-    .join(" ")} L ${last[0]} 36 Z`;
-}
-
-function sparklineLastPoint(points: string) {
-  const last = points.trim().split(" ").pop();
-  if (!last) return null;
-  const [x, y] = last.split(",").map(Number);
-  if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
-  return { x, y };
-}
-
 export function StockLookupHeader({
   coverage,
-  sparklinePoints,
   dailyChangePct,
   overallTone,
   headerBadges,
@@ -93,11 +44,9 @@ export function StockLookupHeader({
   formatMarketCap,
   t,
 }: StockLookupHeaderProps) {
-  const chartId = useId().replace(/:/g, "");
+  const locale = useLocale();
   const meta = coverage.metadata;
-  const areaPath = sparklineAreaPath(sparklinePoints);
-  const lastPoint = sparklineLastPoint(sparklinePoints);
-  const sparklineColors = sparklineTone(dailyChangePct);
+  const tvSymbol = tradingViewSymbol(coverage.ticker, meta?.listing_exchange);
   const summaryCards = [
     meta?.market_cap != null
       ? {
@@ -200,48 +149,17 @@ export function StockLookupHeader({
         </div>
 
         <div className="space-y-4">
-          <div className="ui-panel-subtle rounded-[22px] px-4 py-4">
-            <div className="flex items-center justify-between">
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.priceStructure")}</p>
-              <span className="text-[11px] text-text-muted">{t("workspace.last60Bars")}</span>
+          <div className="ui-panel-subtle overflow-hidden rounded-[22px] p-2">
+            <div className="flex items-center justify-between px-2 pb-2 pt-1">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.tradingViewChart")}</p>
+              <span className="text-[11px] text-text-muted">{t("workspace.dailyChart")}</span>
             </div>
-            <svg viewBox="0 0 100 36" className="mt-3 h-24 w-full overflow-visible">
-              <defs>
-                <linearGradient id={`lookupSparklineStroke-${chartId}`} x1="0%" x2="100%" y1="0%" y2="0%">
-                  <stop offset="0%" stopColor={sparklineColors.strokeFrom} />
-                  <stop offset="100%" stopColor={sparklineColors.strokeTo} />
-                </linearGradient>
-                <linearGradient id={`lookupSparklineFill-${chartId}`} x1="0%" x2="0%" y1="0%" y2="100%">
-                  <stop offset="0%" stopColor={sparklineColors.fillFrom} />
-                  <stop offset="100%" stopColor={sparklineColors.fillTo} />
-                </linearGradient>
-              </defs>
-              <path d="M 0 35.5 L 100 35.5" className="text-border" stroke="currentColor" strokeWidth="0.6" />
-              {areaPath ? (
-                <path
-                  d={areaPath}
-                  fill={`url(#lookupSparklineFill-${chartId})`}
-                />
-              ) : null}
-              <polyline
-                fill="none"
-                stroke={`url(#lookupSparklineStroke-${chartId})`}
-                strokeWidth="2.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                points={sparklinePoints}
-              />
-              {lastPoint ? (
-                <circle
-                  cx={lastPoint.x}
-                  cy={lastPoint.y}
-                  r="1.7"
-                  fill={sparklineColors.dot}
-                  stroke="rgba(255,255,255,0.85)"
-                  strokeWidth="0.9"
-                />
-              ) : null}
-            </svg>
+            <TradingViewAdvancedChart
+              symbol={tvSymbol}
+              height={174}
+              locale={locale}
+              compact
+            />
           </div>
 
           <div className="ui-panel-subtle rounded-2xl px-4 py-4">

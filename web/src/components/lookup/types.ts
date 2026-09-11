@@ -30,6 +30,7 @@ export type LookupMetadata = {
   sector?: string | null;
   industry?: string | null;
   market_cap?: number | null;
+  listing_exchange?: string | null;
 };
 
 export type LookupCoveragePayload = {

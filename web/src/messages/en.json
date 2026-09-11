@@ -845,6 +845,8 @@
       "industry": "Industry",
       "priceStructure": "Price structure",
       "last60Bars": "Last 60 bars",
+      "tradingViewChart": "TradingView chart",
+      "dailyChart": "Daily",
       "timeframeMatrix": "D / W / M state",
       "currentMatches": "Current screener matches",
       "currentMatchesSub": "What already matches, what is close, and what is still missing right now.",

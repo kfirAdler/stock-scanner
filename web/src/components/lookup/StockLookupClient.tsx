@@ -72,22 +72,6 @@ function formatPercent(value: number | null | undefined): string {
   return `${value.toFixed(2)}%`;
 }
 
-function makeSparklinePoints(bars: LookupCoveragePayload["recentBars"]): string {
-  if (bars.length === 0) return "0,18 100,18";
-  const ordered = [...bars].sort((a, b) => a.trade_date.localeCompare(b.trade_date));
-  const closes = ordered.map((bar) => Number(bar.close));
-  const min = Math.min(...closes);
-  const max = Math.max(...closes);
-  const range = Math.max(max - min, 1e-6);
-  return closes
-    .map((close, index) => {
-      const x = (index / Math.max(closes.length - 1, 1)) * 100;
-      const y = 32 - ((close - min) / range) * 28;
-      return `${x.toFixed(2)},${y.toFixed(2)}`;
-    })
-    .join(" ");
-}
-
 function computeDailyMovePct(bars: LookupCoveragePayload["recentBars"]): number | null {
   if (bars.length < 2) return null;
   const ordered = [...bars].sort((a, b) => a.trade_date.localeCompare(b.trade_date));
@@ -538,7 +522,6 @@ export function StockLookupClient() {
   }, [coverage?.ticker, loadCoverage, searchParams]);
 
   const dailyChangePct = useMemo(() => (coverage ? computeDailyMovePct(coverage.recentBars) : null), [coverage]);
-  const sparklinePoints = useMemo(() => (coverage ? makeSparklinePoints(coverage.recentBars) : ""), [coverage]);
   const overallTone = useMemo(() => trendTone(coverage?.dailySnapshot), [coverage]);
 
   const conditions = useMemo(() => {
@@ -956,7 +939,6 @@ export function StockLookupClient() {
           <>
             <StockLookupHeader
               coverage={coverage}
-              sparklinePoints={sparklinePoints}
               dailyChangePct={dailyChangePct}
               overallTone={overallTone}
               headerBadges={headerBadges}

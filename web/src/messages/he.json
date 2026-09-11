@@ -845,6 +845,8 @@
       "industry": "תעשייה",
       "priceStructure": "מבנה מחיר",
       "last60Bars": "60 הנרות האחרונים",
+      "tradingViewChart": "גרף TradingView",
+      "dailyChart": "יומי",
       "timeframeMatrix": "מצב יומי / שבועי / חודשי",
       "currentMatches": "התאמות סורק נוכחיות",
       "currentMatchesSub": "מה כבר מתקיים, מה קרוב להפעלה, ומה עדיין חסר כרגע.",
