@@ -337,12 +337,21 @@ button:disabled {
 
 .candlestick-loader-wick {
   position: absolute;
-  inset-block: -0.55rem;
   inset-inline-start: 50%;
   width: 2px;
   transform: translateX(-50%);
   border-radius: 999px;
   background: var(--color-chart-up);
+}
+
+.candlestick-loader-wick-top {
+  inset-block-start: -0.55rem;
+  height: 0.55rem;
+}
+
+.candlestick-loader-wick-bottom {
+  inset-block-start: 100%;
+  height: 0.55rem;
 }
 
 .candlestick-loader-body {
@@ -351,6 +360,15 @@ button:disabled {
   border-radius: 0.28rem;
   background: linear-gradient(180deg, var(--color-neon-strong), var(--color-chart-up));
   box-shadow: 0 0 18px color-mix(in srgb, var(--color-neon) 26%, transparent);
+}
+
+.candlestick-loader-candle.is-down .candlestick-loader-wick {
+  background: var(--color-chart-down);
+}
+
+.candlestick-loader-candle.is-down .candlestick-loader-body {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-chart-down) 76%, white), var(--color-chart-down));
+  box-shadow: 0 0 18px color-mix(in srgb, var(--color-chart-down) 22%, transparent);
 }
 
 .candlestick-loader-label {

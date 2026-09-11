@@ -51,8 +51,9 @@ export function MarketBackdrop() {
           const wickBottom = top + height + 24 + (index % 2) * 7;
           return (
             <g key={candle.x} className={candle.down ? "is-down" : "is-up"}>
-              <line x1={candle.x} x2={candle.x} y1={wickTop} y2={wickBottom} />
+              <line x1={candle.x} x2={candle.x} y1={wickTop} y2={top} />
               <rect x={candle.x - 18} y={top} width="36" height={height} rx="5" />
+              <line x1={candle.x} x2={candle.x} y1={top + height} y2={wickBottom} />
             </g>
           );
         })}

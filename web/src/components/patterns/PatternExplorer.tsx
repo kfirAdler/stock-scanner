@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { CandlestickChart } from '@/components/chart/CandlestickChart';
+import { CandlestickLoader } from '@/components/ui/CandlestickLoader';
 import type { PatternKind, PatternPayload, PatternSnapshot } from '@/lib/patterns/types';
 import { PatternPreview } from './PatternPreview';
 import { ScanSummary } from './ScanSummary';
@@ -31,7 +32,7 @@ function SetupChart({ snapshot, pattern, jobId, view }: {
   }, [snapshot.market,snapshot.ticker,jobId]);
   const bars = useMemo(() => (row?.candles ?? []).map(c => ({ ...c, trade_date: c.date, volume: 0 })), [row]);
   if (error) return <p role="alert" className="p-6 text-danger">{t('noChart')}</p>;
-  if (!row) return <p role="status" className="p-6 text-text-muted">{t('loading')}</p>;
+  if (!row) return <CandlestickLoader label={t('loading')} compact />;
   const developing = view==='developing' ? row.developing?.find(d=>d.match.pattern===pattern) : undefined;
   const match = view==='developing' ? developing?.match : row.matches.find(m => m.pattern === pattern);
   if (!match || row.status !== 'scanned' || !bars.length) return <p className="p-6">{t('staleDetail')}</p>;
@@ -81,7 +82,7 @@ export function PatternExplorer() {
       <div className="max-w-2xl"><p className="text-xs font-bold tracking-[.2em] text-primary">{t('eyebrow')}</p><h1 className="mt-2 text-4xl font-extrabold">{t('title')}</h1><p className="mt-3 max-w-xl text-sm text-text-secondary">{t('subtitle')}</p></div>
       <div className="inline-flex flex-wrap shrink-0 self-start gap-1 rounded-xl border border-border bg-surface-raised p-1 sm:self-center">{(['ALL','US','TA'] as const).map(m=><button key={m} aria-pressed={market===m} onClick={()=>{if(m!==market){setMarket(m);setData(null);setStatus('loading');setExpanded(null);setView('strict');}}} className={'rounded-lg px-5 py-2 text-sm font-bold '+(market===m?'bg-primary text-on-primary':'text-text-secondary')}>{t(m)}</button>)}</div>
     </section>
-    {displayStatus==='loading' && <div role="status" className="page-card animate-pulse py-16 text-center">{t('loading')}</div>}
+    {displayStatus==='loading' && <div className="page-card py-8"><CandlestickLoader label={t('loading')} /></div>}
     {displayStatus!=='ready' && displayStatus!=='loading' && <div role="alert" className="page-empty-state text-center"><p>{t(status==='login'?'login':status==='subscribe'?'subscribe':'error')}</p>{status==='login'||status==='subscribe'?<Link className="mt-4 inline-block font-bold text-primary" href={status==='login'?'/auth/login':'/settings'}>{t(status==='login'?'login':'settings')}</Link>:<button className="ui-control mt-4 rounded-xl px-5 py-2" onClick={reload}>{t('retry')}</button>}</div>}
     {displayStatus==='ready' && data && <>
       <ScanSummary data={data} pattern={kind==='all'?undefined:kind} requested={false} />

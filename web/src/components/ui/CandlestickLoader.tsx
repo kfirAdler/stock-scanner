@@ -14,10 +14,11 @@ export function CandlestickLoader({
       aria-live={label ? "polite" : undefined}
     >
       <div className="candlestick-loader-chart" aria-hidden="true">
-        {[0, 1, 2, 3].map((index) => (
-          <span key={index} className="candlestick-loader-candle">
-            <span className="candlestick-loader-wick" />
+        {[false, false, true, false].map((down, index) => (
+          <span key={index} className={clsx("candlestick-loader-candle", down && "is-down")}>
+            <span className="candlestick-loader-wick candlestick-loader-wick-top" />
             <span className="candlestick-loader-body" />
+            <span className="candlestick-loader-wick candlestick-loader-wick-bottom" />
           </span>
         ))}
       </div>

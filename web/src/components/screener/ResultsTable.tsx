@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { clsx } from "clsx";
 import { Link } from "@/i18n/navigation";
+import { CandlestickLoader } from "@/components/ui/CandlestickLoader";
 import type {
   ScreenerPayload,
   ScannerSortDir,
@@ -400,21 +401,8 @@ export function ResultsTable({
 
   if (loading) {
     return (
-      <div className="ui-panel overflow-hidden rounded-2xl" role="status" aria-live="polite">
-        <span className="sr-only">{t("workspace.loadingResults")}</span>
-        <div className="border-b border-border bg-surface-alt/60 px-4 py-4">
-          <div className="h-4 w-44 animate-pulse rounded-full bg-surface-accent" />
-          <div className="mt-2 h-3 w-72 max-w-full animate-pulse rounded-full bg-surface-accent/70" />
-        </div>
-        <div className="divide-y divide-border" aria-hidden="true">
-          {Array.from({ length: 6 }).map((_, index) => (
-            <div key={index} className="grid grid-cols-[100px_1fr_90px] gap-4 px-4 py-4">
-              <div className="h-4 animate-pulse rounded-full bg-surface-accent" />
-              <div className="h-4 animate-pulse rounded-full bg-surface-accent/75" />
-              <div className="h-4 animate-pulse rounded-full bg-surface-accent/60" />
-            </div>
-          ))}
-        </div>
+      <div className="ui-panel min-h-[420px] rounded-2xl px-6 py-10">
+        <CandlestickLoader label={t("workspace.loadingResults")} />
       </div>
     );
   }
@@ -864,10 +852,7 @@ export function ResultsTable({
       {(loadingMore || hasMore) && (
         <div ref={loadMoreRef} className="flex justify-center py-3">
           {loadingMore ? (
-            <div className="flex items-center gap-2 text-sm text-text-muted">
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
-              <span>{t("results")}…</span>
-            </div>
+            <CandlestickLoader label={`${t("results")}…`} compact />
           ) : (
             <div className="h-4" aria-hidden="true" />
           )}
