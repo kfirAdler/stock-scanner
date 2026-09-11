@@ -3,8 +3,9 @@
 import { clsx } from "clsx";
 import { useLocale } from "next-intl";
 import { TradingViewAdvancedChart } from "@/components/chart/TradingViewAdvancedChart";
+import { Link } from "@/i18n/navigation";
 import { tradingViewSymbol } from "@/lib/screener-query";
-import type { LookupCondition, LookupCoveragePayload, TrendTone } from "./types";
+import type { LookupCoveragePayload, TrendTone } from "./types";
 
 type HeaderBadge = {
   id: string;
@@ -18,7 +19,6 @@ type StockLookupHeaderProps = {
   overallTone: TrendTone;
   headerBadges: HeaderBadge[];
   timeframeStates: { timeframe: "1D" | "1W" | "1M"; tone: TrendTone; label: string }[];
-  coreConditions: LookupCondition[];
   formatCurrency: (value: number | null | undefined) => string;
   formatPercent: (value: number | null | undefined) => string;
   formatMarketCap: (value: number | null | undefined) => string;
@@ -38,7 +38,6 @@ export function StockLookupHeader({
   overallTone,
   headerBadges,
   timeframeStates,
-  coreConditions,
   formatCurrency,
   formatPercent,
   formatMarketCap,
@@ -48,133 +47,91 @@ export function StockLookupHeader({
   const meta = coverage.metadata;
   const tvSymbol = tradingViewSymbol(coverage.ticker, meta?.listing_exchange);
   const summaryCards = [
-    meta?.market_cap != null
-      ? {
-          key: "market-cap",
-          label: t("workspace.marketCap"),
-          value: formatMarketCap(meta.market_cap),
-        }
-      : null,
-    coverage.dailySnapshot.atr_percent != null
-      ? {
-          key: "atr",
-          label: t("workspace.atrPct"),
-          value: formatPercent(coverage.dailySnapshot.atr_percent),
-        }
-      : null,
-    {
-      key: "sequence",
-      label: t("workspace.sequence"),
-      value: t(`sequence.${overallTone}`),
-    },
-    meta?.industry
-      ? {
-          key: "industry",
-          label: t("workspace.industry"),
-          value: meta.industry,
-        }
-      : null,
-  ].filter(Boolean) as { key: string; label: string; value: string }[];
+    { label: t("workspace.marketCap"), value: formatMarketCap(meta?.market_cap) },
+    { label: t("workspace.atrPct"), value: formatPercent(coverage.dailySnapshot.atr_percent) },
+    { label: t("workspace.industry"), value: meta?.industry || "—" },
+    { label: t("workspace.exchange"), value: meta?.listing_exchange || coverage.market },
+  ];
 
   return (
-    <section className="ui-panel overflow-hidden rounded-[24px]">
-      <div className="grid gap-5 px-5 py-5 lg:grid-cols-[minmax(0,1.5fr)_280px] lg:px-6">
-        <div className="space-y-4">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-3">
-                <h1 className="text-[28px] font-bold tracking-[-0.02em] text-text">{coverage.ticker}</h1>
-                <span className={clsx("rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1", toneClass(overallTone))}>
-                  {t(`status.${overallTone}`)}
-                </span>
-              </div>
-              {meta?.company_name || meta?.sector ? (
-                <p className="mt-1 text-sm text-text-secondary">
-                  {[meta?.company_name, meta?.sector].filter(Boolean).join(" · ")}
-                </p>
-              ) : null}
-              <p className="mt-1 text-[12px] text-text-muted">
-                {coverage.market} · {coverage.snapshot.last_trade_date}
-              </p>
-            </div>
+    <section className="ui-panel overflow-hidden rounded-[26px]">
+      <div className="grid xl:grid-cols-[360px_minmax(0,1fr)]">
+        <div className="flex flex-col border-b border-divider-soft px-5 py-6 xl:border-b-0 xl:border-e xl:px-6">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-neon">{t("workspace.overview")}</p>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <h1 className="text-4xl font-bold tracking-[-0.04em] text-text">{coverage.ticker}</h1>
+            <span className={clsx("rounded-full px-3 py-1 text-xs font-bold ring-1", toneClass(overallTone))}>
+              {t(`status.${overallTone}`)}
+            </span>
+          </div>
+          <p className="mt-2 text-base font-semibold text-text-secondary">
+            {meta?.company_name || t("workspace.noCompanyName")}
+          </p>
+          <p className="mt-1 text-xs text-text-muted">
+            {[meta?.sector, coverage.market, coverage.snapshot.last_trade_date].filter(Boolean).join(" · ")}
+          </p>
 
-            <div className="text-end">
-              <p className="text-[30px] font-bold tabular-nums tracking-[-0.02em] text-text">
+          <div className="mt-6 flex items-end justify-between gap-4">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted">{t("workspace.lastPrice")}</p>
+              <p className="mt-1 text-3xl font-bold tabular-nums tracking-[-0.03em] text-text">
                 {formatCurrency(coverage.snapshot.close)}
               </p>
-              <p
-                className={clsx(
-                  "mt-1 text-sm font-semibold tabular-nums",
-                  dailyChangePct == null
-                    ? "text-text-muted"
-                    : dailyChangePct >= 0
-                      ? "text-success"
-                      : "text-danger"
-                )}
-              >
-                {dailyChangePct == null ? "—" : formatPercent(dailyChangePct)}
-              </p>
             </div>
+            <p className={clsx(
+              "pb-1 text-base font-bold tabular-nums",
+              dailyChangePct == null ? "text-text-muted" : dailyChangePct >= 0 ? "text-success" : "text-danger"
+            )}>
+              {dailyChangePct == null ? "—" : formatPercent(dailyChangePct)}
+            </p>
           </div>
 
-          <div className={clsx("grid gap-2", summaryCards.length >= 4 ? "sm:grid-cols-2 xl:grid-cols-4" : "sm:grid-cols-2 xl:grid-cols-3")}>
+          <div className="mt-5 grid grid-cols-2 gap-2">
             {summaryCards.map((card) => (
-              <div key={card.key} className="ui-panel-subtle rounded-2xl px-3 py-3">
-                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{card.label}</p>
+              <div key={card.label} className="rounded-2xl bg-surface-alt/70 px-3 py-3 ring-1 ring-border/80">
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-text-muted">{card.label}</p>
                 <p className="mt-1 truncate text-sm font-semibold text-text">{card.value}</p>
               </div>
             ))}
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            {headerBadges.slice(0, 5).map((badge) => (
-              <span key={badge.id} className={clsx("inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1", toneClass(badge.tone))}>
-                {badge.label}
-              </span>
-            ))}
+          <div className="mt-5">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.signalSummary")}</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {headerBadges.length ? headerBadges.slice(0, 4).map((badge) => (
+                <span key={badge.id} className={clsx("rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1", toneClass(badge.tone))}>
+                  {badge.label}
+                </span>
+              )) : <span className="text-sm text-text-secondary">{t("insights.waitingForConfirmation")}</span>}
+            </div>
           </div>
 
-          {coreConditions.length > 0 ? (
-            <div className="ui-panel-subtle rounded-2xl px-3 py-3">
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.currentMatches")}</p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {coreConditions.slice(0, 6).map((condition) => (
-                  <span key={condition.id} className="rounded-full bg-surface-elevated px-2.5 py-1 text-[11px] font-medium text-text-secondary ring-1 ring-border">
-                    {(condition.timeframeLabel ?? condition.timeframe)} · {condition.label}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ) : null}
-        </div>
-
-        <div className="space-y-4">
-          <div className="ui-panel-subtle overflow-hidden rounded-[22px] p-2">
-            <div className="flex items-center justify-between px-2 pb-2 pt-1">
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.tradingViewChart")}</p>
-              <span className="text-[11px] text-text-muted">{t("workspace.dailyChart")}</span>
-            </div>
-            <TradingViewAdvancedChart
-              symbol={tvSymbol}
-              height={174}
-              locale={locale}
-              compact
-            />
-          </div>
-
-          <div className="ui-panel-subtle rounded-2xl px-4 py-4">
+          <div className="mt-auto pt-6">
             <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.timeframeMatrix")}</p>
-            <div className="mt-3 space-y-2">
+            <div className="mt-2 grid grid-cols-3 gap-2">
               {timeframeStates.map((item) => (
-                <div key={item.timeframe} className="flex items-center justify-between rounded-xl bg-surface-elevated px-3 py-2 ring-1 ring-border">
-                  <span className="text-sm font-semibold text-text">{item.timeframe}</span>
-                  <span className={clsx("rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1", toneClass(item.tone))}>
+                <div key={item.timeframe} className="rounded-xl bg-surface-alt/70 px-2 py-2 text-center ring-1 ring-border/80">
+                  <p className="text-xs font-bold text-text">{item.timeframe}</p>
+                  <p className={clsx("mt-0.5 text-[10px] font-semibold", item.tone === "bullish" ? "text-success" : item.tone === "bearish" ? "text-danger" : "text-text-muted")}>
                     {item.label}
-                  </span>
+                  </p>
                 </div>
               ))}
             </div>
           </div>
+        </div>
+
+        <div className="min-w-0 p-3 md:p-4">
+          <div className="mb-3 flex items-center justify-between gap-3 px-1">
+            <div>
+              <p className="text-sm font-bold text-text">{t("workspace.tradingViewChart")}</p>
+              <p className="text-xs text-text-muted">{t("workspace.chartSubtitle")}</p>
+            </div>
+            <Link href={`/ticker/${coverage.ticker}`} className="link-hover text-xs font-bold text-primary">
+              {t("workspace.openFullChart")}
+            </Link>
+          </div>
+          <TradingViewAdvancedChart symbol={tvSymbol} height={390} locale={locale} compact />
         </div>
       </div>
     </section>

@@ -1,4 +1,5 @@
 import { Assistant } from "next/font/google";
+import "../globals.css";
 import { NextIntlClientProvider } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -6,6 +7,7 @@ import { routing, type Locale } from "@/i18n/routing";
 import { Providers } from "@/components/layout/Providers";
 import { Header } from "@/components/layout/Header";
 import { TermsAcceptanceGate } from "@/components/layout/TermsAcceptanceGate";
+import { MarketBackdrop } from "@/components/layout/MarketBackdrop";
 import { Link } from "@/i18n/navigation";
 
 const assistant = Assistant({
@@ -48,41 +50,38 @@ export default async function LocaleLayout({
       <body className="min-h-full flex flex-col bg-surface font-sans text-text antialiased">
         <Providers>
           <NextIntlClientProvider locale={locale} messages={messages}>
-            <a href="#main-content" className="skip-link">
-              {messages.common.skipToContent}
-            </a>
-            <TermsAcceptanceGate />
-            <Header />
-            <main id="main-content" className="flex-1" tabIndex={-1}>{children}</main>
-            <footer className="border-t border-border-strong/50 bg-[color:color-mix(in_srgb,var(--color-surface-raised)_82%,var(--color-surface))]">
-              <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
-                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                  <div className="max-w-2xl space-y-2">
-                    <p className="text-sm font-bold text-text">{messages.common.appName}</p>
-                    <p className="text-xs leading-relaxed text-text-muted">
-                      {messages.footer.disclaimer}
-                    </p>
+            <div className="app-frame">
+              <MarketBackdrop />
+              <div className="app-content">
+                <a href="#main-content" className="skip-link">
+                  {messages.common.skipToContent}
+                </a>
+                <TermsAcceptanceGate />
+                <Header />
+                <main id="main-content" className="flex-1" tabIndex={-1}>{children}</main>
+                <footer className="border-t border-border-strong/50 bg-[color:color-mix(in_srgb,var(--color-surface-raised)_82%,var(--color-surface))]">
+                  <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                      <div className="max-w-2xl space-y-2">
+                        <p className="text-sm font-bold text-text">{messages.common.appName}</p>
+                        <p className="text-xs leading-relaxed text-text-muted">
+                          {messages.footer.disclaimer}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-bold text-text-secondary">
+                        <Link href="/terms" className="link-hover">{messages.footer.terms}</Link>
+                        <Link href="/privacy" className="link-hover">{messages.footer.privacy}</Link>
+                        <Link href="/disclaimer" className="link-hover">{messages.footer.disclaimerLink}</Link>
+                        <Link href="/contact" className="link-hover">{messages.footer.contact}</Link>
+                      </div>
+                    </div>
+                    <div className="mt-4 border-t border-border/70 pt-3 text-[11px] text-text-muted">
+                      {messages.footer.educationalOnly}
+                    </div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-bold text-text-secondary">
-                    <Link href="/terms" className="link-hover">
-                      {messages.footer.terms}
-                    </Link>
-                    <Link href="/privacy" className="link-hover">
-                      {messages.footer.privacy}
-                    </Link>
-                    <Link href="/disclaimer" className="link-hover">
-                      {messages.footer.disclaimerLink}
-                    </Link>
-                    <Link href="/contact" className="link-hover">
-                      {messages.footer.contact}
-                    </Link>
-                  </div>
-                </div>
-                <div className="mt-4 border-t border-border/70 pt-3 text-[11px] text-text-muted">
-                  {messages.footer.educationalOnly}
-                </div>
+                </footer>
               </div>
-            </footer>
+            </div>
           </NextIntlClientProvider>
         </Providers>
       </body>

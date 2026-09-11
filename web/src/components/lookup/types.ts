@@ -31,6 +31,8 @@ export type LookupMetadata = {
   industry?: string | null;
   market_cap?: number | null;
   listing_exchange?: string | null;
+  return_on_equity?: number | null;
+  debt_to_equity?: number | null;
 };
 
 export type LookupCoveragePayload = {

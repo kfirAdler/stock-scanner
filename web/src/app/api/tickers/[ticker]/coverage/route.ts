@@ -101,7 +101,7 @@ export async function GET(
       .in("timeframe", ["1D", "1W", "1M"]),
     supabase
       .from("symbol_metadata")
-      .select("company_name,sector,industry,market_cap,listing_exchange")
+      .select("company_name,sector,industry,market_cap,listing_exchange,return_on_equity,debt_to_equity")
       .eq("ticker", upper)
       .maybeSingle(),
     supabase

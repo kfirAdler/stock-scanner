@@ -5,16 +5,19 @@ import { useSearchParams } from "next/navigation";
 import { useMessages, useTranslations } from "next-intl";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { Button } from "@/components/ui/Button";
+import { CandlestickLoader } from "@/components/ui/CandlestickLoader";
 import { Input } from "@/components/ui/Input";
 import { PremiumGate } from "@/components/billing/PremiumGate";
 import { screenToQueryString } from "@/lib/screener-query";
 import type { LegacyScreenerFilters, ScreenerPayload, ScreenerResultRow, ScreenerResultsPage, ScreenerRule, ScreenerTimeframe, ScannerResultSnapshot, SnapshotRow } from "@/lib/screener-types";
 import { InsightPanel } from "./InsightPanel";
+import { FundamentalSnapshotPanel } from "./FundamentalSnapshotPanel";
 import { KeyMetricsPanel } from "./KeyMetricsPanel";
 import { LookupActionsBar } from "./LookupActionsBar";
 import { MatchedConditionsPanel } from "./MatchedConditionsPanel";
 import { SimilarStocksTable } from "./SimilarStocksTable";
 import { StockLookupHeader } from "./StockLookupHeader";
+import { StockNewsPanel } from "./StockNewsPanel";
 import { TechnicalSummaryPanel } from "./TechnicalSummaryPanel";
 import type {
   AccessGate,
@@ -246,29 +249,6 @@ function scoreRow(baseRules: ScreenerRule[], reference: LookupCoveragePayload, r
   };
 }
 
-function buildQuickExactPayload(coverage: LookupCoveragePayload): ScreenerPayload {
-  const rules: ScreenerRule[] = [];
-  const daily = coverage.dailySnapshot;
-  const weekly = coverage.timeframeSnapshots["1W"];
-  const monthly = coverage.timeframeSnapshots["1M"];
-
-  if (daily.strong_buy_signal) rules.push(buildRule("1D", "strong_buy_signal"));
-  else if (daily.buy_signal) rules.push(buildRule("1D", "buy_signal"));
-  if (daily.bullish_sequence_active) rules.push(buildRule("1D", "bullish_sequence_active"));
-  if (daily.strong_up_sequence_context) rules.push(buildRule("1D", "strong_up_sequence_context"));
-  if (daily.is_above_sma20) rules.push(buildRule("1D", "is_above_sma20"));
-  if (daily.is_above_sma150) rules.push(buildRule("1D", "is_above_sma150"));
-  if ((daily.atr_percent ?? 0) >= 5) rules.push(buildRule("1D", "atr_percent", "gt", 5));
-  if (weekly?.bullish_sequence_active) rules.push(buildRule("1W", "bullish_sequence_active"));
-  if (monthly?.bullish_sequence_active) rules.push(buildRule("1M", "bullish_sequence_active"));
-
-  return {
-    version: 1,
-    listing_market: coverage.market === "TA" ? "TA" : "US",
-    rules: dedupeRules(rules).slice(0, 6),
-  };
-}
-
 export function StockLookupClient() {
   const t = useTranslations("lookup");
   const tScr = useTranslations("screener");
@@ -288,7 +268,7 @@ export function StockLookupClient() {
   const inputRef = useRef<HTMLInputElement>(null);
   const requestedTickerRef = useRef<string | null>(null);
 
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(() => searchParams.get("ticker")?.trim().toUpperCase() ?? "");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [suggestOpen, setSuggestOpen] = useState(false);
   const [loadingSuggest, setLoadingSuggest] = useState(false);
@@ -472,9 +452,10 @@ export function StockLookupClient() {
     const normalizedTicker = ticker.trim().toUpperCase();
     if (!normalizedTicker) return;
     requestedTickerRef.current = normalizedTicker;
+    syncTickerUrl(normalizedTicker);
     setQ(normalizedTicker);
     setLoadingCoverage(true);
-    setLoadingSimilar(true);
+    setLoadingSimilar(false);
     setError("");
     setAccessGate(null);
     setSuggestOpen(false);
@@ -500,9 +481,8 @@ export function StockLookupClient() {
       }
       const data = (await res.json()) as LookupCoveragePayload;
       setCoverage(data);
-      syncTickerUrl(data.ticker);
+      window.localStorage.setItem("stockIntelligence:lastTicker", data.ticker);
       setSimilarRows([]);
-      void loadSimilar("exact", buildQuickExactPayload(data), data);
     } catch {
       setCoverage(null);
       setError(t("coverageFailed"));
@@ -510,7 +490,7 @@ export function StockLookupClient() {
       setLoadingCoverage(false);
       setLoadingSimilar(false);
     }
-  }, [loadSimilar, syncTickerUrl, t]);
+  }, [syncTickerUrl, t]);
 
   useEffect(() => {
     const tickerFromUrl = searchParams.get("ticker")?.trim().toUpperCase();
@@ -827,10 +807,10 @@ export function StockLookupClient() {
   return (
     <div className="page-shell max-w-[1480px]">
       <div className="space-y-5">
-        <section className="ui-panel-overlay z-20 rounded-[24px] px-4 py-4 md:sticky md:top-[4.75rem]">
+        <section className="ui-panel-overlay z-20 rounded-[24px] px-4 py-4">
           <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.kicker")}</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-neon">{t("workspace.kicker")}</p>
               <h1 className="mt-1 text-[22px] font-bold tracking-[-0.02em] text-text">{t("workspace.title")}</h1>
               <p className="mt-1 text-sm text-text-secondary">{t("workspace.subtitle")}</p>
             </div>
@@ -930,8 +910,8 @@ export function StockLookupClient() {
         ) : null}
 
         {!accessGate && loadingCoverage ? (
-          <section className="ui-panel rounded-[24px] px-5 py-8 text-sm text-text-muted">
-            {t("loadingCoverage")}
+          <section className="ui-panel rounded-[24px] px-5 py-8">
+            <CandlestickLoader label={t("loadingCoverage")} />
           </section>
         ) : null}
 
@@ -943,68 +923,35 @@ export function StockLookupClient() {
               overallTone={overallTone}
               headerBadges={headerBadges}
               timeframeStates={timeframeStates}
-              coreConditions={conditions.matched}
               formatCurrency={formatCurrency}
               formatPercent={formatPercent}
               formatMarketCap={compactNumber}
               t={t}
             />
 
-            <div className="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_360px]">
+            <div className="grid gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(300px,0.75fr)]">
               <TechnicalSummaryPanel
                 snapshots={coverage.timeframeSnapshots}
                 classifyTrend={trendTone}
                 formatPercent={formatPercent}
                 t={t}
               />
-              <div className="space-y-4">
-                <LookupActionsBar
-                  screenerHref={activeScreenHref}
-                  onFindSimilar={() => {
-                    if (activeVariantOption) {
-                      void loadSimilar(activeVariantOption.id, activeVariantOption.payload, coverage);
-                    }
-                  }}
-                  onSaveSetup={saveSetup}
-                  onCopyConditions={() =>
-                    copyConditionText(
-                      [
-                        `${coverage.ticker} setup summary`,
-                        ...conditions.matched.map(
-                          (condition) => `${condition.timeframeLabel ?? condition.timeframe} · ${condition.label}`
-                        ),
-                      ].join("\n")
-                    )
-                  }
-                  onCompare={compareTicker}
-                  tickerHref={`/ticker/${coverage.ticker}`}
-                  feedback={feedback}
-                  t={t}
-                />
-                <InsightPanel insights={insights} t={t} />
-              </div>
+              <InsightPanel insights={insights} t={t} />
             </div>
 
-            <MatchedConditionsPanel
-              matched={conditions.matched}
-              near={conditions.near}
-              failed={conditions.failed}
-              selectedCondition={selectedCondition}
-              onSelectCondition={(condition) => setSelectedConditionId(condition.id)}
-              onOpenConditionScan={openConditionScan}
-              onCombineConditionScan={combineConditionScan}
+            <StockNewsPanel
+              key={coverage.ticker}
+              ticker={coverage.ticker}
+              company={coverage.metadata?.company_name}
+              sector={coverage.metadata?.sector}
+              industry={coverage.metadata?.industry}
+              market={coverage.market}
               t={t}
             />
 
-            <SimilarStocksTable
-              rows={similarRows}
-              activeVariant={activeVariant}
-              onChangeVariant={(variant) => {
-                const option = variantOptions.find((item) => item.id === variant);
-                if (option) void loadSimilar(option.id, option.payload, coverage);
-              }}
-              loading={loadingSimilar}
-              variantLabels={variantLabels}
+            <FundamentalSnapshotPanel
+              coverage={coverage}
+              formatMarketCap={compactNumber}
               t={t}
             />
 
@@ -1015,39 +962,80 @@ export function StockLookupClient() {
               t={t}
             />
 
-            {unsupportedIndicators.length > 0 || diagnostics.length > 0 ? (
-              <section className="ui-panel-subtle rounded-[18px] px-4 py-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
-                    {t("workspace.coverageDiagnostics")}
-                  </p>
-                  <Link
-                    href={`/ticker/${coverage.ticker}`}
-                    className="link-hover text-[12px] font-semibold text-text-secondary"
-                  >
-                    {t("openTickerPage")}
-                  </Link>
+            <details className="ui-panel group rounded-[24px] px-5 py-5 md:px-6">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-lg font-bold text-text">{t("workspace.researchTools")}</h2>
+                  <p className="mt-1 text-sm text-text-secondary">{t("workspace.researchToolsSub")}</p>
                 </div>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {unsupportedIndicators.map((row) => (
-                    <span
-                      key={row.id}
-                      className="rounded-full bg-surface-elevated px-2.5 py-1 text-[11px] text-text-muted ring-1 ring-border"
-                    >
-                      {lookupMsg.indicators[row.id] ?? row.id}
-                    </span>
-                  ))}
-                  {diagnostics.map((entry) => (
-                    <span
-                      key={entry}
-                      className="rounded-full bg-surface-elevated px-2.5 py-1 text-[11px] text-text-muted ring-1 ring-border"
-                    >
-                      {entry}
-                    </span>
-                  ))}
-                </div>
-              </section>
-            ) : null}
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-surface-alt text-xl text-text-secondary ring-1 ring-border transition-transform group-open:rotate-45">+</span>
+              </summary>
+              <div className="mt-5 space-y-4 border-t border-divider-soft pt-5">
+                <LookupActionsBar
+                  screenerHref={activeScreenHref}
+                  onFindSimilar={() => {
+                    if (activeVariantOption) void loadSimilar(activeVariantOption.id, activeVariantOption.payload, coverage);
+                  }}
+                  onSaveSetup={saveSetup}
+                  onCopyConditions={() =>
+                    copyConditionText([
+                      `${coverage.ticker} setup summary`,
+                      ...conditions.matched.map((condition) => `${condition.timeframeLabel ?? condition.timeframe} · ${condition.label}`),
+                    ].join("\n"))
+                  }
+                  onCompare={compareTicker}
+                  tickerHref={`/ticker/${coverage.ticker}`}
+                  feedback={feedback}
+                  t={t}
+                />
+
+                <MatchedConditionsPanel
+                  matched={conditions.matched}
+                  near={conditions.near}
+                  failed={conditions.failed}
+                  selectedCondition={selectedCondition}
+                  onSelectCondition={(condition) => setSelectedConditionId(condition.id)}
+                  onOpenConditionScan={openConditionScan}
+                  onCombineConditionScan={combineConditionScan}
+                  t={t}
+                />
+
+                <SimilarStocksTable
+                  rows={similarRows}
+                  activeVariant={activeVariant}
+                  onChangeVariant={(variant) => {
+                    const option = variantOptions.find((item) => item.id === variant);
+                    if (option) void loadSimilar(option.id, option.payload, coverage);
+                  }}
+                  loading={loadingSimilar}
+                  variantLabels={variantLabels}
+                  t={t}
+                />
+
+                {unsupportedIndicators.length > 0 || diagnostics.length > 0 ? (
+                  <section className="ui-panel-subtle rounded-[18px] px-4 py-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">{t("workspace.coverageDiagnostics")}</p>
+                      <Link href={`/ticker/${coverage.ticker}`} className="link-hover text-[12px] font-semibold text-text-secondary">
+                        {t("openTickerPage")}
+                      </Link>
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {unsupportedIndicators.map((row) => (
+                        <span key={row.id} className="rounded-full bg-surface-elevated px-2.5 py-1 text-[11px] text-text-muted ring-1 ring-border">
+                          {lookupMsg.indicators[row.id] ?? row.id}
+                        </span>
+                      ))}
+                      {diagnostics.map((entry) => (
+                        <span key={entry} className="rounded-full bg-surface-elevated px-2.5 py-1 text-[11px] text-text-muted ring-1 ring-border">
+                          {entry}
+                        </span>
+                      ))}
+                    </div>
+                  </section>
+                ) : null}
+              </div>
+            </details>
           </>
         ) : null}
       </div>
