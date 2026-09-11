@@ -35,6 +35,7 @@ test('detects a horizontal trading channel instead of rejecting its near-zero sl
   const match=detectChannel(input);
   assert.ok(match);
   assert.equal(match.patternLabel,'Sideways channel');
+  assert.equal(match.channelDirection,'sideways');
 });
 test('rejects an expanding wedge whose upper and lower boundaries diverge',()=>{
   const input=candles().map((c,i)=>{const amplitude=2+i*.07;const close=100+i*.1+amplitude*Math.sin(i*Math.PI/10);return {...c,open:close-.1,high:close+.5,low:close-.5,close};});

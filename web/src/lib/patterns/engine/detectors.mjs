@@ -199,13 +199,15 @@ export function inspectChannel(candles, lookback = 120, opts = {}) {
     const offset = candles.length - window.length;
     const averageSlope = (upFit.slope + loFit.slope) / 2;
     const totalDriftRatio = Math.abs(averageSlope * (lastIdx - startIdx)) / channelMidpoint;
-    const direction = totalDriftRatio <= 0.03 ? "Sideways" : averageSlope > 0 ? "Rising" : "Falling";
+    const channelDirection = totalDriftRatio <= 0.03 ? "sideways" : averageSlope > 0 ? "rising" : "falling";
+    const direction = channelDirection[0].toUpperCase() + channelDirection.slice(1);
     const fitQuality = 1 - Math.min(1, Math.max(upperFitError, lowerFitError) / channelWidth / MAX_FIT_ERROR_RATIO);
     const parallelQuality = 1 - Math.min(1, slopeDivergence / MAX_SLOPE_DIVERGENCE);
     const confidence = 0.55 + 0.25 * fitQuality + 0.2 * parallelQuality;
     return { reason: null, match: {
         pattern: "channel",
         patternLabel: `${direction} channel`,
+        channelDirection,
         confidence: Math.round(confidence * 100) / 100,
         lines: [
             {

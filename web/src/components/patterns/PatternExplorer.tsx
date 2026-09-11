@@ -5,11 +5,11 @@ import { useLocale, useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { CandlestickChart } from '@/components/chart/CandlestickChart';
 import { CandlestickLoader } from '@/components/ui/CandlestickLoader';
-import type { PatternKind, PatternPayload, PatternSnapshot } from '@/lib/patterns/types';
+import { channelDirectionOf, patternFilterMatches, type PatternFilter, type PatternKind, type PatternPayload, type PatternSnapshot } from '@/lib/patterns/types';
 import { PatternPreview } from './PatternPreview';
 import { ScanSummary } from './ScanSummary';
 
-const kinds: PatternKind[] = ['ascending_triangle', 'channel', 'cup_and_handle'];
+const filters: PatternFilter[] = ['all', 'ascending_triangle', 'channel_rising', 'channel_falling', 'channel_sideways', 'cup_and_handle'];
 const noSma: number[] = [];
 type ResultView = 'strict' | 'developing';
 
@@ -47,7 +47,7 @@ export function PatternExplorer() {
   const t = useTranslations('patterns');
   const locale = useLocale();
   const [market,setMarket] = useState<'ALL' | 'US' | 'TA'>('ALL');
-  const [kind,setKind] = useState<PatternKind | 'all'>('all');
+  const [filter,setFilter] = useState<PatternFilter>('all');
   const [view,setView] = useState<ResultView>('strict');
   const [search,setSearch] = useState('');
   const [sharedData,setData] = useState<PatternPayload | null>(null);
@@ -69,12 +69,12 @@ export function PatternExplorer() {
     .flatMap(row => (view==='strict'
       ? row.matches.map(match=>({row,match,developing:undefined}))
       : (row.developing??[]).map(developing=>({row,match:developing.match,developing})))
-      .filter(card=>kind==='all'||card.match.pattern===kind))
-    .sort((a,b) => b.match.confidence-a.match.confidence || a.row.ticker.localeCompare(b.row.ticker)), [data,search,kind,view]);
+      .filter(card=>patternFilterMatches(card.match,filter)))
+    .sort((a,b) => b.match.confidence-a.match.confidence || a.row.ticker.localeCompare(b.row.ticker)), [data,search,filter,view]);
   const developingCount = data?.rows.filter(r=>r.developing?.length).length ?? 0;
   const number = (value: number | null) => value===null?'—':new Intl.NumberFormat(locale,{maximumFractionDigits:2}).format(value);
-  const emptySharedChannel = kind==='channel' && !search.trim() && !!data?.coverage.scanned;
-  const filtered = !!search.trim() || kind!=='all';
+  const emptySharedChannel = filter.startsWith('channel_') && !search.trim() && !!data?.coverage.scanned;
+  const filtered = !!search.trim() || filter!=='all';
   function reload() {  setView('strict'); setStatus('loading'); setExpanded(null); setRetry(v=>v+1); }
   function changeView(next: ResultView) { setView(next); setExpanded(null); }
   return <div className="page-shell page-stack">
@@ -85,10 +85,10 @@ export function PatternExplorer() {
     {displayStatus==='loading' && <div className="page-card py-8"><CandlestickLoader label={t('loading')} /></div>}
     {displayStatus!=='ready' && displayStatus!=='loading' && <div role="alert" className="page-empty-state text-center"><p>{t(status==='login'?'login':status==='subscribe'?'subscribe':'error')}</p>{status==='login'||status==='subscribe'?<Link className="mt-4 inline-block font-bold text-primary" href={status==='login'?'/auth/login':'/settings'}>{t(status==='login'?'login':'settings')}</Link>:<button className="ui-control mt-4 rounded-xl px-5 py-2" onClick={reload}>{t('retry')}</button>}</div>}
     {displayStatus==='ready' && data && <>
-      <ScanSummary data={data} pattern={kind==='all'?undefined:kind} requested={false} />
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><div className="flex flex-wrap gap-2">{(['all',...kinds] as const).map(k=><button key={k} onClick={()=>{setKind(k);setView('strict');setExpanded(null);}} aria-pressed={kind===k} className={'rounded-full border px-4 py-2 text-sm font-semibold '+(kind===k?'border-primary bg-primary-soft text-primary':'border-border bg-surface-raised text-text-secondary')}>{t(k)}</button>)}</div><input aria-label={t('search')} placeholder={t('search')} value={search} onChange={e=>setSearch(e.target.value)} className="ui-control rounded-xl px-4 py-3 text-sm lg:w-64" /></div>
-      {!cards.length ? <div className="page-empty-state py-12 text-center"><h2 className="text-xl font-bold">{t(!data.coverage.total?'waiting':emptySharedChannel?'noChannels':filtered?'empty':view==='developing'?'noDeveloping':'noStrictMatches')}</h2><p className="mx-auto mt-2 max-w-xl text-sm text-text-muted">{t(!data.coverage.total?'waitingBody':emptySharedChannel?'noChannelsBody':filtered?'emptyBody':view==='developing'?'noDevelopingBody':'strictEmptyBody')}</p>{filtered && !emptySharedChannel && <button className="mt-4 text-primary" onClick={()=>{setKind('all');setSearch('');}}>{t('reset')}</button>}{!filtered && view==='strict' && developingCount>0 && <button className="mt-5 rounded-xl bg-warning-soft px-5 py-3 text-sm font-bold text-warning" onClick={()=>changeView('developing')}>{t('viewDeveloping',{count:developingCount})}</button>}</div> : <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">{cards.map(({row,match,developing})=>{const id=row.ticker+':'+match.pattern+':'+view;const open=expanded===id;return <article key={id} className={'page-card !p-5 '+(open?'md:col-span-2 xl:col-span-3':'ui-elevated-hover')}>
-        <div className="flex items-start justify-between gap-3"><div><Link href={'/ticker/'+encodeURIComponent(row.ticker)} className="link-hover text-xl font-extrabold" dir="ltr">{row.ticker}</Link><p className="mt-1 text-xs text-text-muted">{row.company_name??t(row.market)}</p></div><span className={'rounded-full px-3 py-1 text-xs font-bold '+(developing?'bg-warning-soft text-warning':'bg-primary-soft text-primary')}>{t(developing?'developingBadge':match.pattern)}</span></div>
+      <ScanSummary data={data} filter={filter==='all'?undefined:filter} requested={false} />
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><div className="flex flex-wrap gap-2">{filters.map(item=><button key={item} onClick={()=>{setFilter(item);setView('strict');setExpanded(null);}} aria-pressed={filter===item} className={'rounded-full border px-4 py-2 text-sm font-semibold '+(filter===item?'border-primary bg-primary-soft text-primary':'border-border bg-surface-raised text-text-secondary')}>{t(item)}</button>)}</div><input aria-label={t('search')} placeholder={t('search')} value={search} onChange={e=>setSearch(e.target.value)} className="ui-control rounded-xl px-4 py-3 text-sm lg:w-64" /></div>
+      {!cards.length ? <div className="page-empty-state py-12 text-center"><h2 className="text-xl font-bold">{t(!data.coverage.total?'waiting':emptySharedChannel?'noChannels':filtered?'empty':view==='developing'?'noDeveloping':'noStrictMatches')}</h2><p className="mx-auto mt-2 max-w-xl text-sm text-text-muted">{t(!data.coverage.total?'waitingBody':emptySharedChannel?'noChannelsBody':filtered?'emptyBody':view==='developing'?'noDevelopingBody':'strictEmptyBody')}</p>{filtered && !emptySharedChannel && <button className="mt-4 text-primary" onClick={()=>{setFilter('all');setSearch('');}}>{t('reset')}</button>}{!filtered && view==='strict' && developingCount>0 && <button className="mt-5 rounded-xl bg-warning-soft px-5 py-3 text-sm font-bold text-warning" onClick={()=>changeView('developing')}>{t('viewDeveloping',{count:developingCount})}</button>}</div> : <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">{cards.map(({row,match,developing})=>{const id=row.ticker+':'+match.pattern+':'+view;const open=expanded===id;const badgeKey=match.pattern==='channel'?`channel_${channelDirectionOf(match)}`:match.pattern;return <article key={id} className={'page-card !p-5 '+(open?'md:col-span-2 xl:col-span-3':'ui-elevated-hover')}>
+        <div className="flex items-start justify-between gap-3"><div><Link href={'/ticker/'+encodeURIComponent(row.ticker)} className="link-hover text-xl font-extrabold" dir="ltr">{row.ticker}</Link><p className="mt-1 text-xs text-text-muted">{row.company_name??t(row.market)}</p></div><span className={'rounded-full px-3 py-1 text-xs font-bold '+(developing?'bg-warning-soft text-warning':'bg-primary-soft text-primary')}>{t(developing?'developingBadge':badgeKey)}</span></div>
         {!open && <PatternPreview preview={row.preview} match={match} breachIndices={developing?.breachIndices} />}
         {developing && <div className="my-4 rounded-xl border border-warning/20 bg-warning-soft p-3 text-xs text-warning"><p className="font-bold">{t('missedBoundaryRule')}</p><p className="mt-1">{t('breachDetail',{count:developing.breachCount,percent:number(developing.maxBreachPercent)})}</p></div>}
         <div className="mt-4 flex items-center justify-between text-xs"><span className="text-text-muted">{t('fit')}</span><span className="font-bold tabular-nums">{Math.round(match.confidence*100)}%</span></div><div className="mt-2 h-1 overflow-hidden rounded-full bg-surface-alt"><div className={'h-full rounded-full '+(developing?'bg-warning':'bg-primary')} style={{width:Math.max(0,Math.min(100,match.confidence*100))+'%'}} /></div>
