@@ -80,7 +80,7 @@ export function MarketPulseBackground() {
 
   useEffect(() => {
     const canvasNode = canvasRef.current;
-    const contextNode = canvasNode?.getContext("2d");
+    const contextNode = canvasNode?.getContext("2d", { desynchronized: true });
     if (!canvasNode || !contextNode) return;
 
     const canvas: HTMLCanvasElement = canvasNode;
@@ -115,10 +115,10 @@ export function MarketPulseBackground() {
     function populate() {
       const mobile = width < 768;
       tickers = [];
-      addTickers("far", mobile ? 12 : 22);
-      addTickers("mid", mobile ? 5 : 10);
-      if (!mobile) addTickers("near", 2);
-      particles = Array.from({ length: mobile ? 16 : 34 }, () => {
+      addTickers("far", mobile ? 9 : 18);
+      addTickers("mid", mobile ? 4 : 8);
+      if (!mobile) addTickers("near", 1);
+      particles = Array.from({ length: mobile ? 12 : 24 }, () => {
         const particle = {} as Particle;
         resetParticle(particle, width, height, true);
         return particle;
@@ -126,9 +126,9 @@ export function MarketPulseBackground() {
     }
 
     function resize() {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
       width = window.innerWidth;
       height = window.innerHeight;
+      const dpr = Math.min(window.devicePixelRatio || 1, width < 768 ? 1.25 : 1.35);
       canvas.width = Math.max(1, Math.floor(width * dpr));
       canvas.height = Math.max(1, Math.floor(height * dpr));
       canvas.style.width = `${width}px`;
@@ -141,7 +141,7 @@ export function MarketPulseBackground() {
     function drawStreaks(time: number, cameraX: number, cameraY: number) {
       const originX = width / 2 + cameraX * 0.2;
       const originY = height * 0.47 + cameraY * 0.2;
-      const count = width < 768 ? 7 : 12;
+      const count = width < 768 ? 5 : 10;
       for (let index = 0; index < count; index++) {
         const angle = (Math.PI * 2 * index) / count + 0.16;
         const pulse = 0.88 + Math.sin(time * 0.00018 + index) * 0.06;
@@ -161,7 +161,7 @@ export function MarketPulseBackground() {
         const startX = width * trace.x;
         const traceWidth = width * trace.width;
         context.beginPath();
-        for (let offset = 0; offset <= traceWidth; offset += 12) {
+        for (let offset = 0; offset <= traceWidth; offset += 18) {
           const progress = offset / Math.max(traceWidth, 1);
           const trend = (progress - 0.5) * -28;
           const wave = Math.sin(progress * 9 + trace.phase + time * trace.speed) * trace.amplitude;
@@ -178,12 +178,12 @@ export function MarketPulseBackground() {
     }
 
     function drawCandles(time: number, cameraX: number, cameraY: number) {
-      const strips = width < 768 ? 2 : 4;
+      const strips = width < 768 ? 2 : 3;
       for (let strip = 0; strip < strips; strip++) {
         const baseY = height * (0.2 + strip * 0.21) + cameraY * 0.18;
         const startX = strip % 2 === 0 ? width * 0.035 : width * 0.76;
         const drift = reducedMotion ? 0 : ((time * 0.004 + strip * 120) % 44) - 22;
-        for (let index = 0; index < 7; index++) {
+        for (let index = 0; index < 6; index++) {
           const x = startX + index * 27 + (strip % 2 === 0 ? drift : -drift) + cameraX * 0.18;
           const rise = index * 4.2;
           const body = 8 + ((index * 7 + strip * 3) % 13);
@@ -204,7 +204,7 @@ export function MarketPulseBackground() {
     }
 
     function draw(time: number) {
-      const elapsed = Math.min(2, (time - lastTime) / 16.67);
+      const elapsed = Math.min(4, (time - lastTime) / 16.67);
       lastTime = time;
       context.clearRect(0, 0, width, height);
       if (!reducedMotion) {
@@ -256,17 +256,10 @@ export function MarketPulseBackground() {
             : Math.max(30, Math.min(80, 13 * scale));
         const positive = ticker.change >= 0;
         const color = positive ? "66, 230, 164" : "255, 105, 105";
-        const blur = ticker.layer === "far"
-          ? 1.5 + ((ticker.z - 900) / 700) * 1.5
-          : ticker.layer === "mid"
-            ? Math.max(0, (ticker.z - 350) / 550)
-            : ticker.z < 110 ? 4 : 0;
-
         context.save();
         context.globalAlpha = alpha;
-        context.filter = `blur(${width < 768 ? Math.min(1, Math.max(0, blur)) : Math.max(0, blur)}px)`;
-        context.shadowBlur = width < 768 ? 0 : ticker.layer === "near" ? (ticker.z < 130 ? 22 : 12) : 4;
-        context.shadowColor = `rgba(${color}, ${ticker.layer === "near" ? 0.28 : 0.16})`;
+        context.shadowBlur = ticker.layer === "near" ? (ticker.z < 130 ? 16 : 9) : 0;
+        context.shadowColor = `rgba(${color}, 0.22)`;
         context.fillStyle = `rgb(${color})`;
         context.font = `700 ${fontSize}px Assistant, sans-serif`;
         context.textAlign = "center";

@@ -619,7 +619,6 @@ button:disabled {
     inset 0 1px 0 rgba(255, 255, 255, 0.06),
     0 32px 80px rgba(0, 0, 0, 0.58),
     0 0 70px rgba(45, 210, 160, 0.035);
-  backdrop-filter: blur(22px) saturate(1.04);
   animation: market-auth-enter 0.8s ease-out 0.12s both;
 }
 
@@ -784,7 +783,6 @@ button:disabled {
     width: min(490px, calc(100vw - 1.25rem));
     padding: 1.5rem;
     border-radius: 1.35rem;
-    backdrop-filter: blur(18px) saturate(1.03);
   }
 
   .market-auth-card-wide {
