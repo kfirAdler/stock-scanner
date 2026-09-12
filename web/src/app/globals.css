@@ -546,15 +546,23 @@ button:disabled {
 .market-auth-shell {
   position: fixed;
   inset: 0;
-  z-index: 70;
+  z-index: 1000;
   overflow-x: hidden;
   overflow-y: auto;
   color: #f4fbf8;
+  background-color: #02080b;
   background:
-    radial-gradient(ellipse at -8% 42%, rgba(24, 83, 96, 0.2), transparent 47%),
-    radial-gradient(ellipse at 108% 54%, rgba(15, 88, 63, 0.16), transparent 45%),
-    radial-gradient(circle at 50% 44%, rgba(14, 45, 50, 0.5) 0%, rgba(6, 23, 29, 0.7) 32%, rgba(1, 8, 11, 0.92) 68%, #000 100%);
+    radial-gradient(ellipse at 4% 20%, rgba(19, 92, 91, 0.16), transparent 42%),
+    radial-gradient(ellipse at 96% 76%, rgba(12, 89, 61, 0.13), transparent 40%),
+    linear-gradient(145deg, #061418 0%, #02090d 48%, #010507 100%);
   isolation: isolate;
+}
+
+.app-frame:has(.market-auth-shell) > .market-backdrop,
+.app-content:has(.market-auth-shell) > .skip-link,
+.app-content:has(.market-auth-shell) > header,
+.app-content:has(.market-auth-shell) > footer {
+  display: none;
 }
 
 .market-pulse-canvas {
@@ -573,8 +581,8 @@ button:disabled {
   z-index: 1;
   pointer-events: none;
   background:
-    radial-gradient(circle at center, transparent 55%, rgba(0, 0, 0, 0.62) 100%),
-    linear-gradient(180deg, rgba(1, 8, 11, 0.12), transparent 28%, transparent 75%, rgba(1, 6, 8, 0.32));
+    radial-gradient(ellipse at center, transparent 50%, rgba(0, 0, 0, 0.5) 100%),
+    linear-gradient(180deg, rgba(0, 4, 6, 0.08), transparent 25%, transparent 78%, rgba(0, 3, 5, 0.24));
 }
 
 .market-auth-content {
@@ -583,7 +591,7 @@ button:disabled {
   display: grid;
   min-height: 100svh;
   place-items: center;
-  padding: 2rem 1rem;
+  padding: 2.5rem 1rem;
 }
 
 .market-auth-card {
@@ -602,21 +610,21 @@ button:disabled {
   --color-surface-hover: rgba(255, 255, 255, 0.075);
   --color-danger: #ff8a8a;
   --color-danger-soft: rgba(255, 98, 98, 0.12);
-  width: min(430px, calc(100vw - 2rem));
-  border: 1px solid rgba(160, 220, 210, 0.22);
-  border-radius: 1.6rem;
-  padding: 2rem;
-  background: rgba(7, 20, 25, 0.72);
+  width: min(490px, calc(100vw - 2rem));
+  border: 1px solid rgba(151, 211, 202, 0.2);
+  border-radius: 1.4rem;
+  padding: 2.35rem;
+  background: linear-gradient(155deg, rgba(11, 29, 34, 0.96), rgba(5, 18, 23, 0.95));
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.055),
-    0 35px 90px rgba(0, 0, 0, 0.55),
-    0 0 90px rgba(45, 210, 160, 0.045);
-  backdrop-filter: blur(26px) saturate(1.08);
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 32px 80px rgba(0, 0, 0, 0.58),
+    0 0 70px rgba(45, 210, 160, 0.035);
+  backdrop-filter: blur(22px) saturate(1.04);
   animation: market-auth-enter 0.8s ease-out 0.12s both;
 }
 
 .market-auth-card-wide {
-  width: min(720px, calc(100vw - 2rem));
+  width: min(760px, calc(100vw - 2rem));
 }
 
 .market-auth-logo {
@@ -660,8 +668,8 @@ button:disabled {
 .market-auth-title {
   margin-top: 0.55rem;
   color: var(--color-text);
-  font-size: clamp(1.65rem, 5vw, 2.1rem);
-  font-weight: 650;
+  font-size: clamp(1.85rem, 5vw, 2.35rem);
+  font-weight: 700;
   letter-spacing: -0.025em;
   line-height: 1.2;
 }
@@ -669,17 +677,17 @@ button:disabled {
 .market-auth-subtitle {
   margin: 0.65rem auto 0;
   max-width: 30rem;
-  color: var(--color-text-secondary);
-  font-size: 0.9rem;
+  color: #afc1bd;
+  font-size: 0.95rem;
   line-height: 1.55;
 }
 
 .market-auth-card .market-auth-input {
-  min-height: 3.35rem;
-  border-color: rgba(225, 255, 246, 0.13);
+  min-height: 3.5rem;
+  border-color: rgba(213, 239, 233, 0.16);
   border-radius: 0.7rem;
   color: var(--color-text);
-  background: rgba(255, 255, 255, 0.038);
+  background: rgba(255, 255, 255, 0.045);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.018);
 }
 
@@ -712,7 +720,7 @@ button:disabled {
 }
 
 .market-auth-submit {
-  min-height: 3.35rem;
+  min-height: 3.5rem;
   border: 1px solid rgba(74, 255, 193, 0.52);
   border-radius: 0.7rem;
   letter-spacing: 0.08em;
@@ -728,8 +736,8 @@ button:disabled {
 }
 
 .market-auth-google {
-  min-height: 3.15rem;
-  border-color: rgba(225, 255, 246, 0.14);
+  min-height: 3.35rem;
+  border-color: rgba(225, 255, 246, 0.18);
   border-radius: 0.7rem;
   background: rgba(255, 255, 255, 0.04);
 }
@@ -740,7 +748,7 @@ button:disabled {
 }
 
 .market-auth-card .page-divider-label > span {
-  background: #0b151c;
+  background: #07171c;
 }
 
 .market-auth-motto {
@@ -773,9 +781,10 @@ button:disabled {
   }
 
   .market-auth-card {
-    padding: 1.45rem;
+    width: min(490px, calc(100vw - 1.25rem));
+    padding: 1.5rem;
     border-radius: 1.35rem;
-    backdrop-filter: blur(16px) saturate(1.04);
+    backdrop-filter: blur(18px) saturate(1.03);
   }
 
   .market-auth-card-wide {
