@@ -8,10 +8,14 @@ function parseRequestedPlan(raw: string | null): "premium" | "essential" | "demo
   return null;
 }
 
+function safeNextPath(raw: string | null) {
+  return raw?.startsWith("/") && !raw.startsWith("//") ? raw : "/";
+}
+
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/";
+  const next = safeNextPath(searchParams.get("next"));
   const requestedPlan = parseRequestedPlan(searchParams.get("plan"));
 
   if (code) {

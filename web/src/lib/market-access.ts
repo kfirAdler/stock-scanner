@@ -131,10 +131,6 @@ export async function getCurrentEntitlement(): Promise<EntitlementSummary> {
 }
 
 export async function assertScreenerAccess(): Promise<MarketDataGate> {
-  if (!marketDataRequiresSubscription()) {
-    return { allowed: true };
-  }
-
   const entitlement = await getCurrentEntitlement();
   if (!entitlement.loggedIn) {
     return {
@@ -177,10 +173,6 @@ export async function assertAlertsAccess(): Promise<MarketDataGate> {
 }
 
 export async function assertFullMarketDataAccess(): Promise<MarketDataGate> {
-  if (!marketDataRequiresSubscription()) {
-    return { allowed: true };
-  }
-
   const entitlement = await getCurrentEntitlement();
   if (!entitlement.loggedIn) {
     return {

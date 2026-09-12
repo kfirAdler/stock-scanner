@@ -5,6 +5,7 @@ import type {
   ScreenerTimeframe,
 } from "@/lib/screener-types";
 import { createServiceClient } from "@/lib/supabase/server";
+import { assertScreenerAccess } from "@/lib/market-access";
 
 type SnapshotAvailabilityRow = {
   timeframe: ScreenerTimeframe;
@@ -149,6 +150,9 @@ function buildAvailability(
 }
 
 export async function GET() {
+  const gate = await assertScreenerAccess();
+  if (!gate.allowed) return gate.response;
+
   const supabase = await createServiceClient();
   const [
     { data: dailyData },

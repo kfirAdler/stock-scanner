@@ -551,7 +551,9 @@ button:disabled {
   overflow-y: auto;
   color: #f4fbf8;
   background:
-    radial-gradient(circle at 50% 43%, #10252b 0%, #071319 38%, #02080b 72%, #000 100%);
+    radial-gradient(ellipse at -8% 42%, rgba(24, 83, 96, 0.2), transparent 47%),
+    radial-gradient(ellipse at 108% 54%, rgba(15, 88, 63, 0.16), transparent 45%),
+    radial-gradient(circle at 50% 44%, rgba(14, 45, 50, 0.5) 0%, rgba(6, 23, 29, 0.7) 32%, rgba(1, 8, 11, 0.92) 68%, #000 100%);
   isolation: isolate;
 }
 
@@ -571,8 +573,8 @@ button:disabled {
   z-index: 1;
   pointer-events: none;
   background:
-    radial-gradient(circle at center, transparent 38%, rgba(0, 0, 0, 0.74) 100%),
-    linear-gradient(180deg, rgba(1, 8, 11, 0.2), transparent 25%, transparent 75%, rgba(1, 6, 8, 0.45));
+    radial-gradient(circle at center, transparent 55%, rgba(0, 0, 0, 0.62) 100%),
+    linear-gradient(180deg, rgba(1, 8, 11, 0.12), transparent 28%, transparent 75%, rgba(1, 6, 8, 0.32));
 }
 
 .market-auth-content {
@@ -601,15 +603,15 @@ button:disabled {
   --color-danger: #ff8a8a;
   --color-danger-soft: rgba(255, 98, 98, 0.12);
   width: min(430px, calc(100vw - 2rem));
-  border: 1px solid rgba(225, 255, 246, 0.2);
+  border: 1px solid rgba(160, 220, 210, 0.22);
   border-radius: 1.6rem;
   padding: 2rem;
-  background: rgba(8, 20, 26, 0.74);
+  background: rgba(7, 20, 25, 0.72);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.055),
-    0 30px 80px rgba(0, 0, 0, 0.58),
-    0 0 80px rgba(24, 177, 130, 0.055);
-  backdrop-filter: blur(22px) saturate(1.08);
+    0 35px 90px rgba(0, 0, 0, 0.55),
+    0 0 90px rgba(45, 210, 160, 0.045);
+  backdrop-filter: blur(26px) saturate(1.08);
   animation: market-auth-enter 0.8s ease-out 0.12s both;
 }
 
@@ -686,17 +688,42 @@ button:disabled {
   box-shadow: 0 0 0 3px rgba(74, 255, 193, 0.08);
 }
 
+.market-auth-field-icon {
+  position: relative;
+}
+
+.market-auth-field-icon > svg {
+  position: absolute;
+  z-index: 1;
+  inset-inline-start: 1rem;
+  bottom: 1.08rem;
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: var(--color-text-muted);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.65;
+  pointer-events: none;
+}
+
+.market-auth-field-icon .market-auth-input {
+  padding-inline-start: 2.75rem;
+}
+
 .market-auth-submit {
   min-height: 3.35rem;
   border: 1px solid rgba(74, 255, 193, 0.52);
   border-radius: 0.7rem;
   letter-spacing: 0.08em;
-  background: linear-gradient(100deg, #31d4a2, #138164);
+  background: linear-gradient(100deg, #3bd3aa 0%, #169976 100%);
   box-shadow: 0 16px 34px rgba(9, 132, 97, 0.24);
+  transition: filter 200ms ease, transform 200ms ease, box-shadow 200ms ease;
 }
 
 .market-auth-submit:hover {
   filter: brightness(1.07);
+  transform: translateY(-1px);
   box-shadow: 0 18px 40px rgba(9, 132, 97, 0.3);
 }
 

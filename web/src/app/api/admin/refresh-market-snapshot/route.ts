@@ -3,11 +3,14 @@ import { createServiceClient } from "@/lib/supabase/server";
 
 const ADMIN_SECRET = process.env.ADMIN_CRON_SECRET ?? "";
 
-export async function POST(request: NextRequest) {
+function isAuthorized(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
-  const providedSecret = authHeader?.replace("Bearer ", "");
+  const providedSecret = authHeader?.replace(/^Bearer\s+/i, "") ?? "";
+  return ADMIN_SECRET.length > 0 && providedSecret === ADMIN_SECRET;
+}
 
-  if (ADMIN_SECRET && providedSecret !== ADMIN_SECRET) {
+export async function POST(request: NextRequest) {
+  if (!isAuthorized(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -45,7 +48,11 @@ export async function POST(request: NextRequest) {
   });
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  if (!isAuthorized(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const supabase = await createServiceClient();
 
   const { data: runs } = await supabase

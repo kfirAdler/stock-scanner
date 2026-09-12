@@ -8,6 +8,11 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { MarketPulseShell } from "@/components/auth/MarketPulseShell";
 
+function requestedPath() {
+  const next = new URLSearchParams(window.location.search).get("next");
+  return next?.startsWith("/") && !next.startsWith("//") ? next : "/";
+}
+
 export default function LoginPage() {
   const t = useTranslations();
   const [email, setEmail] = useState("");
@@ -27,17 +32,19 @@ export default function LoginPage() {
       setError(error.message);
       setLoading(false);
     } else {
-      window.location.href = "/";
+      window.location.href = requestedPath();
     }
   }
 
   async function handleGoogleLogin() {
     setError("");
     const supabase = createClient();
+    const callbackUrl = new URL("/auth/callback", window.location.origin);
+    callbackUrl.searchParams.set("next", requestedPath());
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: callbackUrl.toString(),
       },
     });
     if (error) setError(error.message);
@@ -71,26 +78,37 @@ export default function LoginPage() {
         </div>
 
         <form onSubmit={handleEmailLogin} className="space-y-4">
-          <Input
-            type="email"
-            label={t("common.email")}
-            placeholder={t("auth.emailPlaceholder")}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            autoComplete="email"
-            className="market-auth-input"
-          />
-          <Input
-            type="password"
-            label={t("common.password")}
-            placeholder={t("auth.passwordPlaceholder")}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            autoComplete="current-password"
-            className="market-auth-input"
-          />
+          <div className="market-auth-field-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 6.5h16v11H4zM4.8 7.2 12 13l7.2-5.8" />
+            </svg>
+            <Input
+              type="email"
+              label={t("common.email")}
+              placeholder={t("auth.emailPlaceholder")}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoComplete="email"
+              className="market-auth-input"
+            />
+          </div>
+          <div className="market-auth-field-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="5" y="10" width="14" height="10" rx="2" />
+              <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+            </svg>
+            <Input
+              type="password"
+              label={t("common.password")}
+              placeholder={t("auth.passwordPlaceholder")}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              autoComplete="current-password"
+              className="market-auth-input"
+            />
+          </div>
 
           {error && (
             <p className="text-sm text-danger" role="alert">{error}</p>

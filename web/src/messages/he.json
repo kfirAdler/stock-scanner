@@ -182,7 +182,7 @@
     "planRow": "תוכנית נוכחית: {plan}"
   },
   "auth": {
-    "marketPulse": "דופק השוק",
+    "marketPulse": "Stock Scanner",
     "loginTitle": "נכנסים לשוק",
     "loginSubtitle": "השוק שלך. היתרון שלך.",
     "registerTitle": "בונים יתרון בשוק",

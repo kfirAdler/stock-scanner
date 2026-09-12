@@ -182,7 +182,7 @@
     "planRow": "Current plan: {plan}"
   },
   "auth": {
-    "marketPulse": "Market Pulse",
+    "marketPulse": "Stock Scanner",
     "loginTitle": "Enter your market",
     "loginSubtitle": "Your market. Your edge.",
     "registerTitle": "Build your market edge",
