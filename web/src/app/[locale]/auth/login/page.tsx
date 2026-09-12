@@ -6,6 +6,7 @@ import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { MarketPulseShell } from "@/components/auth/MarketPulseShell";
 
 export default function LoginPage() {
   const t = useTranslations();
@@ -43,15 +44,17 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="page-auth-shell">
-      <div className="page-auth-card max-w-sm space-y-6">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-text">{t("auth.loginTitle")}</h1>
-        </div>
-
+    <MarketPulseShell
+      brand={t("auth.marketPulse")}
+      title={t("auth.loginTitle")}
+      subtitle={t("auth.loginSubtitle")}
+      motto={t("auth.motto")}
+      homeLabel={t("auth.backHome")}
+    >
+      <div className="space-y-5">
         <Button
           variant="secondary"
-          className="w-full"
+          className="market-auth-google w-full"
           onClick={handleGoogleLogin}
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24" aria-hidden="true">
@@ -76,6 +79,7 @@ export default function LoginPage() {
             onChange={(e) => setEmail(e.target.value)}
             required
             autoComplete="email"
+            className="market-auth-input"
           />
           <Input
             type="password"
@@ -85,13 +89,14 @@ export default function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
             required
             autoComplete="current-password"
+            className="market-auth-input"
           />
 
           {error && (
             <p className="text-sm text-danger" role="alert">{error}</p>
           )}
 
-          <Button type="submit" className="w-full" loading={loading}>
+          <Button type="submit" className="market-auth-submit w-full" loading={loading}>
             {t("common.signIn")}
           </Button>
         </form>
@@ -103,6 +108,6 @@ export default function LoginPage() {
           </Link>
         </p>
       </div>
-    </div>
+    </MarketPulseShell>
   );
 }

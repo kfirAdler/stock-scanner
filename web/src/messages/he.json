@@ -182,9 +182,14 @@
     "planRow": "תוכנית נוכחית: {plan}"
   },
   "auth": {
-    "loginTitle": "התחבר לסורק מניות",
-    "registerTitle": "צור חשבון",
-    "planHelp": "בחר את התוכנית הרצויה לפני יצירת החשבון.",
+    "marketPulse": "דופק השוק",
+    "loginTitle": "נכנסים לשוק",
+    "loginSubtitle": "השוק שלך. היתרון שלך.",
+    "registerTitle": "בונים יתרון בשוק",
+    "registerSubtitle": "פותחים חשבון ומתאימים את סביבת העבודה לדרך שבה נוח לך לפעול.",
+    "motto": "משמעת בונה עושר",
+    "backHome": "חזרה לסורק המניות",
+    "planHelp": "בחרו את רמת הגישה שמתאימה לכם.",
     "googleSignIn": "המשך עם גוגל",
     "emailPlaceholder": "you@example.com",
     "passwordPlaceholder": "הסיסמה שלך",

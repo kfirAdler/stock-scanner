@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/Input";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { CURRENT_TERMS_VERSION } from "@/lib/terms";
 import { clsx } from "clsx";
+import { MarketPulseShell } from "@/components/auth/MarketPulseShell";
 
 type SignupPlan = "premium" | "essential" | "demo";
 
@@ -83,13 +84,16 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="page-auth-shell">
-      <div className="page-auth-card max-w-xl space-y-6">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-text">{t("auth.registerTitle")}</h1>
-          <p className="mt-2 text-sm text-text-secondary">{t("auth.planHelp")}</p>
-        </div>
-
+    <MarketPulseShell
+      brand={t("auth.marketPulse")}
+      title={t("auth.registerTitle")}
+      subtitle={t("auth.registerSubtitle")}
+      motto={t("auth.motto")}
+      homeLabel={t("auth.backHome")}
+      wide
+    >
+      <div className="space-y-5">
+        <p className="text-center text-sm text-text-secondary">{t("auth.planHelp")}</p>
         <div className="grid gap-3 sm:grid-cols-3">
           {PLAN_OPTIONS.map((plan) => {
             const selected = selectedPlan === plan;
@@ -99,7 +103,7 @@ export default function RegisterPage() {
                 type="button"
                 onClick={() => setSelectedPlan(plan)}
                 className={clsx(
-                  "rounded-2xl border p-4 text-start transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                  "market-auth-plan rounded-2xl border p-4 text-start transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                   selected
                     ? "border-primary/45 bg-primary-soft shadow-[0_16px_30px_rgba(37,99,235,0.12)]"
                     : "border-border bg-surface-elevated hover:border-border-strong hover:bg-surface-hover"
@@ -130,7 +134,7 @@ export default function RegisterPage() {
 
         <Button
           variant="secondary"
-          className="w-full"
+          className="market-auth-google w-full"
           onClick={handleGoogleSignUp}
         >
           <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
@@ -155,6 +159,7 @@ export default function RegisterPage() {
             onChange={(e) => setEmail(e.target.value)}
             required
             autoComplete="email"
+            className="market-auth-input"
           />
           <Input
             type="password"
@@ -165,6 +170,7 @@ export default function RegisterPage() {
             required
             minLength={6}
             autoComplete="new-password"
+            className="market-auth-input"
           />
 
           <div className="space-y-2">
@@ -182,7 +188,7 @@ export default function RegisterPage() {
             <p className="text-sm text-danger" role="alert">{error}</p>
           )}
 
-          <Button type="submit" className="w-full" loading={loading}>
+          <Button type="submit" className="market-auth-submit w-full" loading={loading}>
             {t("common.signUp")}
           </Button>
         </form>
@@ -194,6 +200,6 @@ export default function RegisterPage() {
           </Link>
         </p>
       </div>
-    </div>
+    </MarketPulseShell>
   );
 }

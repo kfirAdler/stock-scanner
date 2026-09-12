@@ -182,9 +182,14 @@
     "planRow": "Current plan: {plan}"
   },
   "auth": {
-    "loginTitle": "Sign in to Stock Scanner",
-    "registerTitle": "Create your account",
-    "planHelp": "Choose the plan you want before creating your account.",
+    "marketPulse": "Market Pulse",
+    "loginTitle": "Enter your market",
+    "loginSubtitle": "Your market. Your edge.",
+    "registerTitle": "Build your market edge",
+    "registerSubtitle": "Create your account and shape the workspace around the way you trade.",
+    "motto": "Discipline builds wealth",
+    "backHome": "Back to Stock Scanner",
+    "planHelp": "Choose the level of market access that fits you.",
     "googleSignIn": "Continue with Google",
     "emailPlaceholder": "you@example.com",
     "passwordPlaceholder": "Your password",
