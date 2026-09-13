@@ -51,12 +51,12 @@ function localizedPath(locale: string, path: string) {
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const { response: supabaseResponse, user } = await updateSession(request);
+  const { response: supabaseResponse, authenticated } = await updateSession(request);
 
   if (pathname.startsWith("/api/")) {
     // The scheduled scanner authenticates with its own secret inside this route.
     if (pathname.startsWith("/api/admin/")) return supabaseResponse;
-    if (user) return supabaseResponse;
+    if (authenticated) return supabaseResponse;
 
     return copySessionCookies(
       privateResponse(NextResponse.json({ code: "UNAUTHORIZED" }, { status: 401 })),
@@ -69,7 +69,7 @@ export async function proxy(request: NextRequest) {
   const isPublicPage = PUBLIC_PAGES.has(route);
   const isAuthEntry = route === "/auth/login" || route === "/auth/register";
 
-  if (!user && !isPublicPage) {
+  if (!authenticated && !isPublicPage) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = localizedPath(locale, "/auth/login");
     loginUrl.search = "";
@@ -80,7 +80,7 @@ export async function proxy(request: NextRequest) {
     );
   }
 
-  if (user && isAuthEntry) {
+  if (authenticated && isAuthEntry) {
     const homeUrl = request.nextUrl.clone();
     homeUrl.pathname = localizedPath(locale, "/");
     homeUrl.search = "";
