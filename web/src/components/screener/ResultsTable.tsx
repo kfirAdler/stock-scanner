@@ -178,29 +178,33 @@ function SignalBadge({ row }: { row: ScreenerResultRow }) {
 
   if (row.strong_buy_signal) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-success/25 bg-success-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-success ring-1 ring-success/15">
-        ▲▲ {t("workspace.cards.strongBullish")}
+      <span className="inline-flex min-w-max items-center gap-1.5 whitespace-nowrap rounded-lg border border-success/25 bg-success-soft px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wide text-success ring-1 ring-success/15">
+        <span className="rounded bg-success/10 px-1 py-0.5 leading-none" aria-hidden="true">▲▲</span>
+        <span>{t("workspace.cards.strongBullish")}</span>
       </span>
     );
   }
   if (row.buy_signal) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-success/25 bg-success-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-success ring-1 ring-success/15">
-        ▲ {t("workspace.cards.bullishBreak")}
+      <span className="inline-flex min-w-max items-center gap-1.5 whitespace-nowrap rounded-lg border border-success/25 bg-success-soft px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wide text-success ring-1 ring-success/15">
+        <span className="rounded bg-success/10 px-1 py-0.5 leading-none" aria-hidden="true">▲</span>
+        <span>{t("workspace.cards.bullishBreak")}</span>
       </span>
     );
   }
   if (row.strong_sell_signal) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-danger/25 bg-danger-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-danger ring-1 ring-danger/15">
-        ▼▼ {t("workspace.cards.strongBearish")}
+      <span className="inline-flex min-w-max items-center gap-1.5 whitespace-nowrap rounded-lg border border-danger/25 bg-danger-soft px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wide text-danger ring-1 ring-danger/15">
+        <span className="rounded bg-danger/10 px-1 py-0.5 leading-none" aria-hidden="true">▼▼</span>
+        <span>{t("workspace.cards.strongBearish")}</span>
       </span>
     );
   }
   if (row.sell_signal) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-danger/25 bg-danger-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-danger ring-1 ring-danger/15">
-        ▼ {t("workspace.cards.bearishBreak")}
+      <span className="inline-flex min-w-max items-center gap-1.5 whitespace-nowrap rounded-lg border border-danger/25 bg-danger-soft px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wide text-danger ring-1 ring-danger/15">
+        <span className="rounded bg-danger/10 px-1 py-0.5 leading-none" aria-hidden="true">▼</span>
+        <span>{t("workspace.cards.bearishBreak")}</span>
       </span>
     );
   }
@@ -833,7 +837,7 @@ export function ResultsTable({
                 <td className={clsx(densityRowClass, "text-center")}><SmaPill above={row.is_above_sma150} below={row.is_below_sma150} aboveLabel={t("accessibility.aboveSma", { period: 150 })} belowLabel={t("accessibility.belowSma", { period: 150 })} missingLabel={t("accessibility.noData")} /></td>
                 <td className={clsx(densityRowClass, "text-center")}><SmaPill above={row.is_above_sma200} below={row.is_below_sma200} aboveLabel={t("accessibility.aboveSma", { period: 200 })} belowLabel={t("accessibility.belowSma", { period: 200 })} missingLabel={t("accessibility.noData")} /></td>
                 <td className={clsx(densityRowClass, "text-end tabular-nums text-[12px] text-text-secondary")}>{fmt(row.atr_percent)}</td>
-                <td className={densityRowClass}>
+                <td className={clsx(densityRowClass, "min-w-[150px]")}>
                   <SignalBadge row={row} />
                 </td>
                 <td className={clsx(densityRowClass, "min-w-[250px]")}>
