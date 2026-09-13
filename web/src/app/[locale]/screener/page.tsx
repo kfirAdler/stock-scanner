@@ -159,14 +159,12 @@ function ScreenerPageContent() {
     append = false,
     nextSortKey = sortKey,
     nextSortDir = sortDir,
-    syncUrl = true,
   }: {
     nextFilters?: ScreenerPayload;
     nextOffset?: number;
     append?: boolean;
     nextSortKey?: ScannerSortKey;
     nextSortDir?: ScannerSortDir;
-    syncUrl?: boolean;
   } = {}) => {
     if (append && requestInFlightRef.current) return;
     if (!append) {
@@ -193,16 +191,6 @@ function ScreenerPageContent() {
     if (!append) {
       appliedFiltersRef.current = normalizedFilters;
       setAppliedFilters(normalizedFilters);
-    }
-    if (!append && syncUrl && typeof window !== "undefined") {
-      const query = screenToQueryString(normalizedFilters);
-      const pathname = window.location.pathname;
-      handledSearchParamsRef.current = query.startsWith("?") ? query.slice(1) : "";
-      window.history.replaceState(
-        window.history.state,
-        "",
-        query ? `${pathname}${query}` : pathname
-      );
     }
     try {
       const res = await fetch("/api/screener", {
@@ -409,7 +397,6 @@ function ScreenerPageContent() {
             nextFilters,
             nextSortKey,
             nextSortDir,
-            syncUrl: false,
           });
           return;
         }
@@ -821,7 +808,6 @@ function ScreenerPageContent() {
       append: false,
       nextSortKey: key,
       nextSortDir: nextDir,
-      syncUrl: false,
     });
   }
 
