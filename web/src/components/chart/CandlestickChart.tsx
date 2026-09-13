@@ -102,7 +102,7 @@ export function CandlestickChart({
     const token = (name: string, fallback: string) => styles.getPropertyValue(name).trim() || fallback;
     const patternColors = {
       support: token('--color-neon', isDark ? '#3df5a0' : '#0f9d58'),
-      resistance: token('--color-primary', isDark ? '#5b7cff' : '#1e40af'),
+      resistance: token('--color-primary', isDark ? '#35d6a1' : '#1e40af'),
       guide: token('--color-accent', isDark ? '#97abff' : '#7c3aed'),
       invalidation: token('--color-danger', isDark ? '#f1aaaa' : '#dc2626'),
       breach: token('--color-warning', isDark ? '#e6c983' : '#d97706'),

@@ -106,12 +106,12 @@ export function HomePageClient() {
         <div className="pointer-events-none absolute inset-x-0 top-14 mx-auto h-72 max-w-5xl rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.05),transparent_68%)] blur-3xl" />
 
         <div className="relative mx-auto max-w-4xl text-center">
-          <div className="page-inline-badge border border-border-strong bg-surface-overlay text-text-secondary shadow-[0_16px_32px_rgba(0,0,0,0.18)] backdrop-blur-md dark:border-white/15 dark:bg-[rgba(16,24,39,0.9)] dark:text-slate-100">
+          <div className="page-inline-badge border border-border-strong bg-surface-overlay text-text-secondary shadow-[0_16px_32px_rgba(0,0,0,0.18)] backdrop-blur-md">
             <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
             {t("badge")}
           </div>
 
-          <h1 className="mt-6 text-4xl font-bold tracking-tight text-text dark:text-white sm:text-5xl md:text-6xl">
+          <h1 className="mt-6 text-4xl font-bold tracking-tight text-text sm:text-5xl md:text-6xl">
             {t("headline")}
           </h1>
 
@@ -135,7 +135,7 @@ export function HomePageClient() {
             </Link>
           </div>
 
-          <p className="mt-4 text-sm text-text-secondary dark:text-slate-100">{t("microcopy")}</p>
+          <p className="mt-4 text-sm text-text-secondary">{t("microcopy")}</p>
 
           <div className="mx-auto mt-8 grid max-w-4xl gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {stats.map((stat) => (
@@ -143,10 +143,10 @@ export function HomePageClient() {
                 key={stat.label}
                 className="ui-panel-strong ui-elevated-hover rounded-2xl px-4 py-4 text-start backdrop-blur-sm"
               >
-                <strong className="block text-lg font-bold text-text dark:text-white sm:text-xl">
+                <strong className="block text-lg font-bold text-text sm:text-xl">
                   {stat.value}
                 </strong>
-                <span className="mt-1 block text-xs font-medium text-text-muted dark:text-slate-200 sm:text-sm">
+                <span className="mt-1 block text-xs font-medium text-text-muted sm:text-sm">
                   {stat.label}
                 </span>
               </div>
@@ -160,7 +160,7 @@ export function HomePageClient() {
           <p className="text-[12px] font-bold uppercase tracking-[0.18em] text-primary">
             {t("preview.eyebrow")}
           </p>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight text-text dark:text-white sm:text-4xl">
+          <h2 className="mt-3 text-3xl font-bold tracking-tight text-text sm:text-4xl">
             {t("preview.title")}
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-text-secondary">
@@ -168,8 +168,8 @@ export function HomePageClient() {
           </p>
         </div>
 
-        <div className="ui-panel-strong mx-auto mt-8 max-w-6xl rounded-[28px] p-3.5 dark:bg-[rgba(17,24,39,0.98)]">
-          <div className="overflow-hidden rounded-[22px] border border-border-strong bg-surface-raised shadow-[0_24px_60px_rgba(0,0,0,0.24)] dark:border-white/12 dark:bg-[rgb(15,23,42)]">
+        <div className="ui-panel-strong mx-auto mt-8 max-w-6xl rounded-[28px] p-3.5">
+          <div className="overflow-hidden rounded-[22px] border border-border-strong bg-surface-raised shadow-[0_24px_60px_rgba(0,0,0,0.24)]">
             <div className="ui-table-header flex items-center justify-between border-b border-border px-4 py-3">
               <div className="flex items-center gap-2">
                 <span className="h-2.5 w-2.5 rounded-full bg-danger/60" />
@@ -187,13 +187,13 @@ export function HomePageClient() {
             </div>
 
             <div className="grid gap-0 lg:grid-cols-[1.15fr_0.85fr]">
-              <div className="border-b border-border p-5 dark:bg-[rgb(15,23,42)] lg:border-b-0 lg:border-e">
+              <div className="border-b border-border p-5 lg:border-b-0 lg:border-e">
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <p className="text-xs font-bold uppercase tracking-[0.18em] text-text-muted">
                       {t("preview.filtersLabel")}
                     </p>
-                    <h3 className="mt-2 text-xl font-bold text-text dark:text-white">
+                    <h3 className="mt-2 text-xl font-bold text-text">
                       {t("preview.filtersTitle")}
                     </h3>
                   </div>
@@ -216,8 +216,8 @@ export function HomePageClient() {
                         className={clsx(
                           "rounded-2xl border px-4 py-3 transition-all duration-500",
                           active
-                            ? "border-primary/40 bg-primary-soft/80 shadow-[0_14px_28px_rgba(37,99,235,0.12)]"
-                            : "border-border bg-surface-elevated dark:border-white/10 dark:bg-[rgb(24,34,54)]"
+                            ? "border-primary/40 bg-primary-soft/80 shadow-[0_14px_28px_var(--color-primary-ring)]"
+                            : "border-border bg-surface-elevated"
                         )}
                       >
                         <div className="flex items-center justify-between gap-3">
@@ -229,7 +229,7 @@ export function HomePageClient() {
                               "h-5 w-5 rounded-md border transition-colors",
                               active
                                 ? "border-primary bg-primary"
-                                : "border-border-strong bg-surface dark:border-white/12 dark:bg-[rgb(18,26,43)]"
+                                : "border-border-strong bg-surface"
                             )}
                           >
                             {active && (
@@ -249,7 +249,7 @@ export function HomePageClient() {
                     <span>{t("preview.scanProgress")}</span>
                     <span>{previewStep >= 5 ? t("preview.scanDone") : t("preview.scanPreparing")}</span>
                   </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-surface-raised dark:bg-[rgb(10,16,28)]">
+                  <div className="h-2 overflow-hidden rounded-full bg-surface-raised">
                     <div
                       className="h-full rounded-full bg-gradient-to-r from-primary to-primary-hover transition-all duration-700"
                       style={{ width: `${Math.min((previewStep + 1) * 18, 100)}%` }}
@@ -272,13 +272,13 @@ export function HomePageClient() {
                 </div>
               </div>
 
-              <div className="bg-surface-raised p-5 dark:bg-[rgb(15,23,42)]">
+              <div className="bg-surface-raised p-5">
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <p className="text-xs font-bold uppercase tracking-[0.18em] text-text-muted">
                       {t("preview.resultsLabel")}
                     </p>
-                    <h3 className="mt-2 text-xl font-bold text-text dark:text-white">
+                    <h3 className="mt-2 text-xl font-bold text-text">
                       {t("preview.resultsTitle")}
                     </h3>
                   </div>
@@ -287,15 +287,15 @@ export function HomePageClient() {
                   </div>
                 </div>
 
-                <div className="mt-6 overflow-hidden rounded-2xl border border-border-strong shadow-[0_22px_48px_rgba(0,0,0,0.22)] dark:border-white/12">
-                  <div className="grid grid-cols-[1.1fr_0.95fr_0.7fr_0.7fr_0.8fr] gap-2 border-b border-border bg-surface-elevated px-4 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted dark:border-white/10 dark:bg-[rgb(24,34,54)] dark:text-slate-300">
+                <div className="mt-6 overflow-hidden rounded-2xl border border-border-strong shadow-[0_22px_48px_rgba(0,0,0,0.22)]">
+                  <div className="grid grid-cols-[1.1fr_0.95fr_0.7fr_0.7fr_0.8fr] gap-2 border-b border-border bg-surface-elevated px-4 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted">
                     <span>{t("preview.table.ticker")}</span>
                     <span className="text-end">{t("preview.table.close")}</span>
                     <span className="text-center market-inline-ltr">{t("preview.table.sma20")}</span>
                     <span className="text-center market-inline-ltr">{t("preview.table.sma50")}</span>
                     <span>{t("preview.table.sequence")}</span>
                   </div>
-                  <div className="divide-y divide-border bg-surface-raised text-sm dark:divide-white/10 dark:bg-[rgb(18,26,43)]">
+                  <div className="divide-y divide-border bg-surface-raised text-sm">
                     {[
                       {
                         ticker: "AAPL",
@@ -366,7 +366,7 @@ export function HomePageClient() {
                         "rounded-full border px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.16em]",
                         previewStep >= 5
                           ? "border-primary/25 bg-primary-soft text-primary"
-                          : "border-border bg-surface text-text-muted dark:border-white/12 dark:bg-[rgb(18,26,43)] dark:text-slate-300"
+                          : "border-border bg-surface text-text-muted"
                       )}
                     >
                       {previewStep >= 5 ? t("preview.savedScreenDone") : t("preview.savedScreenPending")}
@@ -390,7 +390,7 @@ export function HomePageClient() {
           <p className="text-[12px] font-bold uppercase tracking-[0.18em] text-primary">
             {t("features.eyebrow")}
           </p>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight text-text dark:text-white sm:text-4xl">
+          <h2 className="mt-3 text-3xl font-bold tracking-tight text-text sm:text-4xl">
             {t("features.title")}
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-text-secondary">
@@ -417,7 +417,7 @@ export function HomePageClient() {
             <p className="text-[12px] font-bold uppercase tracking-[0.18em] text-primary">
               {t("saved.eyebrow")}
             </p>
-            <h2 className="mt-3 text-3xl font-bold tracking-tight text-text dark:text-white sm:text-4xl">
+            <h2 className="mt-3 text-3xl font-bold tracking-tight text-text sm:text-4xl">
               {t("saved.title")}
             </h2>
             <p className="mt-4 max-w-2xl text-base leading-relaxed text-text-secondary">
@@ -463,7 +463,7 @@ export function HomePageClient() {
       <section className="pb-16 pt-10 sm:pb-24 sm:pt-16">
         <div className="ui-panel-strong rounded-[32px] px-6 py-10 sm:px-10">
           <div className="mx-auto max-w-3xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-text dark:text-white sm:text-4xl">
+            <h2 className="text-3xl font-bold tracking-tight text-text sm:text-4xl">
               {t("finalCta.title")}
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-text-secondary">
@@ -504,7 +504,7 @@ function FeatureCard({
       <div className={`inline-flex h-11 w-11 items-center justify-center rounded-xl ring-1 ring-white/10 ${colorMap[color]}`}>
         {icon}
       </div>
-      <h3 className="mt-4 font-bold tracking-tight text-text dark:text-white">{title}</h3>
+      <h3 className="mt-4 font-bold tracking-tight text-text">{title}</h3>
       <p className="mt-3 text-sm leading-relaxed text-text-secondary">{description}</p>
     </div>
   );

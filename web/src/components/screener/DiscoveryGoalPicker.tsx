@@ -130,8 +130,8 @@ export function DiscoveryGoalPicker({
               className={clsx(
                 "group min-w-[78%] snap-start rounded-2xl border p-4 text-start transition-all md:min-w-0",
                 active
-                  ? "border-primary/45 bg-primary-soft shadow-[0_10px_28px_rgba(37,99,235,0.12)] dark:border-[#6f8bff]/55 dark:bg-[#18294b]"
-                  : "ui-panel-subtle hover:-translate-y-0.5 hover:border-border-strong dark:hover:bg-[#203149]",
+                  ? "border-primary/45 bg-primary-soft shadow-[0_10px_28px_var(--color-primary-ring)]"
+                  : "ui-panel-subtle hover:-translate-y-0.5 hover:border-border-strong",
                 (!available || !!loadingGoal) && "cursor-not-allowed opacity-55"
               )}
             >

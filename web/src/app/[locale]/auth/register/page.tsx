@@ -105,7 +105,7 @@ export default function RegisterPage() {
                 className={clsx(
                   "market-auth-plan rounded-2xl border p-4 text-start transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                   selected
-                    ? "border-primary/45 bg-primary-soft shadow-[0_16px_30px_rgba(37,99,235,0.12)]"
+                    ? "border-primary/45 bg-primary-soft shadow-[0_16px_30px_var(--color-primary-ring)]"
                     : "border-border bg-surface-elevated hover:border-border-strong hover:bg-surface-hover"
                 )}
                 aria-pressed={selected}

@@ -134,7 +134,7 @@ function NotificationItem({
             href={notification.url}
             target="_blank"
             rel="noreferrer"
-            className="mt-2 inline-flex text-[11px] font-semibold text-text-secondary hover:text-text hover:underline dark:text-slate-200 dark:hover:text-white"
+            className="mt-2 inline-flex text-[11px] font-semibold text-text-secondary hover:text-text hover:underline"
           >
             {notification.linkLabel ?? notification.source ?? t("notifications.openArticle")}
           </a>

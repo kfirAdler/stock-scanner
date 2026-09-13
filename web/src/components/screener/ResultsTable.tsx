@@ -151,7 +151,7 @@ function SmaPill({
   if (above) {
     return (
       <span
-        className="inline-flex min-h-7 min-w-7 items-center justify-center rounded-full bg-success-soft px-2 py-0.5 text-[10px] font-bold text-success ring-1 ring-success/20 dark:border dark:border-[#4fb97f]/28 dark:bg-[#183528] dark:text-[#8ee0b2]"
+        className="inline-flex min-h-7 min-w-7 items-center justify-center rounded-full border border-success/25 bg-success-soft px-2 py-0.5 text-[10px] font-bold text-success ring-1 ring-success/20"
         title={aboveLabel}
       >
         ↑
@@ -162,7 +162,7 @@ function SmaPill({
   if (below) {
     return (
       <span
-        className="inline-flex min-h-7 min-w-7 items-center justify-center rounded-full bg-danger-soft px-2 py-0.5 text-[10px] font-bold text-danger ring-1 ring-danger/20 dark:border dark:border-[#d77d7d]/28 dark:bg-[#3a1f24] dark:text-[#ffb0a8]"
+        className="inline-flex min-h-7 min-w-7 items-center justify-center rounded-full border border-danger/25 bg-danger-soft px-2 py-0.5 text-[10px] font-bold text-danger ring-1 ring-danger/20"
         title={belowLabel}
       >
         ↓
@@ -178,28 +178,28 @@ function SignalBadge({ row }: { row: ScreenerResultRow }) {
 
   if (row.strong_buy_signal) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-success ring-1 ring-success/15 dark:border dark:border-[#4fb97f]/30 dark:bg-[#183528] dark:text-[#8ee0b2]">
+      <span className="inline-flex items-center gap-1 rounded-full border border-success/25 bg-success-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-success ring-1 ring-success/15">
         ▲▲ {t("workspace.cards.strongBullish")}
       </span>
     );
   }
   if (row.buy_signal) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-success ring-1 ring-success/15 dark:border dark:border-[#4fb97f]/30 dark:bg-[#183528] dark:text-[#8ee0b2]">
+      <span className="inline-flex items-center gap-1 rounded-full border border-success/25 bg-success-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-success ring-1 ring-success/15">
         ▲ {t("workspace.cards.bullishBreak")}
       </span>
     );
   }
   if (row.strong_sell_signal) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-danger-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-danger ring-1 ring-danger/15 dark:border dark:border-[#d77d7d]/30 dark:bg-[#3a1f24] dark:text-[#ffb0a8]">
+      <span className="inline-flex items-center gap-1 rounded-full border border-danger/25 bg-danger-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-danger ring-1 ring-danger/15">
         ▼▼ {t("workspace.cards.strongBearish")}
       </span>
     );
   }
   if (row.sell_signal) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-danger-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-danger ring-1 ring-danger/15 dark:border dark:border-[#d77d7d]/30 dark:bg-[#3a1f24] dark:text-[#ffb0a8]">
+      <span className="inline-flex items-center gap-1 rounded-full border border-danger/25 bg-danger-soft px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-danger ring-1 ring-danger/15">
         ▼ {t("workspace.cards.bearishBreak")}
       </span>
     );
@@ -224,10 +224,10 @@ function SignalBadge({ row }: { row: ScreenerResultRow }) {
 function snapshotMatrixTone(snapshot: ScannerResultSnapshot | null | undefined) {
   if (!snapshot) return "border-border bg-surface-elevated text-text-muted";
   if (snapshot.strong_buy_signal || snapshot.buy_signal || snapshot.bullish_sequence_active) {
-    return "border-success/30 bg-success-soft text-success dark:border-[#4fb97f]/30 dark:bg-[#183528] dark:text-[#8ee0b2]";
+    return "border-success/30 bg-success-soft text-success";
   }
   if (snapshot.strong_sell_signal || snapshot.sell_signal || snapshot.bearish_sequence_active) {
-    return "border-danger/30 bg-danger-soft text-danger dark:border-[#d77d7d]/30 dark:bg-[#3a1f24] dark:text-[#ffb0a8]";
+    return "border-danger/30 bg-danger-soft text-danger";
   }
   return "border-border-strong bg-surface-alt text-text-secondary";
 }
