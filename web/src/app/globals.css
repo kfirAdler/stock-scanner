@@ -1,6 +1,13 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Keep compact interface copy readable across the screener and the rest of the app. */
+.text-\[9px\],
+.text-\[10px\],
+.text-\[11px\] {
+  font-size: 0.75rem;
+}
+
 /* Keep color utilities as CSS variables so .dark overrides work at runtime. */
 @theme {
   --color-primary: #1e40af;
