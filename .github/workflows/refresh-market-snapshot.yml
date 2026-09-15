@@ -5,16 +5,21 @@
 name: Refresh all stocks and patterns
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/refresh-market-snapshot.yml"
+      - "services/scanner/**"
   schedule:
     # --- US: NYSE/NASDAQ regular session Mon-Fri ---
     # GitHub Actions schedule is UTC.
-    # Simplified cadence during US market hours to lower API/Supabase usage.
-    # Use non-zero minute offsets because GitHub cron is less reliable exactly
-    # at the top of the hour under load.
-    # Roughly 16:37-23:07 Israel time, without extra DST-specific branching.
-    - cron: "37 13 * * 1-5"
-    - cron: "7 14-20 * * 1-5"
-    - cron: "7 21 * * 1-5"
+    # Two off-hour-minute opportunities each hour make a dropped schedule less
+    # likely. The recent-full-scan guard below limits expensive work to about
+    # one full run per hour even when both events arrive.
+    - cron: "43 13 * * 1-5"
+    - cron: "13,43 14-20 * * 1-5"
+    - cron: "13 21 * * 1-5"
   workflow_dispatch:
     inputs:
       tickers:
@@ -29,7 +34,6 @@ on:
           - us
           - ta
         default: all
-
 concurrency:
   group: refresh-market-snapshot
   cancel-in-progress: false
@@ -78,8 +82,8 @@ jobs:
           elif [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
             python run_refresh.py --universe "${GHA_REFRESH_UNIVERSE:-all}"
           else
-            # Scheduled runs always refresh the complete S&P 500 + TA-125 universe.
-            python run_refresh.py --universe all
+            # Scheduled and scanner-code push runs refresh the full universe.
+            python run_refresh.py --universe all --skip-if-recent-full-minutes 50
           fi
 
       - name: Check alert triggers

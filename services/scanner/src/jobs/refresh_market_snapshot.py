@@ -10,6 +10,7 @@ from ..repositories.market_data_repository import (
     enforce_retention,
     get_latest_trade_date,
     get_ticker_history_for_timeframe,
+    has_recent_full_scan,
     log_scan_run,
     upsert_bars,
     upsert_snapshots,
@@ -35,21 +36,36 @@ def run(
     tickers: list[str] | None = None,
     *,
     universe: str = "all",
+    skip_if_recent_full_minutes: int = 0,
 ) -> dict:
     started_at = datetime.utcnow()
     logger.info("Starting %s at %s", JOB_NAME, started_at.isoformat())
+
+    if tickers is None:
+        tickers = tickers_for_refresh_universe(universe)
+
+    total = len(tickers)
+    if skip_if_recent_full_minutes > 0 and tickers and universe == "all":
+        cutoff = started_at - timedelta(minutes=skip_if_recent_full_minutes)
+        if has_recent_full_scan(total_symbols=total, since=cutoff):
+            logger.info("Skipping duplicate full refresh; another scan started recently")
+            return {
+                "status": "skipped_recent",
+                "total": total,
+                "processed": 0,
+                "failed": 0,
+                "pattern_error": None,
+                "duration_seconds": 0,
+            }
 
     log_scan_run(
         job_name=JOB_NAME,
         timeframe="ALL",
         status="running",
         started_at=started_at,
+        total_symbols=total,
     )
 
-    if tickers is None:
-        tickers = tickers_for_refresh_universe(universe)
-
-    total = len(tickers)
     processed = 0
     failed = 0
     errors: list[str] = []
