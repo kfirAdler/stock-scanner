@@ -14,12 +14,11 @@ on:
   schedule:
     # --- US: NYSE/NASDAQ regular session Mon-Fri ---
     # GitHub Actions schedule is UTC.
-    # Two off-hour-minute opportunities each hour make a dropped schedule less
-    # likely. The recent-full-scan guard below limits expensive work to about
-    # one full run per hour even when both events arrive.
-    - cron: "43 13 * * 1-5"
-    - cron: "13,43 14-20 * * 1-5"
-    - cron: "13 21 * * 1-5"
+    # GitHub can delay or drop scheduled events. Retry at staggered quarter-hour
+    # offsets; the recent-full-scan guard limits expensive work to about hourly.
+    # The early attempt gives a delayed event a chance to arrive near US open.
+    - cron: "37 12 * * 1-5"
+    - cron: "7,22,37,52 13-21 * * 1-5"
   workflow_dispatch:
     inputs:
       tickers:
@@ -69,6 +68,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run refresh job
+        id: refresh
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
@@ -87,12 +87,14 @@ jobs:
           fi
 
       - name: Check alert triggers
+        if: steps.refresh.outputs.did_scan == 'true'
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: python run_alert_check.py
 
       - name: Store market news headline
+        if: steps.refresh.outputs.did_scan == 'true'
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}

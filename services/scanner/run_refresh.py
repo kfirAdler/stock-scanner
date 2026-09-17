@@ -4,6 +4,7 @@
 import argparse
 import json
 import logging
+import os
 import sys
 
 logging.basicConfig(
@@ -43,7 +44,28 @@ def main():
             skip_if_recent_full_minutes=max(0, args.skip_if_recent_full_minutes),
         )
     print(json.dumps(result, indent=2))
-    sys.exit(0 if result["failed"] == 0 else 1)
+
+    status = result["status"]
+    did_scan = status != "skipped_recent"
+    summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+    if summary_path:
+        outcome = "Skipped: a full scan started recently" if not did_scan else status.replace("_", " ").capitalize()
+        with open(summary_path, "a", encoding="utf-8") as summary:
+            summary.write(
+                "### Market refresh\n\n"
+                f"- Outcome: {outcome}\n"
+                f"- Stocks processed: {result['processed']} / {result['total']}\n"
+                f"- Stocks failed: {result['failed']}\n"
+            )
+            if result.get("pattern_error"):
+                summary.write("- Pattern snapshots: failed (see job log)\n")
+
+    output_path = os.environ.get("GITHUB_OUTPUT")
+    if output_path:
+        with open(output_path, "a", encoding="utf-8") as output:
+            output.write(f"did_scan={'true' if did_scan else 'false'}\n")
+
+    sys.exit(0 if status in ("completed", "skipped_recent") else 1)
 
 
 if __name__ == "__main__":
