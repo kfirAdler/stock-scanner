@@ -17,6 +17,7 @@ import { LookupActionsBar } from "./LookupActionsBar";
 import { MatchedConditionsPanel } from "./MatchedConditionsPanel";
 import { SimilarStocksTable } from "./SimilarStocksTable";
 import { StockLookupHeader } from "./StockLookupHeader";
+import { LookupPatternSection } from "./LookupPatternSection";
 import { StockNewsPanel } from "./StockNewsPanel";
 import { TechnicalSummaryPanel } from "./TechnicalSummaryPanel";
 import type {
@@ -925,6 +926,7 @@ export function StockLookupClient() {
         {coverage && !loadingCoverage ? (
           <>
             <StockLookupHeader
+              key={coverage.ticker}
               coverage={coverage}
               dailyChangePct={dailyChangePct}
               overallTone={overallTone}
@@ -935,6 +937,8 @@ export function StockLookupClient() {
               formatMarketCap={compactNumber}
               t={t}
             />
+
+            <LookupPatternSection coverage={coverage} t={t} />
 
             <div className="grid gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(300px,0.75fr)]">
               <TechnicalSummaryPanel

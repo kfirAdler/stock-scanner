@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { assertFullMarketDataAccess } from "@/lib/market-access";
 import { createServiceClient } from "@/lib/supabase/server";
 import { buildStockLookupCoverage } from "@/lib/stock-search-coverage";
+import { loadPatternPeers } from "@/lib/patterns/data";
+import { scanSeries } from "@/lib/patterns/engine/scan.mjs";
+import { channelDirectionOf, type PatternMatch, type PatternCandle } from "@/lib/patterns/types";
 import type { ScreenerTimeframe, SnapshotRow } from "@/lib/screener-types";
 
 const SNAPSHOT_SELECT = [
@@ -106,10 +109,10 @@ export async function GET(
       .maybeSingle(),
     supabase
       .from("market_raw_data")
-      .select("trade_date,close")
+      .select("trade_date,open,high,low,close,volume")
       .eq("ticker", upper)
       .order("trade_date", { ascending: false })
-      .limit(60),
+      .limit(160),
   ]);
 
   if (snapRes.error) {
@@ -136,10 +139,46 @@ export async function GET(
   const barCount = countRes.count ?? 0;
   const { indicators, screenerFilters } = buildStockLookupCoverage(row, barCount);
   const timeframeSnapshots = groupSnapshotsByTimeframe((timeframeRes.data ?? []) as unknown as SnapshotRow[]);
+  const recentBars = (recentBarsRes.data ?? []).filter((bar) => {
+    const values = [bar.open, bar.high, bar.low, bar.close].map(Number);
+    const [open, high, low, close] = values;
+    return values.every((value) => Number.isFinite(value) && value > 0) &&
+      high >= Math.max(open, close, low) && low <= Math.min(open, close);
+  });
+  const market = row.market === "TA" ? "TA" : "US";
+  const candles: PatternCandle[] = recentBars.map((bar) => ({
+    date: bar.trade_date,
+    open: Number(bar.open),
+    high: Number(bar.high),
+    low: Number(bar.low),
+    close: Number(bar.close),
+  }));
+  const analysis = scanSeries([{ ticker: upper, candles }])[0];
+  const matches = (analysis?.matches ?? []).filter((match) => match.confidence >= 0.7)
+    .sort((a, b) => b.confidence - a.confidence);
+  let patternPeers: { ticker: string; companyName: string | null; confidence: number; asOf: string | null }[] = [];
+  if (matches.length > 0) {
+    try {
+      const primary = matches[0];
+      const rows = await loadPatternPeers(market);
+      patternPeers = rows.flatMap((peer) => {
+        if (peer.ticker === upper || !peer.as_of || Date.now() - Date.parse(peer.as_of) > 7 * 86400000) return [];
+        const comparable = peer.matches.find((candidate: PatternMatch) =>
+          candidate.pattern === primary.pattern &&
+          (primary.pattern !== 'channel' || channelDirectionOf(candidate) === channelDirectionOf(primary)) &&
+          Math.abs(candidate.confidence - primary.confidence) <= 0.050001);
+        return comparable ? [{ ticker: peer.ticker, companyName: peer.company_name,
+          confidence: comparable.confidence, asOf: peer.as_of }] : [];
+      }).sort((a, b) => Math.abs(a.confidence - primary.confidence) - Math.abs(b.confidence - primary.confidence))
+        .slice(0, 8);
+    } catch (error) {
+      console.error('Pattern peers unavailable', error);
+    }
+  }
 
   return NextResponse.json({
     ticker: upper,
-    market: row.market ?? "US",
+    market,
     barCount,
     snapshot: {
       close: row.close,
@@ -147,7 +186,8 @@ export async function GET(
     },
     dailySnapshot: row,
     timeframeSnapshots,
-    recentBars: recentBarsRes.data ?? [],
+    recentBars,
+    patterns: { asOf: analysis?.as_of ?? null, matches, peers: patternPeers },
     metadata: metaRes.data ?? null,
     indicators,
     screenerFilters,

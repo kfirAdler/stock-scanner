@@ -12,9 +12,9 @@ const pct = (a, b) => Math.abs(a - b) / ((a + b) / 2);
 //    support across pivot lows, with price still coiled between converging lines.
 // ---------------------------------------------------------------------------
 export function detectAscendingTriangle(candles, lookback = 90, opts = {}) {
-    const FLAT_TOLERANCE = opts.flatTolerance ?? 0.02; // pivot highs within 2% of each other
-    const MIN_TOUCHES = 2; // per line
-    const MIN_RISE_R2 = opts.minRiseR2 ?? 0.72; // lows must fit a rising line reasonably well
+    const FLAT_TOLERANCE = opts.flatTolerance ?? 0.035;
+    const SUPPORT_TOUCH_TOLERANCE = 0.035;
+    const SUPPORT_BREACH_TOLERANCE = opts.breachTolerance ?? 0.01;
     const MAX_DIST_FROM_RESISTANCE = 0.06; // last close within 6% below resistance
     const window = candles.slice(-lookback);
     if (window.length < 40)
@@ -22,7 +22,7 @@ export function detectAscendingTriangle(candles, lookback = 90, opts = {}) {
     const pivots = findPivots(window, 3);
     const highs = pivots.filter((p) => p.kind === "high");
     const lows = pivots.filter((p) => p.kind === "low");
-    if (highs.length < MIN_TOUCHES || lows.length < MIN_TOUCHES)
+    if (highs.length < 3 || lows.length < 3)
         return null;
     // Cluster the top pivot highs to preserve the ascending-triangle rule, then
     // fit their actual edge. A perfectly horizontal average hides the wedge
@@ -41,40 +41,57 @@ export function detectAscendingTriangle(candles, lookback = 90, opts = {}) {
     const touchIdx = top.map((p) => p.index);
     if (Math.max(...touchIdx) - Math.min(...touchIdx) < 20)
         return null;
-    // Rising support: linear fit through recent pivot lows.
-    const recentLows = lows.slice(-4);
-    const fit = linearFit(recentLows);
-    if (fit.slope <= 0 || fit.r2 < MIN_RISE_R2)
-        return null;
     const lastIdx = window.length - 1;
     const resistanceAtLast = resistanceFit.slope * lastIdx + resistanceFit.intercept;
-    // Both edges must converge. This excludes rising wedges whose upper edge
-    // climbs as fast as (or faster than) support.
-    if (resistanceFit.slope >= fit.slope)
-        return null;
-    // The fit only touches 4 pivot lows, then gets extrapolated all the way to
-    // the last bar for drawing — if price actually dipped below that
-    // projection in between, it isn't a support line the market is still
-    // respecting, and drawing it would slice through those candles.
-    const SUPPORT_BREACH_TOLERANCE = opts.breachTolerance ?? 0.01; // wiggle room for wicks
-    for (let i = recentLows[0].index; i <= lastIdx; i++) {
-        const projected = fit.slope * i + fit.intercept;
-        if (window[i].low < projected * (1 - SUPPORT_BREACH_TOLERANCE))
-            return null;
-    }
     const lastClose = window[window.length - 1].close;
     if (lastClose > resistanceAtLast)
         return null; // already broken out
     if ((resistanceAtLast - lastClose) / resistanceAtLast > MAX_DIST_FROM_RESISTANCE)
         return null; // too far from the apex to be actionable
     const firstHighIdx = Math.min(...touchIdx);
+    // A least-squares fit to the last four lows can be pulled through the
+    // candles by one high swing low. Find a rising lower envelope instead:
+    // at least three pivot touches, spread over time, and no later wick below it.
+    let support = null;
+    for (let a = 0; a < lows.length; a++) {
+        const first = lows[a];
+        if (first.index < firstHighIdx) continue;
+        for (let b = a + 1; b < lows.length; b++) {
+            const second = lows[b];
+            const span = second.index - first.index;
+            if (span < 20 || second.index < lastIdx - 25) continue;
+            const slope = (second.price - first.price) / span;
+            if (slope <= 0 || slope <= resistanceFit.slope) continue;
+            const projected = (index) => first.price + slope * (index - first.index);
+            if (projected(lastIdx) >= resistanceAtLast * 0.98) continue;
+            if (projected(first.index) >= resistanceFit.slope * first.index + resistanceFit.intercept) continue;
+            let breached = false;
+            for (let i = first.index; i <= lastIdx; i++) {
+                if (window[i].low < projected(i) * (1 - SUPPORT_BREACH_TOLERANCE)) {
+                    breached = true;
+                    break;
+                }
+            }
+            if (breached) continue;
+            const touches = lows.filter((pivot) => pivot.index >= first.index &&
+                Math.abs(pivot.price - projected(pivot.index)) / projected(pivot.index) <= SUPPORT_TOUCH_TOLERANCE).length;
+            if (touches < 3) continue;
+            const flatQuality = 1 - Math.max(...top.map((p) => pct(p.price, resistance))) / FLAT_TOLERANCE;
+            const proximity = 1 - (resistanceAtLast - lastClose) / (resistanceAtLast * MAX_DIST_FROM_RESISTANCE);
+            const confidence = Math.min(0.99, 0.4 + 0.18 * flatQuality +
+                0.2 * Math.min(1, touches / 4) + 0.12 * proximity +
+                0.1 * Math.min(1, span / 40));
+            if (!support || confidence > support.confidence)
+                support = { first, slope, projected, touches, confidence };
+        }
+    }
+    if (!support)
+        return null;
     const offset = candles.length - window.length; // map back to full-series idx
-    const confidence = 0.5 * fit.r2 +
-        0.5 * (1 - Math.max(...top.map((p) => pct(p.price, resistance))) / FLAT_TOLERANCE);
     return {
         pattern: "ascending_triangle",
         patternLabel: "Ascending triangle",
-        confidence: Math.round(confidence * 100) / 100,
+        confidence: Math.round(support.confidence * 100) / 100,
         lines: [
             {
                 x1: firstHighIdx + offset,
@@ -85,17 +102,17 @@ export function detectAscendingTriangle(candles, lookback = 90, opts = {}) {
                 style: "resistance",
             },
             {
-                x1: recentLows[0].index + offset,
-                y1: fit.slope * recentLows[0].index + fit.intercept,
+                x1: support.first.index + offset,
+                y1: support.first.price,
                 x2: lastIdx + offset,
-                y2: fit.slope * lastIdx + fit.intercept,
+                y2: support.projected(lastIdx),
                 label: "Rising support",
                 style: "support",
             },
         ],
         breakoutLevel: resistanceAtLast,
-        invalidationLevel: fit.slope * lastIdx + fit.intercept,
-        notes: `Resistance near ${resistanceAtLast.toFixed(2)} with rising lows (R²=${fit.r2.toFixed(2)}). Watch a close above resistance.`,
+        invalidationLevel: support.projected(lastIdx),
+        notes: `Resistance near ${resistanceAtLast.toFixed(2)} with ${support.touches} rising support touches. Watch a close above resistance.`,
     };
 }
 // ---------------------------------------------------------------------------

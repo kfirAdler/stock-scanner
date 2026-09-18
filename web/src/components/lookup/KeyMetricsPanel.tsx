@@ -90,6 +90,7 @@ export function KeyMetricsPanel({
 
   // 60-bar close range position.
   const closes = coverage.recentBars
+    .slice(0, 60)
     .map((bar) => Number(bar.close))
     .filter((value) => Number.isFinite(value));
   const rangeHigh = closes.length ? Math.max(...closes) : null;

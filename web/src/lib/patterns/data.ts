@@ -1,6 +1,6 @@
 import 'server-only';
 import { createServiceClient } from '@/lib/supabase/server';
-import type { PatternSnapshot } from './types';
+import type { PatternMatch, PatternSnapshot } from './types';
 
 // Bounded cache with concurrent request coalescing. Auth is checked outside it.
 // Each server instance may make its own cold read; failures are never cached.
@@ -43,5 +43,31 @@ export function loadLastPatternAttempt() {
   })();
   attemptCache = { expires: Date.now() + 300_000, value };
   void value.catch(() => { if (attemptCache?.value === value) attemptCache = undefined; });
+  return value;
+}
+
+export type PatternPeerRow = {
+  ticker: string;
+  company_name: string | null;
+  as_of: string | null;
+  matches: PatternMatch[];
+};
+
+// The lookup only needs fit scores, never the large candle arrays stored for
+// chart previews. Share this slim read across lookup visitors for five minutes.
+const peerCache = new Map<string, { expires: number; value: Promise<PatternPeerRow[]> }>();
+export function loadPatternPeers(market: 'US' | 'TA'): Promise<PatternPeerRow[]> {
+  const existing = peerCache.get(market);
+  if (existing && existing.expires > Date.now()) return existing.value;
+  const value = (async () => {
+    const db = await createServiceClient();
+    const { data, error } = await db.from('symbol_pattern_snapshot')
+      .select('ticker,company_name,as_of,matches').eq('market', market)
+      .eq('status', 'scanned').limit(1000);
+    if (error) throw new Error('Pattern peer read failed', { cause: error });
+    return (data ?? []) as PatternPeerRow[];
+  })();
+  peerCache.set(market, { expires: Date.now() + 300_000, value });
+  void value.catch(() => { if (peerCache.get(market)?.value === value) peerCache.delete(market); });
   return value;
 }

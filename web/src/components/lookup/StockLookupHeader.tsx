@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { clsx } from "clsx";
 import { useLocale } from "next-intl";
 import { TradingViewAdvancedChart } from "@/components/chart/TradingViewAdvancedChart";
 import { Link } from "@/i18n/navigation";
 import { tradingViewSymbol } from "@/lib/screener-query";
+import { LookupAnnotatedChart } from "./LookupAnnotatedChart";
 import type { LookupCoveragePayload, TrendTone } from "./types";
 
 type HeaderBadge = {
@@ -44,6 +46,9 @@ export function StockLookupHeader({
   t,
 }: StockLookupHeaderProps) {
   const locale = useLocale();
+  const [chartTab, setChartTab] = useState<"tradingview" | "annotated">(
+    coverage.patterns.matches.length > 0 ? "annotated" : "tradingview"
+  );
   const meta = coverage.metadata;
   const tvSymbol = tradingViewSymbol(coverage.ticker, meta?.listing_exchange);
   const summaryCards = [
@@ -124,14 +129,33 @@ export function StockLookupHeader({
         <div className="min-w-0 p-3 md:p-4">
           <div className="mb-3 flex items-center justify-between gap-3 px-1">
             <div>
-              <p className="text-sm font-bold text-text">{t("workspace.tradingViewChart")}</p>
-              <p className="text-xs text-text-muted">{t("workspace.chartSubtitle")}</p>
+              <p className="text-sm font-bold text-text">{chartTab === "annotated" ? t("workspace.annotatedChart") : t("workspace.tradingViewChart")}</p>
+              <p className="text-xs text-text-muted">{chartTab === "annotated" ? t("workspace.annotatedChartSub") : t("workspace.chartSubtitle")}</p>
             </div>
             <Link href={`/ticker/${coverage.ticker}`} className="link-hover text-xs font-bold text-primary">
               {t("workspace.openFullChart")}
             </Link>
           </div>
-          <TradingViewAdvancedChart symbol={tvSymbol} height={390} locale={locale} compact />
+          <div role="tablist" className="mb-3 flex w-fit gap-1 rounded-xl bg-surface-alt p-1 ring-1 ring-border">
+            <button type="button" role="tab" aria-selected={chartTab === "annotated"}
+              onClick={() => setChartTab("annotated")}
+              className={clsx("rounded-lg px-3 py-1.5 text-xs font-bold", chartTab === "annotated" ? "bg-surface-elevated text-text shadow-sm" : "text-text-muted")}>
+              {t("workspace.annotatedChart")}
+            </button>
+            <button type="button" role="tab" aria-selected={chartTab === "tradingview"}
+              onClick={() => setChartTab("tradingview")}
+              className={clsx("rounded-lg px-3 py-1.5 text-xs font-bold", chartTab === "tradingview" ? "bg-surface-elevated text-text shadow-sm" : "text-text-muted")}>
+              TradingView
+            </button>
+          </div>
+          {chartTab === "annotated" ? (
+            <LookupAnnotatedChart bars={coverage.recentBars} match={coverage.patterns.matches[0] ?? null} t={t} />
+          ) : (
+            <>
+              <TradingViewAdvancedChart symbol={tvSymbol} height={430} locale={locale} compact drawingTools />
+              <p className="mt-2 px-1 text-xs text-text-muted">{t("workspace.tradingViewDrawingHint")}</p>
+            </>
+          )}
         </div>
       </div>
     </section>

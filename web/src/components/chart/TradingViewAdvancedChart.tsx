@@ -43,6 +43,7 @@ interface TradingViewAdvancedChartProps {
   studiesKey?: string;
   locale?: string;
   compact?: boolean;
+  drawingTools?: boolean;
 }
 
 export function TradingViewAdvancedChart({
@@ -52,6 +53,7 @@ export function TradingViewAdvancedChart({
   studiesKey,
   locale = "en",
   compact = false,
+  drawingTools = false,
 }: TradingViewAdvancedChartProps) {
   const reactId = useId().replace(/:/g, "");
   const containerId = `tv_chart_${reactId}`;
@@ -104,7 +106,7 @@ export function TradingViewAdvancedChart({
           toolbar_bg: theme === "dark" ? "#131722" : "#f1f3f6",
           enable_publishing: false,
           allow_symbol_change: false,
-          hide_side_toolbar: compact,
+          hide_side_toolbar: compact && !drawingTools,
           hide_top_toolbar: compact,
           hide_legend: compact,
           hide_volume: compact,
@@ -135,7 +137,7 @@ export function TradingViewAdvancedChart({
         activeContainer.innerHTML = "";
       }
     };
-  }, [symbol, height, resolvedTheme, studiesDep, containerId, tvLocale, compact]);
+  }, [symbol, height, resolvedTheme, studiesDep, containerId, tvLocale, compact, drawingTools]);
 
   if (scriptErrorSymbol === symbol) {
     return (

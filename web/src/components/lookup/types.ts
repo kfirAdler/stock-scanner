@@ -1,4 +1,5 @@
 import type { ScreenerPayload, ScreenerResultRow, ScreenerRule, ScreenerTimeframe, SnapshotRow } from "@/lib/screener-types";
+import type { PatternMatch } from "@/lib/patterns/types";
 
 export type AccessGate = null | "login" | "subscribe";
 
@@ -22,7 +23,18 @@ export type FilterCoverageRow = CoverageEntry & {
 
 export type RecentBar = {
   trade_date: string;
+  open: number;
+  high: number;
+  low: number;
   close: number;
+  volume: number;
+};
+
+export type LookupPatternPeer = {
+  ticker: string;
+  companyName: string | null;
+  confidence: number;
+  asOf: string | null;
 };
 
 export type LookupMetadata = {
@@ -43,6 +55,7 @@ export type LookupCoveragePayload = {
   dailySnapshot: SnapshotRow;
   timeframeSnapshots: Partial<Record<ScreenerTimeframe, SnapshotRow | null>>;
   recentBars: RecentBar[];
+  patterns: { asOf: string | null; matches: PatternMatch[]; peers: LookupPatternPeer[] };
   metadata: LookupMetadata | null;
   indicators: CoverageEntry[];
   screenerFilters: FilterCoverageRow[];

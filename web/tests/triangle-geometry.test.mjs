@@ -40,3 +40,21 @@ test('an expanding wedge is not labeled as an ascending triangle', () => {
   }));
   assert.equal(detectAscendingTriangle(candles), null);
 });
+
+test('a noisy swing low does not hide a respected rising support edge', () => {
+  const candles = convergingTriangle();
+  // A single high local low would pull a least-squares support line through
+  // later candles, even though the lower envelope remains intact.
+  candles[72] = {
+    ...candles[72],
+    open: candles[72].open + 4,
+    high: candles[72].high + 4,
+    low: candles[72].low + 4,
+    close: candles[72].close + 4,
+  };
+  const match = detectAscendingTriangle(candles);
+  assert.ok(match);
+  assert.ok(match.confidence >= 0.7);
+  const support = match.lines.find(line => line.style === 'support');
+  assert.ok(support.y2 > support.y1);
+});
