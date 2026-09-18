@@ -417,20 +417,3 @@ def log_scan_run(
         record["error_message"] = error_message
 
     client.table("scan_runs").insert(record).execute()
-
-
-def has_recent_full_scan(*, total_symbols: int, since: datetime) -> bool:
-    """One small read to avoid repeating a complete universe refresh."""
-    client = _get_client()
-    result = (
-        client.table("scan_runs")
-        .select("id")
-        .eq("job_name", "refresh_market_snapshot")
-        .eq("timeframe", "ALL")
-        .gte("total_symbols", total_symbols)
-        .gte("started_at", since.isoformat())
-        .in_("status", ["running", "completed"])
-        .limit(1)
-        .execute()
-    )
-    return bool(result.data)

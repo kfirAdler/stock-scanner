@@ -5,20 +5,16 @@
 name: Refresh all stocks and patterns
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - ".github/workflows/refresh-market-snapshot.yml"
-      - "services/scanner/**"
   schedule:
     # --- US: NYSE/NASDAQ regular session Mon-Fri ---
     # GitHub Actions schedule is UTC.
-    # GitHub can delay or drop scheduled events. Retry at staggered quarter-hour
-    # offsets; the recent-full-scan guard limits expensive work to about hourly.
-    # The early attempt gives a delayed event a chance to arrive near US open.
-    - cron: "37 12 * * 1-5"
-    - cron: "7,22,37,52 13-21 * * 1-5"
+    # Simplified cadence during US market hours to lower API/Supabase usage.
+    # Use non-zero minute offsets because GitHub cron is less reliable exactly
+    # at the top of the hour under load.
+    # Roughly 16:37-23:07 Israel time, without extra DST-specific branching.
+    - cron: "37 13 * * 1-5"
+    - cron: "7 14-20 * * 1-5"
+    - cron: "7 21 * * 1-5"
   workflow_dispatch:
     inputs:
       tickers:
@@ -33,6 +29,7 @@ on:
           - us
           - ta
         default: all
+
 concurrency:
   group: refresh-market-snapshot
   cancel-in-progress: false
@@ -68,7 +65,6 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run refresh job
-        id: refresh
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
@@ -82,19 +78,17 @@ jobs:
           elif [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
             python run_refresh.py --universe "${GHA_REFRESH_UNIVERSE:-all}"
           else
-            # Scheduled and scanner-code push runs refresh the full universe.
-            python run_refresh.py --universe all --skip-if-recent-full-minutes 50
+            # Scheduled runs always refresh the complete S&P 500 + TA-125 universe.
+            python run_refresh.py --universe all
           fi
 
       - name: Check alert triggers
-        if: steps.refresh.outputs.did_scan == 'true'
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: python run_alert_check.py
 
       - name: Store market news headline
-        if: steps.refresh.outputs.did_scan == 'true'
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
