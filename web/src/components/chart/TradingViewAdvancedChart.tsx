@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { useTheme } from "next-themes";
 import type { TvStudySpec } from "@/lib/screener-query";
 
-type TvWidget = { remove?: () => void };
+type TvWidget = { id?: string; iframe?: HTMLIFrameElement; remove?: () => void };
 
 declare global {
   interface Window {
@@ -65,11 +65,20 @@ export function TradingViewAdvancedChart({
   const tvLocale = locale === "he" ? "he_IL" : "en";
   const studiesDep = studiesKey ?? JSON.stringify(studies);
 
+  // tv.js remove() looks up its iframe by ID and assumes it still has a
+  // parentNode. React may have already detached it during a passive cleanup.
+  const removeWidget = useCallback(() => {
+    const widget = widgetRef.current;
+    widgetRef.current = null;
+    const iframe = widget?.id ? document.getElementById(widget.id) : widget?.iframe;
+    if (iframe?.parentNode) widget?.remove?.();
+  }, []);
+
   useEffect(() => {
     studiesRef.current = studies;
   }, [studies, studiesDep]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     let cancelled = false;
     let rafId = 0;
     let activeContainer: HTMLDivElement | null = null;
@@ -88,9 +97,8 @@ export function TradingViewAdvancedChart({
 
         const el = containerRef.current;
         activeContainer = el;
-        widgetRef.current?.remove?.();
-        widgetRef.current = null;
-        el.innerHTML = "";
+        removeWidget();
+        el.replaceChildren();
 
         const theme = resolvedTheme === "dark" ? "dark" : "light";
         const latestStudies = studiesRef.current;
@@ -131,13 +139,12 @@ export function TradingViewAdvancedChart({
     return () => {
       cancelled = true;
       cancelAnimationFrame(rafId);
-      widgetRef.current?.remove?.();
-      widgetRef.current = null;
+      removeWidget();
       if (activeContainer) {
-        activeContainer.innerHTML = "";
+        activeContainer.replaceChildren();
       }
     };
-  }, [symbol, height, resolvedTheme, studiesDep, containerId, tvLocale, compact, drawingTools]);
+  }, [symbol, height, resolvedTheme, studiesDep, containerId, tvLocale, compact, drawingTools, removeWidget]);
 
   if (scriptErrorSymbol === symbol) {
     return (
