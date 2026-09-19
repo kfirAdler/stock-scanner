@@ -28,13 +28,6 @@ interface BarData {
   volume: number;
 }
 
-export type ChartPoint = { index: number; price: number };
-export type ChartDrawing =
-  | { id: string; kind: "horizontal"; price: number }
-  | { id: string; kind: "trend" | "ray"; from: ChartPoint; to: ChartPoint };
-
-const NO_DRAWINGS: ChartDrawing[] = [];
-
 interface ChartProps {
   patternBreachIndices?: number[];
   patternLines?: import("@/lib/patterns/types").PatternLine[];
@@ -53,8 +46,6 @@ interface ChartProps {
   buySignal?: boolean;
   sellSignal?: boolean;
   atr14?: number | null;
-  manualDrawings?: ChartDrawing[];
-  onChartPoint?: (point: ChartPoint) => void;
 }
 
 const LIGHT_THEME = {
@@ -98,16 +89,11 @@ export function CandlestickChart({
   buySignal,
   sellSignal,
   atr14,
-  manualDrawings = NO_DRAWINGS,
-  onChartPoint,
 }: ChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const visibleRangeRef = useRef<LogicalRange | null>(null);
-  const onChartPointRef = useRef(onChartPoint);
   const { resolvedTheme } = useTheme();
-
-  useEffect(() => { onChartPointRef.current = onChartPoint; }, [onChartPoint]);
 
   useEffect(() => {
     if (!containerRef.current || bars.length === 0) return;
@@ -173,15 +159,6 @@ export function CandlestickChart({
     }));
 
     candleSeries.setData(candleData);
-    chart.subscribeClick((param) => {
-      if (!param.point || !onChartPointRef.current) return;
-      const index = typeof param.logical === "number" && Number.isInteger(param.logical)
-        ? param.logical : -1;
-      const price = candleSeries.coordinateToPrice(param.point.y);
-      if (index >= 0 && price != null && Number.isFinite(price)) {
-        onChartPointRef.current({ index, price });
-      }
-    });
 
     const signalMarkers = buildSignalMarkers(bars, {
       signalBarDate: signalBarDate ?? null,
@@ -247,32 +224,6 @@ export function CandlestickChart({
       const series = chart.addSeries(LineSeries, { color: line.style === 'support' ? patternColors.support : line.style === 'guide' ? patternColors.guide : patternColors.resistance, lineWidth: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
       series.setData([{ time: first.trade_date as Time, value: line.y1 }, { time: last.trade_date as Time, value: line.y2 }]);
     }
-    for (const drawing of manualDrawings) {
-      if (drawing.kind === "horizontal") {
-        candleSeries.createPriceLine({ price: drawing.price, color: patternColors.guide,
-          lineWidth: 2, lineStyle: 0, axisLabelVisible: true });
-        continue;
-      }
-      const first = bars[drawing.from.index];
-      const second = bars[drawing.to.index];
-      if (!first || !second || drawing.from.index === drawing.to.index) continue;
-      const series = chart.addSeries(LineSeries, { color: patternColors.guide, lineWidth: 2,
-        priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
-      const points: LineData<Time>[] = [
-        { time: first.trade_date as Time, value: drawing.from.price },
-        { time: second.trade_date as Time, value: drawing.to.price },
-      ];
-      if (drawing.kind === "ray") {
-        const future = new Date(`${bars[bars.length - 1].trade_date}T00:00:00Z`);
-        future.setUTCDate(future.getUTCDate() + 21);
-        const futureIndex = bars.length + 14;
-        const slope = (drawing.to.price - drawing.from.price) /
-          (drawing.to.index - drawing.from.index);
-        points.push({ time: future.toISOString().slice(0, 10) as Time,
-          value: drawing.from.price + slope * (futureIndex - drawing.from.index) });
-      }
-      series.setData(points.sort((a, b) => String(a.time).localeCompare(String(b.time))));
-    }
     if (patternLevels) {
       candleSeries.createPriceLine({ price: patternLevels.breakout, color: patternColors.resistance, lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: patternLevels.breakoutLabel });
       candleSeries.createPriceLine({ price: patternLevels.invalidation, color: patternColors.invalidation, lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: patternLevels.invalidationLabel });
@@ -300,7 +251,6 @@ export function CandlestickChart({
     bars,
     patternLines,
     patternLevels,
-    manualDrawings,
     resolvedTheme,
     height,
     smaPeriods,
