@@ -7,3 +7,6 @@ __pycache__/
 .venv/
 dist/
 .DS_Store
+
+services/scanner/daily-news-output/
+services/scanner/daily-news-state/

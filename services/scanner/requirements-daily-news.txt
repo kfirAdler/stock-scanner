@@ -1,0 +1,5 @@
+# Standalone digest: existing scanner dependency versions are retained.
+requests>=2.31.0
+python-dotenv>=1.0.0
+yfinance>=0.2.36
+playwright>=1.51.0,<2

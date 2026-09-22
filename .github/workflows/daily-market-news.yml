@@ -1,0 +1,66 @@
+name: Daily market news to Discord
+
+on:
+  schedule:
+    - cron: '0 15 * * *'
+      timezone: Asia/Jerusalem
+  workflow_dispatch:
+    inputs:
+      send_to_discord:
+        description: 'Send to Discord (leave off to generate downloadable previews only)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: daily-market-news
+  cancel-in-progress: false
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: services/scanner
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: services/scanner/requirements-daily-news.txt
+      - name: Install report dependencies
+        run: |
+          python -m pip install -r requirements-daily-news.txt
+          python -m playwright install --with-deps chromium
+      - name: Generate report and optionally send
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          DISCORD_NEWS_CHANNEL_ID: ${{ secrets.DISCORD_NEWS_CHANNEL_ID }}
+          DISCORD_NEWS_CHANNEL_NAME: ${{ vars.DISCORD_NEWS_CHANNEL_NAME || 'stock-news' }}
+          DISCORD_GUILD_ID: ${{ secrets.DISCORD_GUILD_ID }}
+          DISCORD_NEWS_WEBHOOK_URL: ${{ secrets.DISCORD_NEWS_WEBHOOK_URL }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          NEWS_STATE_BACKEND: supabase
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          NEWS_MODEL: ${{ vars.NEWS_MODEL || 'gpt-4.1-mini' }}
+          X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
+          NEWS_X_ACCOUNTS: ${{ vars.NEWS_X_ACCOUNTS }}
+          SEND_TO_DISCORD: ${{ github.event_name == 'schedule' || inputs.send_to_discord }}
+        run: |
+          args=()
+          if [ "$SEND_TO_DISCORD" = "true" ]; then args+=(--send); fi
+          if [ "$GITHUB_EVENT_NAME" = "schedule" ]; then args+=(--scheduled); fi
+          python run_daily_news.py "${args[@]}"
+      - name: Save report files
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: daily-market-news-${{ github.run_id }}-${{ github.run_attempt }}
+          path: services/scanner/daily-news-output/
+          if-no-files-found: ignore
+          retention-days: 14

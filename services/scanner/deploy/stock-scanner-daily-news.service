@@ -1,0 +1,17 @@
+[Unit]
+Description=Stock Scanner daily market briefing at 15:00 Israel time
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+# Change the account and paths for your host before installing this unit.
+User=stock-scanner
+WorkingDirectory=/opt/stock-scanner/services/scanner
+ExecStart=/opt/stock-scanner/services/scanner/.venv/bin/python run_daily_news.py --daemon
+Restart=on-failure
+RestartSec=60
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target
