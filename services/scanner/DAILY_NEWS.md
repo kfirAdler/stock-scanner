@@ -1,9 +1,9 @@
 # Daily market briefing — GitHub Actions
 
 The `Daily market news to Discord` workflow generates a broad US-market digest every day at **15:00
-Asia/Jerusalem**, including weekends and automatic DST handling. It sends a short caption, readable PNG
-cards and a self-contained HTML attachment through the existing bot to `stock-news`. The HTML contains
-clickable sources; reports are also saved as GitHub run artifacts for 14 days. Major-company stories
+Asia/Jerusalem**, including weekends and automatic DST handling. It sends only one or two compact PNG cards through the existing bot to `stock-news`, with the exact
+caption `חדשות הבוקר - DD.MM.YYYY`. HTML/JSON remain local and in GitHub run artifacts for 14 days,
+including clickable source links in HTML; they are never attached to Discord. Major-company stories
 are ordered first internally. The existing scanner jobs and website remain unchanged.
 
 ## Activate in GitHub
@@ -61,14 +61,23 @@ No GitHub workflow has been pushed, remote migration applied or Discord message 
   only when explicitly present in the supplied news. There is no dedicated economic-calendar feed yet.
 * Items must have a timezone-aware publication date within the exact 24-hour window. Missing, stale
   and future dates are excluded. Exact duplicate titles/URLs are removed; when configured, the model
-  also consolidates coverage of the same event. Company selection retains space for non-mega-cap stories.
+  also consolidates coverage of the same event. A deterministic editorial pass limits the report to 12 substantive events: at most one market
+  overview, three macro stories, seven company stories and one upcoming event. It filters obvious
+  stock-picking lists, foreign-index headlines and near-duplicate events, including without a model.
+  These are conservative headline heuristics, not full-article fact checking.
 * X needs both its API token and account list. Collection is bounded to 300 posts/run. Social-only
   claims are visibly labeled unverified. Source failures and missing market quotes are disclosed.
 * Quotes use Yahoo's last available daily bar, possibly developing or from the prior close. They are
   not guaranteed real-time. Displayed percentages compare daily bars, not necessarily trailing 24 hours;
   session dates are printed in each card. Prices are fetched when the job executes.
-* PNG cards hold up to six points apiece to avoid cutting text across images. HTML, JSON and images are
-  saved locally; Discord receives HTML and images in one message, with mentions disabled.
+* PNG pagination measures browser layout at a readable fixed font size, allows at most two cards
+  (1120px wide, up to 1600px high), and drops trailing stories rather than clipping text or shrinking
+  type. Market cards and source-availability notes appear on the first image only.
+* Company names are replaced with bold `$TICKER` mentions, with ordinary-weight sentence text.
+  Identification uses the scanner's existing `symbol_metadata` plus known aliases; company stories
+  without a resolved ticker are omitted. No new market-data subscription is required.
+* HTML, JSON and images remain available as local/Actions artifacts. Discord receives only PNGs, with
+  mentions disabled. Sending with `--html-only` is rejected before collecting or claiming a report.
 
 ## Duplicate protection and recovery
 

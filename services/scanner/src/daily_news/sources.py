@@ -12,6 +12,7 @@ from urllib.parse import urlparse
 from xml.etree import ElementTree
 
 import requests
+from .tickers import NAMES, identify, explicit_names
 
 log = logging.getLogger(__name__)
 UTC = timezone.utc
@@ -126,7 +127,8 @@ def collect_x(cutoff):
     return items, warnings
 
 
-def prepare(items):
+def prepare(items, catalog=None):
+    catalog = catalog if catalog is not None else NAMES
     seen_urls, seen_titles, unique = set(), set(), []
     # Recent items win exact duplicates. Topic-level consolidation happens in the summary.
     for item in sorted(items, key=lambda i: i['published_at'], reverse=True):
@@ -140,6 +142,10 @@ def prepare(items):
                            if re.search(pattern, item['title'], re.I)]
         explicit = re.findall(r'\$([A-Z]{1,6}(?:\.[A-Z])?)\b|(?:NASDAQ|NYSE):\s*([A-Z]{1,6}(?:\.[A-Z])?)\b', item['title'])
         item['tickers'] = list(dict.fromkeys(item['tickers'] + [a or b for a, b in explicit]))
+        item['company_names'] = identify(item['title'], catalog)
+        for ticker, names in explicit_names(item['title']).items():
+            item['company_names'].setdefault(ticker, []).extend(names)
+        item['tickers'] = list(dict.fromkeys(item['tickers'] + list(item['company_names'])))
         unique.append(item)
     # Preserve coverage outside mega caps and prevent a busy source swallowing the budget.
     selected = []

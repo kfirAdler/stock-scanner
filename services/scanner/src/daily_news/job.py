@@ -9,6 +9,7 @@ from .delivery import daily_lock, deliver, delivery_config
 from .render import write_report
 from .sources import collect_rss, collect_x, collect_quotes, prepare
 from .summary import summarize
+from .tickers import company_catalog
 
 ISRAEL = ZoneInfo('Asia/Jerusalem')
 log = logging.getLogger(__name__)
@@ -40,7 +41,7 @@ def demo_report(cutoff):
 def build(cutoff):
     articles, warnings = collect_rss(cutoff)
     posts, x_warnings = collect_x(cutoff)
-    sources = prepare(articles + posts)
+    sources = prepare(articles + posts, company_catalog())
     if not sources:
         raise RuntimeError('No timestamped news found in the last 24 hours; nothing will be sent')
     items, summary_warning = summarize(sources)
@@ -58,6 +59,8 @@ def build(cutoff):
 
 
 def run(output, state, send=False, demo=False, images=True, cutoff=None):
+    if send and not images:
+        raise ValueError('Sending requires images; --html-only is for local previews')
     if demo and send:
         raise ValueError('Demo reports cannot be sent')
     cutoff = cutoff or datetime.now(timezone.utc)

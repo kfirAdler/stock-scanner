@@ -5,6 +5,7 @@ import json
 import os
 import re
 import time
+from datetime import date
 from contextlib import ExitStack, contextmanager
 from pathlib import Path
 import requests
@@ -86,9 +87,12 @@ def deliver(paths, webhook, marker, day, bot_token='', channel_id=''):
         endpoint = webhook
     if marker.exists():
         raise RuntimeError('Delivery already sent or pending; inspect the daily state file before retrying')
-    if len(paths) > 10 or sum(p.stat().st_size for p in paths) > 9_000_000:
+    paths = [p for p in paths if p.suffix.lower() == '.png']
+    if not paths:
+        raise ValueError('Discord delivery requires report images')
+    if len(paths) > 2 or sum(p.stat().st_size for p in paths) > 9_000_000:
         raise ValueError('Report exceeds conservative Discord attachment budget')
-    payload = {'content': 'סקירת השוק היומית · ' + day + '\nהדוח המלא והמקורות בקובץ המצורף.',
+    payload = {'content': 'חדשות הבוקר - ' + date.fromisoformat(day).strftime('%d.%m.%Y'),
                'allowed_mentions': {'parse': []},
                'attachments': [{'id': i, 'filename': p.name} for i, p in enumerate(paths)]}
     # Record BEFORE POST: on timeout/crash Discord may already have accepted it.

@@ -52,7 +52,7 @@ def test_fabricated_source_rejected():
 
 
 def test_social_label_is_enforced_outside_model():
-    item = dict(category='companies', title='כותרת', summary='תקציר', tickers=[], source_ids=['1'])
+    item = dict(category='companies', title='כותרת', summary='תקציר', tickers=['AAPL'], source_ids=['1'])
     assert summary.validate({'items': [item]}, [source(kind='social')])[0]['social_only']
 
 
@@ -75,7 +75,7 @@ def test_html_escapes_untrusted_text():
 
 
 def test_timeout_leaves_pending_and_no_second_send(tmp_path, monkeypatch):
-    path = tmp_path / 'report.html'
+    path = tmp_path / 'report.png'
     path.write_text('report')
     marker = tmp_path / 'state.json'
     post = Mock(side_effect=requests.Timeout())
@@ -89,7 +89,7 @@ def test_timeout_leaves_pending_and_no_second_send(tmp_path, monkeypatch):
 
 
 def test_success_records_message_and_suppresses_mentions(tmp_path, monkeypatch):
-    path = tmp_path / 'report.html'
+    path = tmp_path / 'report.png'
     path.write_text('report')
     post = Mock(return_value=Mock(status_code=200, json=lambda: {'id': '456'}))
     monkeypatch.setattr(delivery.requests, 'post', post)
@@ -100,7 +100,7 @@ def test_success_records_message_and_suppresses_mentions(tmp_path, monkeypatch):
 
 
 def test_rate_limit_retries_explicit_rejection(tmp_path, monkeypatch):
-    path = tmp_path / 'report.html'
+    path = tmp_path / 'report.png'
     path.write_text('report')
     post = Mock(side_effect=[Mock(status_code=429, json=lambda: {'retry_after': 1}),
                              Mock(status_code=200, json=lambda: {'id': '456'})])
@@ -138,7 +138,7 @@ def test_demo_cannot_send(tmp_path):
 
 
 def test_bot_delivery_uses_channel_and_authorization(tmp_path, monkeypatch):
-    path = tmp_path/'report.html'
+    path = tmp_path/'report.png'
     path.write_text('report')
     post = Mock(return_value=Mock(status_code=200, json=lambda: {'id': '456'}))
     monkeypatch.setattr(delivery.requests, 'post', post)
@@ -157,12 +157,14 @@ def test_bot_without_channel_fails_before_send(tmp_path, monkeypatch):
 
 
 def test_fallback_preserves_broad_coverage_and_orders_mega_caps_first():
-    items = [source(id=str(i), title=f'Apple news {i}', url=f'https://example.com/{i}') for i in range(12)]
-    items += [source(id=str(i), title=f'Bank earnings {i}', url=f'https://example.com/{i}', tickers=[]) for i in range(12, 24)]
+    items = [source(title='Nvidia launches new AI chip', tickers=['NVDA']),
+             source(title='Apple raises revenue guidance', tickers=['AAPL']),
+             source(title='Pfizer wins FDA approval', tickers=['PFE']),
+             source(title='JPMorgan announces acquisition', tickers=['JPM'])]
     result = summary.fallback(items)
-    assert len(result) == 16
-    assert all(r['tickers'] == ['AAPL'] for r in result[:8])
-    assert all(not r['tickers'] for r in result[8:])
+    assert len(result) == 4
+    assert all(set(r['tickers']) & sources.PRIORITY for r in result[:2])
+    assert {r['tickers'][0] for r in result[2:]} == {'PFE', 'JPM'}
 
 
 def test_model_response_is_validated(monkeypatch):
@@ -205,7 +207,7 @@ def test_channel_lookup_uses_unique_text_channel(monkeypatch):
     assert delivery.resolve_channel('test') == '123456789012345678'
 
 
-def test_remote_claim_conflict_prevents_send(tmp_path, monkeypatch):
+def test_remote_claim_conflict_prevents_send(tmp_path, monkeypatch, fake_render):
     from src.daily_news import journal
     remote = Mock()
     remote.status.return_value = None
@@ -215,11 +217,11 @@ def test_remote_claim_conflict_prevents_send(tmp_path, monkeypatch):
     monkeypatch.setenv('DISCORD_NEWS_WEBHOOK_URL', 'https://discord.com/api/webhooks/123/token')
     monkeypatch.setattr(job, 'build', lambda _: job.demo_report(NOW))
     monkeypatch.setattr(job, 'deliver', lambda *a, **k: pytest.fail('Duplicate send'))
-    assert job.run(tmp_path/'out', tmp_path/'state', send=True, images=False, cutoff=NOW)
+    assert job.run(tmp_path/'out', tmp_path/'state', send=True, images=True, cutoff=NOW)
     remote.sent.assert_not_called()
 
 
-def test_remote_pending_prevents_rebuild(tmp_path, monkeypatch):
+def test_remote_pending_prevents_rebuild(tmp_path, monkeypatch, fake_render):
     from src.daily_news import journal
     remote = Mock()
     remote.status.return_value = 'pending'
@@ -227,10 +229,10 @@ def test_remote_pending_prevents_rebuild(tmp_path, monkeypatch):
     monkeypatch.setenv('NEWS_STATE_BACKEND', 'supabase')
     monkeypatch.setattr(job, 'build', lambda _: pytest.fail('Should not rebuild'))
     with pytest.raises(RuntimeError, match='Pending remote'):
-        job.run(tmp_path, tmp_path, send=True, images=False, cutoff=NOW)
+        job.run(tmp_path, tmp_path, send=True, images=True, cutoff=NOW)
 
 
-def test_remote_ambiguous_failure_retains_claim(tmp_path, monkeypatch):
+def test_remote_ambiguous_failure_retains_claim(tmp_path, monkeypatch, fake_render):
     from src.daily_news import journal
     remote = Mock()
     remote.status.return_value = None
@@ -241,12 +243,12 @@ def test_remote_ambiguous_failure_retains_claim(tmp_path, monkeypatch):
     monkeypatch.setattr(job, 'build', lambda _: job.demo_report(NOW))
     monkeypatch.setattr(delivery.requests, 'post', Mock(side_effect=requests.Timeout()))
     with pytest.raises(RuntimeError, match='unknown'):
-        job.run(tmp_path/'out', tmp_path/'state', send=True, images=False, cutoff=NOW)
+        job.run(tmp_path/'out', tmp_path/'state', send=True, images=True, cutoff=NOW)
     remote.release.assert_not_called()
     remote.sent.assert_not_called()
 
 
-def test_remote_explicit_rejection_releases_claim(tmp_path, monkeypatch):
+def test_remote_explicit_rejection_releases_claim(tmp_path, monkeypatch, fake_render):
     from src.daily_news import journal
     remote = Mock()
     remote.status.return_value = None
@@ -257,11 +259,11 @@ def test_remote_explicit_rejection_releases_claim(tmp_path, monkeypatch):
     monkeypatch.setattr(job, 'build', lambda _: job.demo_report(NOW))
     monkeypatch.setattr(delivery.requests, 'post', Mock(return_value=Mock(status_code=403)))
     with pytest.raises(RuntimeError, match='rejected'):
-        job.run(tmp_path/'out', tmp_path/'state', send=True, images=False, cutoff=NOW)
+        job.run(tmp_path/'out', tmp_path/'state', send=True, images=True, cutoff=NOW)
     remote.release.assert_called_once_with('2026-09-22')
 
 
-def test_remote_success_records_discord_id(tmp_path, monkeypatch):
+def test_remote_success_records_discord_id(tmp_path, monkeypatch, fake_render):
     from src.daily_news import journal
     remote = Mock()
     remote.status.return_value = None
@@ -271,5 +273,106 @@ def test_remote_success_records_discord_id(tmp_path, monkeypatch):
     monkeypatch.setenv('DISCORD_NEWS_WEBHOOK_URL', 'https://discord.com/api/webhooks/123/token')
     monkeypatch.setattr(job, 'build', lambda _: job.demo_report(NOW))
     monkeypatch.setattr(delivery.requests, 'post', Mock(return_value=Mock(status_code=200, json=lambda: {'id':'message-123'})))
-    job.run(tmp_path/'out', tmp_path/'state', send=True, images=False, cutoff=NOW)
+    job.run(tmp_path/'out', tmp_path/'state', send=True, images=True, cutoff=NOW)
     remote.sent.assert_called_once_with('2026-09-22','message-123')
+
+
+@pytest.fixture
+def fake_render(monkeypatch):
+    def write(report, directory, images=True):
+        directory.mkdir(parents=True, exist_ok=True)
+        path = directory / 'news-01.png'
+        path.write_bytes(b'fake png for mocked transport')
+        return [path]
+    monkeypatch.setattr(job, 'write_report', write)
+
+
+def test_discord_only_sends_png_with_requested_caption(tmp_path, monkeypatch):
+    png, html = tmp_path/'news-01.png', tmp_path/'report.html'
+    png.write_bytes(b'image')
+    html.write_text('local report')
+    post = Mock(return_value=Mock(status_code=200, json=lambda: {'id': '456'}))
+    monkeypatch.setattr(delivery.requests, 'post', post)
+    delivery.deliver([html, png], 'https://discord.com/api/webhooks/123/token', tmp_path/'state.json', '2026-09-22')
+    payload = json.loads(post.call_args.kwargs['data']['payload_json'])
+    assert payload['content'] == 'חדשות הבוקר - 22.09.2026'
+    assert payload['attachments'] == [{'id': 0, 'filename': 'news-01.png'}]
+    assert len(post.call_args.kwargs['files']) == 1
+
+
+def test_html_only_cannot_be_sent(tmp_path):
+    with pytest.raises(ValueError, match='requires images'):
+        job.run(tmp_path, tmp_path, send=True, images=False)
+
+
+def test_curation_drops_foreign_indices_fluff_and_duplicate_earnings():
+    items = [source(title='Kospi Barely Holds 7,000 Despite Surge in US Chip Stocks', tickers=[]),
+             source(title='Best stocks to buy: Nvidia', tickers=['NVDA']),
+             source(title='AutoZone posts upbeat earnings', tickers=['AZO']),
+             source(title='AZO Q4 earnings beat expectations', tickers=['AZO'])]
+    result = summary.fallback(items)
+    assert len(result) == 1
+    assert result[0]['tickers'] == ['AZO']
+
+
+def test_company_names_are_replaced_and_only_tickers_are_bold():
+    from src.daily_news.render import news_text
+    item = dict(category='companies', title='', tickers=['NVDA', 'MSFT'], sources=[])
+    result = news_text('Nvidia announces a deal with Microsoft', item)
+    assert 'Nvidia' not in result and 'Microsoft' not in result
+    assert '<strong>$NVDA</strong>' in result and '<strong>$MSFT</strong>' in result
+    assert 'announces a deal with' in result
+    assert '<strong>announces' not in result
+
+
+def test_catalogue_names_replace_non_mega_caps():
+    from src.daily_news.render import news_text
+    item = dict(category='companies', tickers=['LLY'], sources=[{'company_names': {'LLY': ['Eli Lilly']}}])
+    assert 'Eli Lilly' not in news_text('Eli Lilly announces a new trial', item)
+    assert '<strong>$LLY</strong>' in news_text('Eli Lilly announces a new trial', item)
+
+
+def test_unknown_company_tickers_are_not_invented():
+    assert summary.fallback([source(title='Unknown Firm announces acquisition', tickers=[])]) == []
+
+
+def test_overview_is_not_repeated_on_second_page():
+    report = job.demo_report(NOW)
+    html = render(report, page_label='2 / 2', overview=False)
+    assert 'S&amp;P 500' not in html
+    assert report['warnings'][0] not in html
+
+
+def test_retrospectives_and_valuation_listicles_are_excluded():
+    items = [source(title='Reflecting On Therapeutics Stocks Q2 Earnings: AbbVie', tickers=['ABBV']),
+             source(title='Morgan Stanley says to buy these 15 stocks', tickers=['MS']),
+             source(title='Nvidia stock valuation hits decade low despite profit boom', tickers=['NVDA'])]
+    assert summary.fallback(items) == []
+
+
+def test_explicit_company_identity_replaces_name_and_exchange_label():
+    from src.daily_news.tickers import explicit_names
+    from src.daily_news.render import news_text
+    title = 'Vulcan Materials (NYSE:VMC) raises guidance'
+    names = explicit_names(title)
+    item = dict(category='companies', tickers=['VMC'], sources=[{'company_names': names}])
+    html = news_text(title, item)
+    assert 'Vulcan' not in html and 'NYSE' not in html
+    assert html.count('<strong>$VMC</strong>') == 1
+
+
+def test_discord_rejects_more_than_two_images(tmp_path):
+    paths = [tmp_path/f'news-{i}.png' for i in range(3)]
+    for path in paths:
+        path.write_bytes(b'image')
+    marker = tmp_path/'state.json'
+    with pytest.raises(ValueError, match='budget'):
+        delivery.deliver(paths, 'https://discord.com/api/webhooks/123/token', marker, '2026-09-22')
+    assert not marker.exists()
+
+
+def test_exchange_label_is_not_identified_as_nasdaq_company():
+    item = source(title='ExlService (NASDAQ:EXLS) raises guidance', tickers=[])
+    prepared = sources.prepare([item], {'NDAQ': ['Nasdaq'], 'EXLS': ['ExlService']})[0]
+    assert prepared['tickers'] == ['EXLS']
+    assert 'NDAQ' not in prepared['company_names']
