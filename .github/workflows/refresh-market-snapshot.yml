@@ -81,17 +81,19 @@ jobs:
           fi
 
       - name: Check alert triggers
+        if: ${{ !cancelled() }}
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: python run_alert_check.py
-
+      
       - name: Store market news headline
+        if: ${{ !cancelled() }}
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: python run_market_news_check.py
-
+      
       - name: Refresh company metadata (daily)
         if: ${{ !cancelled() && github.event_name == 'schedule' }}
         timeout-minutes: 10
