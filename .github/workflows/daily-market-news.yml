@@ -2,7 +2,7 @@ name: Daily market news to Discord
 
 on:
   schedule:
-    - cron: '0 15 * * *'
+    - cron: '57 14 * * *'
       timezone: Asia/Jerusalem
   workflow_dispatch:
     inputs:
