@@ -2,6 +2,7 @@ from __future__ import annotations
 import logging
 import os
 import time
+import uuid
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -63,43 +64,67 @@ def run(output, state, send=False, demo=False, images=True, cutoff=None, schedul
         raise ValueError('Sending requires images; --html-only is for local previews')
     if demo and send:
         raise ValueError('Demo reports cannot be sent')
+
     cutoff = cutoff or datetime.now(timezone.utc)
     day = cutoff.astimezone(ISRAEL).date().isoformat()
+
+    # Scheduled deliveries use a persistent daily marker.
+    # Manual deliveries get a unique marker so they never affect the scheduled run.
+    marker_day = day if scheduled else f'{day}-manual-{uuid.uuid4().hex}'
+
     journal = None
     backend = os.getenv('NEWS_STATE_BACKEND', 'local')
+
     if backend not in {'local', 'supabase'}:
         raise ValueError('NEWS_STATE_BACKEND must be local or supabase')
-    if send and backend == 'supabase':
+
+    # Supabase deduplication applies only to scheduled deliveries.
+    if send and backend == 'supabase' and scheduled:
         from .journal import Journal
         journal = Journal()
         previous = journal.status(day)
-        if scheduled and previous:
+
+        if previous:
             if previous == 'pending':
                 raise RuntimeError('Pending remote delivery; check Discord before retrying')
             log.info('Report already sent for %s', day)
             return []
+
     config = delivery_config() if send else None
-    with daily_lock(state, day) as marker:
-        if scheduled and send and marker.exists():
+
+    with daily_lock(state, marker_day) as marker:
+        if send and marker.exists():
             log.info('Daily delivery already recorded for %s; skipping', day)
             return []
+
         report = demo_report(cutoff) if demo else build(cutoff)
         paths = write_report(report, Path(output) / day, images)
+
         if send:
             webhook, token, channel = config
             destination = channel or ('webhook:' + webhook.split('/')[-2])
-            if scheduled and journal and not journal.claim(day, destination, report):
+
+            if journal and not journal.claim(day, destination, report):
                 log.info('Another runner claimed this daily report')
                 return paths
+
             try:
-                message_id = deliver(paths, webhook, marker, day, bot_token=token, channel_id=channel)
+                message_id = deliver(
+                    paths,
+                    webhook,
+                    marker,
+                    day,
+                    bot_token=token,
+                    channel_id=channel
+                )
             except Exception:
-                # No local pending marker means validation or an explicit rejection, not an ambiguous POST.
                 if journal and not marker.exists():
                     journal.release(day)
                 raise
+
             if journal:
                 journal.sent(day, message_id)
+
         log.info('Report created for %s (%s files, sent=%s)', day, len(paths), send)
         return paths
 
