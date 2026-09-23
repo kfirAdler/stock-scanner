@@ -58,7 +58,7 @@ def build(cutoff):
                 items=items, quotes=quotes, warnings=list(dict.fromkeys(warnings)))
 
 
-def run(output, state, send=False, demo=False, images=True, cutoff=None):
+def run(output, state, send=False, demo=False, images=True, cutoff=None, scheduled=False):
     if send and not images:
         raise ValueError('Sending requires images; --html-only is for local previews')
     if demo and send:
@@ -73,14 +73,14 @@ def run(output, state, send=False, demo=False, images=True, cutoff=None):
         from .journal import Journal
         journal = Journal()
         previous = journal.status(day)
-        if False:
+        if scheduled and previous:
             if previous == 'pending':
                 raise RuntimeError('Pending remote delivery; check Discord before retrying')
             log.info('Report already sent for %s', day)
             return []
     config = delivery_config() if send else None
     with daily_lock(state, day) as marker:
-        if send and marker.exists():
+        if scheduled and send and marker.exists():
             log.info('Daily delivery already recorded for %s; skipping', day)
             return []
         report = demo_report(cutoff) if demo else build(cutoff)
@@ -88,7 +88,7 @@ def run(output, state, send=False, demo=False, images=True, cutoff=None):
         if send:
             webhook, token, channel = config
             destination = channel or ('webhook:' + webhook.split('/')[-2])
-            if journal and not journal.claim(day, destination, report):
+            if scheduled and journal and not journal.claim(day, destination, report):
                 log.info('Another runner claimed this daily report')
                 return paths
             try:
