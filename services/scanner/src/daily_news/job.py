@@ -73,7 +73,7 @@ def run(output, state, send=False, demo=False, images=True, cutoff=None):
         from .journal import Journal
         journal = Journal()
         previous = journal.status(day)
-        if previous:
+        if False:
             if previous == 'pending':
                 raise RuntimeError('Pending remote delivery; check Discord before retrying')
             log.info('Report already sent for %s', day)
