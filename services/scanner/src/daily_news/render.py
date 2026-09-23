@@ -1,6 +1,8 @@
 """Self-contained RTL HTML and section images rendered by Chromium."""
 from __future__ import annotations
 import re
+import base64
+from functools import lru_cache
 from datetime import datetime
 from html import escape
 from pathlib import Path
@@ -12,20 +14,67 @@ LABELS = {'market': 'מצב השוק', 'macro': 'מאקרו וגיאופוליט
           'companies': 'חדשות החברות', 'week': 'על הפרק השבוע'}
 MAX_PAGE_HEIGHT = 1600
 CSS = '''
-*{box-sizing:border-box}body{margin:0;background:#edf3ef;color:#15251e;font-family:Arial,"Noto Sans Hebrew",sans-serif}
+*{box-sizing:border-box}body{margin:0;background:#edf3ef;color:#15251e;font-family:Heebo,Arial,sans-serif}
 main{max-width:1120px;margin:0 auto;background:white}header{background:linear-gradient(115deg,#092f26 0%,#075a3e 55%,#15925a 100%);color:white;padding:16px 28px}
-.brand{font-size:11px;letter-spacing:1.6px;opacity:.8}h1{font-size:30px;margin:6px 0}header p{margin:3px 0;font-size:13px}
+.brand{font-size:11px;letter-spacing:1.6px;opacity:.8}h1{font-size:26px;margin:6px 0}header p{margin:3px 0;font-size:13px}
 .quotes{display:flex;flex-wrap:wrap;background:#eef6f1;padding:10px 22px;gap:7px}.quote{flex:1;min-width:130px;padding:7px;background:white;border-radius:5px}
-.quote strong{display:block;font-size:20px;margin-top:3px}.quote small{font-size:11px;color:#65796c}.up{color:#128354}.down{color:#c33b4e}
-section{padding:12px 28px 5px;border-bottom:1px solid #dfebe4}h2{font-size:22px;margin:0 0 8px;color:#126344}
+.quote strong{display:block;font-size:18px;margin-top:3px}.quote small{font-size:11px;color:#65796c}.up{color:#128354}.down{color:#c33b4e}
+section{padding:12px 28px 5px;border-bottom:1px solid #dfebe4}h2{font-size:19px;margin:0 0 8px;color:#126344}
 article{margin:0 0 10px;padding-right:10px;border-right:2px solid #c5ddcd;break-inside:avoid}
-h3{font-weight:400;font-size:20px;line-height:1.28;margin:0 0 3px}article p{font-size:19px;line-height:1.35;margin:0 0 3px}
-a{color:#44715b;text-decoration:none}.sources{font-size:12px;line-height:1.3;color:#667c6e}.ticker{display:inline-block;direction:ltr;color:#075a3e;padding:0 4px;margin-left:3px;font-size:20px;font-weight:700}
-.notice{background:#fff7dd;color:#655125;padding:6px 28px;font-size:12px;line-height:1.3}.social{color:#996517;font-size:12px}footer{padding:9px 28px;color:#718076;font-size:11px;line-height:1.35}
+h3{font-weight:400;font-size:17px;line-height:1.4;margin:0 0 3px}article p{font-size:17px;line-height:1.4;margin:0 0 3px}
+a{color:#44715b;text-decoration:none}.sources{font-size:12px;line-height:1.3;color:#667c6e}.ticker{display:inline-block;direction:ltr;color:#075a3e;padding:0;margin:0;font-size:inherit;font-weight:700}
+.quote-notes{display:flex;flex-wrap:wrap;gap:4px 14px;padding:3px 28px 8px;background:#eef6f1;color:#65796c;font-size:11px;line-height:1.45}.quote span{font-size:13px}.notice{background:#fff7dd;color:#655125;padding:6px 28px;font-size:12px;line-height:1.3}.social{color:#996517;font-size:12px}footer{padding:9px 28px;color:#718076;font-size:11px;line-height:1.35}
 @media(max-width:650px){header,section{padding:14px}h1{font-size:26px}.quotes{padding:10px}h3{font-size:18px}article p{font-size:17px}}
 @media print{body{background:white}main{margin:0}article{break-inside:avoid}}
 '''
 
+
+
+@lru_cache(maxsize=1)
+def embedded_font():
+    data = base64.b64encode((Path(__file__).parent / 'assets/Heebo.ttf').read_bytes()).decode('ascii')
+    return '@font-face{font-family:Heebo;font-style:normal;font-weight:100 900;src:url(data:font/ttf;base64,' + data + ') format("truetype");}'
+
+
+def quote_notes(quotes):
+    groups, missing = {}, []
+    for quote in quotes:
+        if quote['value'] is None:
+            missing.append(quote['label'])
+        elif quote.get('session_date'):
+            groups.setdefault(quote['session_date'], []).append(quote['label'])
+    notes = []
+    if len(groups) == 1:
+        notes.append('תאריך נתוני השוק: ' + datetime.fromisoformat(next(iter(groups))).strftime('%d.%m'))
+    elif groups:
+        notes.append('תאריכי נתוני השוק: ' + ' · '.join(
+            datetime.fromisoformat(day).strftime('%d.%m') + ' — ' + ', '.join(labels)
+            for day, labels in sorted(groups.items(), reverse=True)))
+    if missing:
+        notes.append('נתון חסר: ' + ', '.join(missing))
+    return ' · '.join(notes)
+
+
+def quote_notes_markup(quotes):
+    # Isolate each date/asset group to prevent mixed Hebrew/English bidi reordering.
+    parts = quote_notes(quotes).split(' · ')
+    result = []
+    for part in parts:
+        match = re.search(r'(\d{2}\.\d{2}) — (.*)', part)
+        if match:
+            value = e(part[:match.start()]) + '<bdi dir="ltr">' + e(match.group(1)) + '</bdi> — <bdi dir="auto">' + e(match.group(2)) + '</bdi>'
+        else:
+            value = e(part)
+        result.append('<span>' + value + '</span>')
+    return ''.join(result)
+
+
+def clean_headline(text):
+    # Remove editorial wrappers without inventing or paraphrasing source facts.
+    text = re.sub(r'^Stock Market Today:\s*', '', text, flags=re.I)
+    text = re.sub(r'\bQ([1-4]) CY(20\d{2}) Earnings Results:\s*', r'Q\1 \2: ', text)
+    text = re.split(r'\.\s+It[’\']s (?:a |the )?lifeline', text, flags=re.I)[0]
+    return text.strip()
 
 
 def e(value):
@@ -33,6 +82,7 @@ def e(value):
 
 
 def news_text(text, item, prefix=False):
+    text = clean_headline(text)
     if item['category'] == 'companies':
         text = re.sub(r'^(?:Dow|Nasdaq|S&P)[^;]*;\s*', '', text, flags=re.I)
     text = replace_company_names(text, item)
@@ -57,19 +107,24 @@ def render(report, items=None, page_label='', overview=True):
         title = 'תצוגת דוגמה — לא חדשות אמיתיות'
     out = ['<!doctype html><html lang="he" dir="rtl"><meta charset="utf-8">',
            '<meta name="viewport" content="width=device-width, initial-scale=1">',
-           '<title>' + title + '</title><style>' + CSS + '</style><main>',
+           '<title>' + title + '</title><style>' + embedded_font() + CSS + '</style><main>',
            '<header><div class="brand" dir="ltr">STOCK SCANNER / DAILY BRIEF</div>',
            '<h1>' + title + ' · ' + cutoff.strftime('%d.%m.%Y') + '</h1>',
            '<p>השוק האמריקאי · ' + start.strftime('%d.%m %H:%M') + ' עד ' + cutoff.strftime('%d.%m %H:%M') + ' · שעון ישראל</p>',
-           '<p><bdi dir="ltr">' + e(page_label) + '</bdi></p></header><div class="quotes">']
+           ('<p><bdi dir="ltr">' + e(page_label) + '</bdi></p>' if page_label and not page_label.endswith('/ 1') else '') + '</header><div class="quotes">']
     for q in report['quotes'] if overview else []:
+        if q['value'] is None:
+            continue
         value = 'לא זמין' if q['value'] is None else f"{q['value']:,.2f}"
         delta = '' if q['change'] is None else f"{q['change']:+.2f}%"
         color = 'up' if (q['change'] or 0) >= 0 else 'down'
-        out.append(f'<div class="quote"><span>{e(q["label"])}</span><strong dir="ltr">{e(value)}</strong><b dir="ltr" class="{color}">{e(delta)}</b><br><small>{e(q["session_date"])}</small></div>')
+        out.append(f'<div class="quote"><span>{e(q["label"])}</span><strong dir="ltr">{e(value)}</strong><b dir="ltr" class="{color}">{e(delta)}</b></div>')
     out.append('</div>')
-    for warning in report['warnings'] if overview else []:
-        out.append('<div class="notice">' + e(warning) + '</div>')
+    if overview:
+        out.append('<div class="quote-notes">' + quote_notes_markup(report['quotes']) + '</div>')
+        warnings = [w for w in report['warnings'] if not w.startswith('חלק מנתוני השוק לא התקבלו')]
+        if warnings:
+            out.append('<div class="notice">' + ' · '.join(e(w) for w in warnings) + '</div>')
     selected = report['items'] if items is None else items
     for category, label in LABELS.items():
         group = [i for i in selected if i['category'] == category]

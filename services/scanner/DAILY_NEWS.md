@@ -2,7 +2,7 @@
 
 The `Daily market news to Discord` workflow generates a broad US-market digest every day at **15:00
 Asia/Jerusalem**, including weekends and automatic DST handling. It sends only one or two compact PNG cards through the existing bot to `stock-news`, with the exact
-caption `חדשות הבוקר - DD.MM.YYYY`. HTML/JSON remain local and in GitHub run artifacts for 14 days,
+caption `@everyone חדשות הבוקר - DD.MM.YYYY`. HTML/JSON remain local and in GitHub run artifacts for 14 days,
 including clickable source links in HTML; they are never attached to Discord. Major-company stories
 are ordered first internally. The existing scanner jobs and website remain unchanged.
 
@@ -26,7 +26,9 @@ are ordered first internally. The existing scanner jobs and website remain uncha
    Optional repository **Variables**: `DISCORD_NEWS_CHANNEL_NAME` (default `stock-news`),
    `NEWS_MODEL` (default `gpt-4.1-mini`), `NEWS_X_ACCOUNTS` (comma-separated handles, up to 15).
    Variables stored only in Vercel are not available to GitHub Actions.
-3. Ensure the bot is in the server with View Channel, Send Messages and Attach Files permissions.
+3. Ensure the bot is in the server with View Channel, Send Messages, Attach Files and Mention @everyone permissions.
+   The caption explicitly pings everyone; delivery of individual notifications still follows Discord
+   user notification settings. User and role mentions remain disabled.
    The provided application ID `1491821240317382776` identifies the bot app, not the destination.
    `DISCORD_APPLICATION_ID` and `DISCORD_PUBLIC_KEY` are not needed for this outbound job.
 4. Commit/push the changes to the repository's default branch. Scheduled workflows use that branch.
@@ -77,7 +79,7 @@ No GitHub workflow has been pushed, remote migration applied or Discord message 
   Identification uses the scanner's existing `symbol_metadata` plus known aliases; company stories
   without a resolved ticker are omitted. No new market-data subscription is required.
 * HTML, JSON and images remain available as local/Actions artifacts. Discord receives only PNGs, with
-  mentions disabled. Sending with `--html-only` is rejected before collecting or claiming a report.
+  only the explicitly requested everyone mention enabled (no user/role mentions). Sending with `--html-only` is rejected before collecting or claiming a report.
 
 ## Duplicate protection and recovery
 
@@ -131,3 +133,14 @@ References: [GitHub schedules and timezone](https://docs.github.com/en/actions/r
 [Discord bot messages](https://docs.discord.com/developers/resources/message#create-message),
 [OpenAI structured outputs](https://developers.openai.com/api/docs/guides/structured-outputs),
 [X recent search](https://docs.x.com/x-api/posts/search-recent-posts).
+
+
+### Reading layout
+
+Heebo is bundled in `src/daily_news/assets` under the SIL Open Font License (included with the font),
+so Hebrew and English have the same typeface on local machines and GitHub runners without external
+font requests. Story text is 17px instead of 20px; ticker bold uses the same inherited font size.
+Quote dates are grouped once below the market strip. Different session dates remain disclosed;
+missing quotes are named in that shared note instead of occupying empty market cards. Single-page
+reports omit the redundant 1/1 label. Routine toolkit remarks and obvious buy-point/promotional
+headlines are filtered; factual partnership text is retained without promotional tail sentences.

@@ -12,6 +12,8 @@ NAMES = {
     'GOOGL': ['Alphabet Inc.', 'Alphabet', 'Google', 'אלפבית', 'גוגל'],
     'TSLA': ['Tesla, Inc.', 'Tesla', 'טסלה'],
     'AZO': ['AutoZone, Inc.', 'AutoZone'],
+    'PYPL': ['PayPal Holdings, Inc.', 'PayPal Holdings', 'PayPal'],
+    'KBH': ['KB Home', 'KBHome'],
     'JPM': ['JPMorgan Chase & Co.', 'JPMorgan Chase', 'JPMorgan'],
 }
 
@@ -80,7 +82,7 @@ def replace_company_names(text, item):
     # Normalize existing ticker mentions, while avoiding double dollars.
     for ticker in item['tickers']:
         text = re.sub(r'(?<![\w$])\$?' + re.escape(ticker) + r'(?![\w])', lambda _: '$' + ticker, text)
-    text = re.sub(r'(\$[A-Z]{1,6}(?:\.[A-Z])?)\s*\(\1\)', r'\1', text)
+    text = re.sub(r'(\$[A-Z]{1,6}(?:\.[A-Z])?)(?:[’\']s)?\s*\(\1\)', r'\1', text)
     return text
 
 

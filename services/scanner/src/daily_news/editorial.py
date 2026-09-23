@@ -6,7 +6,7 @@ from .sources import PRIORITY
 LIMITS = {'market': 1, 'macro': 3, 'companies': 7, 'week': 1}
 MAX_ITEMS = sum(LIMITS.values())
 FOREIGN = re.compile(r'^(?:S&P/TSX|TSX|Kospi|Nikkei|FTSE|ASX|Sensex|Nifty|Hang Seng)\b', re.I)
-FLUFF = re.compile(r'\b(?:stocks? to buy|best stocks?|top \d+ stocks?|should you buy|good news for|millionaire|price prediction|undervalued stocks?|undervalued|stock valuation|reflecting on|says to buy|stocks? worth buying|earnings season)\b', re.I)
+FLUFF = re.compile(r'\b(?:stocks? to buy|best stocks?|top \d+ stocks?|should you buy|good news for|millionaire|price prediction|undervalued stocks?|undervalued|stock valuation|reflecting on|says to buy|stocks? worth buying|earnings season|buy point|makes these trades|lifeline for the stock)\b', re.I)
 CATALYST = re.compile(r'\b(?:earnings|guidance|revenue|profit|merger|acquisition|acquires?|deal|contract|launch(?:es)?|approv(?:al|es)|FDA|antitrust|layoffs?|announces?|raises?|cuts?|tariffs?|inflation|payrolls?|interest rates?|rate (?:cut|hike)|Federal Reserve|Fed|EIA|sanctions?)\b', re.I)
 TRUSTED = re.compile(r'reuters|bloomberg|associated press|cnbc|wall street journal|financial times|sec\.gov|investor relations', re.I)
 STOP = set('the a an and or of to in on for as at by with from its stock stocks shares market markets today news snapshot update says said us'.split())
@@ -47,8 +47,9 @@ def curate(items):
     for original in items:
         item = dict(original)
         text = original_text(item)
-        retrospective = re.search(r'^(?:Q[1-4] .{0,100}earnings:)|earns top marks|cash fortress|rate-control toolkit.*working', text, re.I)
-        if FOREIGN.search(text) or FLUFF.search(text) or retrospective:
+        text = re.split(r'\.\s+It[’\']s (?:a |the )?lifeline', text, flags=re.I)[0]
+        retrospective = re.search(r'^(?:Q[1-4] .{0,100}earnings:)|earns top marks|cash fortress|(?:rate-control|monetary policy) toolkit.*working|wall street expects.*to shape|stays overweight', text, re.I)
+        if FOREIGN.search(text) or FLUFF.search(text) or retrospective or text.rstrip().endswith('?'):
             continue
         # Oil inventories and broad indices are macro/market context, not company news.
         if item['category'] == 'companies' and not item['tickers']:

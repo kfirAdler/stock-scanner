@@ -88,7 +88,7 @@ def test_timeout_leaves_pending_and_no_second_send(tmp_path, monkeypatch):
     assert post.call_count == 1
 
 
-def test_success_records_message_and_suppresses_mentions(tmp_path, monkeypatch):
+def test_success_records_message_and_allows_only_everyone(tmp_path, monkeypatch):
     path = tmp_path / 'report.png'
     path.write_text('report')
     post = Mock(return_value=Mock(status_code=200, json=lambda: {'id': '456'}))
@@ -96,7 +96,7 @@ def test_success_records_message_and_suppresses_mentions(tmp_path, monkeypatch):
     marker = tmp_path / 'state.json'
     delivery.deliver([path], 'https://discord.com/api/webhooks/123/token', marker, '2026-09-22')
     assert json.loads(marker.read_text())['message_id'] == '456'
-    assert json.loads(post.call_args.kwargs['data']['payload_json'])['allowed_mentions'] == {'parse': []}
+    assert json.loads(post.call_args.kwargs['data']['payload_json'])['allowed_mentions'] == {'parse': ['everyone'], 'users': [], 'roles': []}
 
 
 def test_rate_limit_retries_explicit_rejection(tmp_path, monkeypatch):
@@ -295,7 +295,7 @@ def test_discord_only_sends_png_with_requested_caption(tmp_path, monkeypatch):
     monkeypatch.setattr(delivery.requests, 'post', post)
     delivery.deliver([html, png], 'https://discord.com/api/webhooks/123/token', tmp_path/'state.json', '2026-09-22')
     payload = json.loads(post.call_args.kwargs['data']['payload_json'])
-    assert payload['content'] == 'חדשות הבוקר - 22.09.2026'
+    assert payload['content'] == '@everyone חדשות הבוקר - 22.09.2026'
     assert payload['attachments'] == [{'id': 0, 'filename': 'news-01.png'}]
     assert len(post.call_args.kwargs['files']) == 1
 
@@ -376,3 +376,55 @@ def test_exchange_label_is_not_identified_as_nasdaq_company():
     prepared = sources.prepare([item], {'NDAQ': ['Nasdaq'], 'EXLS': ['ExlService']})[0]
     assert prepared['tickers'] == ['EXLS']
     assert 'NDAQ' not in prepared['company_names']
+
+
+def test_market_dates_are_grouped_instead_of_repeated_in_cards():
+    from src.daily_news.render import quote_notes
+    quotes = [dict(label='S&P 500',value=100,change=1,session_date='2026-09-22'),
+              dict(label='Nasdaq',value=100,change=1,session_date='2026-09-22'),
+              dict(label='Bitcoin',value=100,change=1,session_date='2026-09-23'),
+              dict(label='Dow Jones',value=None,change=None,session_date='')]
+    notes = quote_notes(quotes)
+    assert notes.count('22.09') == 1 and notes.count('23.09') == 1
+    assert 'S&P 500, Nasdaq' in notes and 'נתון חסר: Dow Jones' in notes
+    report = job.demo_report(NOW)
+    report['quotes'] = quotes
+    cards = render(report).split('<div class="quotes">')[1].split('quote-notes')[0]
+    assert '<small>' not in cards
+    assert 'Dow Jones' not in cards
+
+
+def test_company_possessive_and_duplicate_ticker_are_normalized():
+    from src.daily_news.render import news_text
+    item = dict(category='companies',tickers=['KBH'],sources=[])
+    result = news_text("KB Home’s (KBH) Q3 CY2026 Earnings Results: Revenue In Line", item)
+    assert 'KB Home' not in result
+    assert result.count('<strong>$KBH</strong>') == 1
+    assert 'Q3 2026:' in result
+
+
+def test_paypal_partnership_keeps_fact_and_drops_promotional_sentence():
+    from src.daily_news.render import news_text
+    prepared = sources.prepare([source(title="PayPal Announces Meta Muse Partnership. It’s a Lifeline for the Stock.")])
+    item = summary.fallback(prepared)[0]
+    text = news_text(item['title'], item)
+    assert '<strong>$PYPL</strong>' in text and '<strong>$META</strong>' in text
+    assert 'Partnership' in text and 'Lifeline' not in text and 'PayPal' not in text
+
+
+def test_low_information_toolkit_and_stock_picking_headlines_are_dropped():
+    items = [source(title="NY Fed's Perli says monetary policy toolkit working very well",category='macro'),
+             source(title='Stock Market Today: Dow Skids But Apple Eyes A Buy Point',category='market')]
+    assert summary.fallback(items) == []
+
+
+def test_font_is_bundled_for_offline_rendering():
+    from src.daily_news.render import embedded_font, CSS
+    assert 'data:font/ttf;base64,' in embedded_font()
+    assert 'font-family:Heebo' in CSS
+    assert 'font-size:inherit;font-weight:700' in CSS
+
+
+def test_question_headlines_do_not_substitute_for_market_facts():
+    item = source(title='How Are Stock Futures Moving Ahead Of The Fed Meeting?', category='market')
+    assert summary.fallback([item]) == []
