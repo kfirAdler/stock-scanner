@@ -1,22 +1,16 @@
-# Full-universe runs still pull full history from Supabase per ticker each time.
-# Stooq/yfinance are only called when start<=today; after today’s bar exists, HTTP
-# load drops, but DB work stays high. If a run exceeds 15 minutes, the next run
-# queues (concurrency) instead of overlapping—reduces 429 risk vs parallel runs.
 name: Refresh all stocks and patterns
 
 on:
   schedule:
-    # --- US: NYSE/NASDAQ regular session Mon-Fri ---
-    # GitHub Actions schedule is UTC.
-    # Simplified cadence during US market hours to lower API/Supabase usage.
-    # Use non-zero minute offsets because GitHub cron is less reliable exactly
-    # at the top of the hour under load.
-    # Roughly 16:37-23:07 Israel time, without extra DST-specific branching.
-    - cron: "37 13 * * 1-5"
-    - cron: "7 14-20 * * 1-5"
-    - cron: "7 21 * * 1-5"
+    # Daily bars: once after both markets close, including US winter hours.
+    # Keep manual dispatch available for targeted retries and repairs.
+    - cron: "37 22 * * 1-5"
   workflow_dispatch:
     inputs:
+      force_recompute:
+        description: "Rebuild snapshots even if prices are unchanged"
+        type: boolean
+        default: false
       tickers:
         description: "Optional space-separated tickers (leave empty for full universe)"
         required: false
@@ -37,7 +31,7 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 240
+    timeout-minutes: 60
     defaults:
       run:
         working-directory: services/scanner
@@ -65,21 +59,25 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run refresh job
+        timeout-minutes: 45
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          FORCE_RECOMPUTE: ${{ inputs.force_recompute || false }}
           GHA_REFRESH_TICKERS: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tickers || '' }}
           GHA_REFRESH_UNIVERSE: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.universe || 'all' }}
         run: |
           set -euo pipefail
+          args=()
+          if [ "$FORCE_RECOMPUTE" = "true" ]; then args+=(--force-recompute); fi
           if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ] && [ -n "${GHA_REFRESH_TICKERS:-}" ]; then
             # Word-split on whitespace: "AAPL MSFT" -> multiple argv after --tickers
-            python run_refresh.py --tickers ${GHA_REFRESH_TICKERS}
+            python run_refresh.py "${args[@]}" --tickers ${GHA_REFRESH_TICKERS}
           elif [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
-            python run_refresh.py --universe "${GHA_REFRESH_UNIVERSE:-all}"
+            python run_refresh.py "${args[@]}" --universe "${GHA_REFRESH_UNIVERSE:-all}"
           else
             # Scheduled runs always refresh the complete S&P 500 + TA-125 universe.
-            python run_refresh.py --universe all
+            python run_refresh.py "${args[@]}" --universe all
           fi
 
       - name: Check alert triggers
@@ -93,3 +91,11 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: python run_market_news_check.py
+
+      - name: Refresh company metadata (daily)
+        if: ${{ !cancelled() && github.event_name == 'schedule' }}
+        timeout-minutes: 10
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: python run_refresh_metadata.py --universe all

@@ -200,6 +200,23 @@ def get_latest_trade_date(ticker: str) -> date | None:
     return None
 
 
+def get_latest_bar(ticker: str) -> dict | None:
+    result = (_get_client().table("market_raw_data")
+              .select("trade_date,open,high,low,close,volume,created_at")
+              .eq("ticker", ticker).order("trade_date", desc=True).limit(1).execute())
+    return result.data[0] if result.data else None
+
+
+def get_refresh_rows(table: str, columns: str, tickers: list[str]) -> list[dict]:
+    """Read small state rows only; at most 300 snapshots per 100-symbol batch."""
+    rows = []
+    for offset in range(0, len(tickers), 100):
+        result = (_get_client().table(table).select(columns)
+                  .in_("ticker", tickers[offset:offset + 100]).execute())
+        rows.extend(result.data or [])
+    return rows
+
+
 def upsert_bars(ticker: str, df: pd.DataFrame) -> int:
     if df.empty:
         return 0

@@ -25,16 +25,18 @@ def main():
         default="all",
         help="Which index universe to refresh when --tickers is omitted (default: all)",
     )
+    parser.add_argument("--force-recompute", action="store_true",
+                        help="Rebuild snapshots even when stored prices are unchanged")
     args = parser.parse_args()
 
     from src.jobs.refresh_market_snapshot import run
 
     if args.tickers:
-        result = run(tickers=args.tickers)
+        result = run(tickers=args.tickers, force_recompute=args.force_recompute)
     else:
-        result = run(universe=args.universe)
+        result = run(universe=args.universe, force_recompute=args.force_recompute)
     print(json.dumps(result, indent=2))
-    sys.exit(0 if result["failed"] == 0 else 1)
+    sys.exit(0 if result["status"] == "completed" else 1)
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-"""Fetch market data from stooq.com with yfinance fallback."""
+"""Fetch from Yahoo first, with a bounded Stooq fallback."""
 
 import io
 import logging
@@ -10,6 +10,13 @@ import requests
 from ..config.settings import STOOQ_BASE_URL
 
 logger = logging.getLogger(__name__)
+_stooq_failures = 0
+STOOQ_FAILURE_LIMIT = 3
+
+
+def reset_provider_circuit() -> None:
+    global _stooq_failures
+    _stooq_failures = 0
 
 
 def _stooq_daily_symbol(ticker: str) -> str:
@@ -34,7 +41,7 @@ def fetch_bars_stooq(
         "i": "d",
     }
     try:
-        resp = requests.get(STOOQ_BASE_URL, params=params, timeout=30)
+        resp = requests.get(STOOQ_BASE_URL, params=params, timeout=(3, 5))
         resp.raise_for_status()
         df = pd.read_csv(io.StringIO(resp.text))
         if df.empty or "Close" not in df.columns:
@@ -51,7 +58,7 @@ def fetch_bars_stooq(
         df = df.sort_values("trade_date").reset_index(drop=True)
         return df[["trade_date", "open", "high", "low", "close", "volume"]]
     except Exception:
-        logger.warning("Stooq fetch failed for %s, trying yfinance", ticker)
+        logger.warning("Stooq fallback failed for %s", ticker)
         return None
 
 
@@ -62,11 +69,12 @@ def fetch_bars_yfinance(
         import yfinance as yf
 
         download_args = dict(
-            tickers=ticker,
+            tickers=ticker if ticker.upper().endswith(".TA") else ticker.replace(".", "-"),
             start=start_date.isoformat(),
             end=(end_date + timedelta(days=1)).isoformat(),
             progress=False,
             auto_adjust=True,
+            timeout=10,
         )
         try:
             data = yf.download(**download_args, show_errors=False)
@@ -97,14 +105,17 @@ def fetch_bars_yfinance(
 
 
 def fetch_bars(ticker: str, start_date: date, end_date: date) -> pd.DataFrame | None:
-    """Stooq often requires an API key for CSV; Tel Aviv symbols work reliably via yfinance."""
-    u = ticker.strip().upper()
-    if u.endswith(".TA"):
-        df = fetch_bars_yfinance(ticker, start_date, end_date)
-        if df is not None and not df.empty:
-            return df
-        return fetch_bars_stooq(ticker, start_date, end_date)
+    """Disable Stooq for this run after repeated empty/failed responses."""
+    global _stooq_failures
+    df = fetch_bars_yfinance(ticker, start_date, end_date)
+    if df is not None and not df.empty:
+        return df
+    if _stooq_failures >= STOOQ_FAILURE_LIMIT:
+        return None
     df = fetch_bars_stooq(ticker, start_date, end_date)
     if df is not None and not df.empty:
         return df
-    return fetch_bars_yfinance(ticker, start_date, end_date)
+    _stooq_failures += 1
+    if _stooq_failures == STOOQ_FAILURE_LIMIT:
+        logger.warning("Stooq circuit opened after %d failures; skipping it for the rest of this run", _stooq_failures)
+    return None

@@ -4,21 +4,22 @@ import logging
 import time
 from datetime import date, datetime, timedelta
 
+import pandas as pd
+
 from ..config.settings import INITIAL_BACKFILL_DAYS, SNAPSHOT_TIMEFRAMES
 from ..indicators.compute import compute_snapshot
 from ..repositories.market_data_repository import (
     enforce_retention,
-    get_latest_trade_date,
+    get_latest_bar,
+    get_refresh_rows,
     get_ticker_history_for_timeframe,
     log_scan_run,
     upsert_bars,
     upsert_snapshots,
-    upsert_symbol_metadata,
 )
 from .pattern_snapshots import pattern_input, publish_pattern_snapshots
 from .universe import tickers_for_refresh_universe
-from ..utils.market_data_fetcher import fetch_bars
-from ..utils.symbol_metadata import fetch_symbol_metadata_yfinance
+from ..utils.market_data_fetcher import fetch_bars, reset_provider_circuit
 from ..utils.timeframe_aggregation import aggregate_bars
 
 logger = logging.getLogger(__name__)
@@ -31,10 +32,40 @@ def _listing_market(ticker: str) -> str:
     return "TA" if ticker.upper().endswith(".TA") else "US"
 
 
+def changed_bars(bars: pd.DataFrame | None, latest: dict | None) -> pd.DataFrame:
+    """Only write new dates or a changed last candle (including its final close)."""
+    if bars is None or bars.empty:
+        return pd.DataFrame()
+    valid = bars.dropna(subset=["open", "high", "low", "close"]).copy()
+    valid["volume"] = valid["volume"].fillna(0)
+    if latest is None:
+        return valid
+    last_date = pd.Timestamp(latest["trade_date"]).date()
+    def changed(row):
+        bar_date = pd.Timestamp(row["trade_date"]).date()
+        return bar_date > last_date or (bar_date == last_date and any(
+            latest.get(key) is None or float(row[key]) != float(latest[key])
+            for key in ("open", "high", "low", "close", "volume")
+        ))
+    return valid.loc[valid.apply(changed, axis=1)] if not valid.empty else valid
+
+
+def snapshot_is_current(row: dict | None, latest: dict, date_key: str) -> bool:
+    if not row or str(row.get(date_key))[:10] != str(latest["trade_date"])[:10]:
+        return False
+    # A previous run may have written bars and then failed before publishing.
+    # Compare timestamps as well as dates to recover same-day corrections.
+    raw_updated = pd.to_datetime(latest.get("created_at"), utc=True)
+    snapshot_updated = pd.to_datetime(row.get("updated_at"), utc=True)
+    return bool(pd.notna(raw_updated) and pd.notna(snapshot_updated)
+                and snapshot_updated >= raw_updated)
+
+
 def run(
     tickers: list[str] | None = None,
     *,
     universe: str = "all",
+    force_recompute: bool = False,
 ) -> dict:
     started_at = datetime.utcnow()
     logger.info("Starting %s at %s", JOB_NAME, started_at.isoformat())
@@ -49,7 +80,16 @@ def run(
     if tickers is None:
         tickers = tickers_for_refresh_universe(universe)
 
+    tickers = sorted({ticker.strip().upper() for ticker in tickers if ticker.strip()})
+    reset_provider_circuit()
+    metadata = {row["ticker"]: row for row in get_refresh_rows(
+        "symbol_metadata", "ticker,company_name", tickers)}
+    indicators = {(row["ticker"], row["timeframe"]): row for row in get_refresh_rows(
+        "symbol_indicator_snapshot", "ticker,timeframe,last_trade_date,updated_at", tickers)}
+    patterns = {row["ticker"]: row for row in get_refresh_rows(
+        "symbol_pattern_snapshot", "ticker,as_of,updated_at,status", tickers)}
     total = len(tickers)
+    skipped = 0
     processed = 0
     failed = 0
     errors: list[str] = []
@@ -59,27 +99,35 @@ def run(
 
     for ticker in tickers:
         try:
-            latest = get_latest_trade_date(ticker)
-            start = (
-                latest + timedelta(days=1)
-                if latest
-                else (today - timedelta(days=INITIAL_BACKFILL_DAYS))
-            )
-
-            if start <= today:
-                new_bars = fetch_bars(ticker, start, today)
-                if new_bars is not None and not new_bars.empty:
-                    upsert_bars(ticker, new_bars)
-                    logger.info("Upserted %d new bars for %s", len(new_bars), ticker)
-                elif latest is None:
-                    logger.warning(
-                        "No OHLC from data providers for %s (requested from %s); "
-                        "check symbol on Yahoo Finance or Stooq API access",
-                        ticker,
-                        start,
-                    )
-
+            ticker_started = time.monotonic()
+            latest = get_latest_bar(ticker)
+            # Re-fetch the most recent date: an intraday candle may need its
+            # final close/volume even when today's row already exists.
+            start = (pd.Timestamp(latest["trade_date"]).date() if latest
+                     else today - timedelta(days=INITIAL_BACKFILL_DAYS))
+            fetched = fetch_bars(ticker, start, today) if start <= today else None
+            if fetched is None or fetched.empty:
+                raise RuntimeError("No price bars returned; keeping existing data for retry")
+            new_bars = changed_bars(fetched, latest)
+            if not new_bars.empty:
+                upsert_bars(ticker, new_bars)
+                logger.info("Upserted %d changed bars for %s", len(new_bars), ticker)
                 enforce_retention(ticker)
+
+            indicators_current = latest is not None and all(
+                snapshot_is_current(indicators.get((ticker, tf)), latest, "last_trade_date")
+                for tf in SNAPSHOT_TIMEFRAMES
+            )
+            pattern_current = (latest is not None
+                               and patterns.get(ticker, {}).get("status") != "stale"
+                               and snapshot_is_current(patterns.get(ticker), latest, "as_of"))
+            if new_bars.empty and indicators_current and pattern_current and not force_recompute:
+                skipped += 1
+                processed += 1
+                logger.info("Unchanged %s; skipped history and writes (%.2fs)",
+                            ticker, time.monotonic() - ticker_started)
+                time.sleep(BATCH_DELAY_SECONDS)
+                continue
 
             mk = _listing_market(ticker)
             daily_history = get_ticker_history_for_timeframe(ticker, "1D")
@@ -96,22 +144,15 @@ def run(
                     snapshots.append(snapshot)
             upsert_snapshots(ticker, snapshots)
 
-            metadata = fetch_symbol_metadata_yfinance(ticker)
-            listing_exchange = "TASE" if mk == "TA" else metadata.get("listing_exchange")
-            upsert_symbol_metadata(
-                ticker,
-                market=mk,
-                company_name=metadata.get("company_name"),
-                sector=metadata.get("sector"),
-                industry=metadata.get("industry"),
-                listing_exchange=listing_exchange,
-                market_cap=metadata.get("market_cap"),
-                return_on_equity=metadata.get("return_on_equity"),
-                debt_to_equity=metadata.get("debt_to_equity"),
-            )
-            logger.info("Snapshots updated for %s", ticker)
-
-            pattern_series.append(pattern_input(ticker, daily_history, metadata.get("company_name")))
+            logger.info("Snapshots updated for %s (%.2fs)", ticker,
+                        time.monotonic() - ticker_started)
+            pattern_series.append(pattern_input(
+                ticker, daily_history, metadata.get(ticker, {}).get("company_name")))
+            # Publish incrementally so a cancelled run can resume without
+            # rebuilding every successfully processed ticker's patterns.
+            if len(pattern_series) >= 50:
+                batch, pattern_series = pattern_series, []
+                publish_pattern_snapshots(batch)
             processed += 1
             time.sleep(BATCH_DELAY_SECONDS)
 
@@ -149,6 +190,7 @@ def run(
         "total": total,
         "processed": processed,
         "failed": failed,
+        "skipped_unchanged": skipped,
         "pattern_error": pattern_error,
         "duration_seconds": (finished_at - started_at).total_seconds(),
     }
