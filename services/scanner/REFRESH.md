@@ -17,8 +17,10 @@ previous run interrupted after updating a candle. Missing or stale snapshots
 are rebuilt; patterns publish in batches of 50 so progress survives cancellation.
 Full history remains available for indicator calculations when a rebuild is needed.
 
-Company metadata runs in a separate scheduled step and skips symbols already
-updated that UTC day. Failed lookups do not advance their update timestamp.
+Company metadata runs in a separate scheduled step with a seven-day refresh
+cooldown. Empty Yahoo profiles are recorded as checked and logged as warnings,
+without deleting existing metadata or failing the workflow. This avoids querying
+unsupported symbols on every run while allowing them to be retried later.
 
 From `services/scanner`, targeted recovery is available with:
 

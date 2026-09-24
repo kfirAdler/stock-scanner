@@ -111,18 +111,28 @@ def test_stooq_circuit_stops_failures_but_yahoo_keeps_running(monkeypatch):
     assert stooq.call_count == 3
     providers.reset_provider_circuit()
 
-def test_metadata_skips_today_and_retries_failed_lookups(monkeypatch):
+def test_metadata_skips_recent_and_records_empty_lookups(monkeypatch):
     today = datetime.now(timezone.utc).date()
     monkeypatch.setattr(metadata_job, "get_refresh_rows", lambda *_: [
         dict(ticker="FRESH", updated_at=today.isoformat()),
-        dict(ticker="OLD", updated_at=(today - timedelta(days=1)).isoformat())])
+        dict(ticker="STALE", updated_at=(today - timedelta(days=8)).isoformat())])
     fetch = Mock(side_effect=[{"company_name": "Old"}, {"company_name": None}])
     write = Mock()
+    checked = Mock()
     monkeypatch.setattr(metadata_job, "fetch_symbol_metadata_yfinance", fetch)
     monkeypatch.setattr(metadata_job, "upsert_symbol_metadata", write)
-    assert metadata_job.run(["FRESH", "OLD", "FAILED"]) == 1
+    monkeypatch.setattr(metadata_job, "upsert_symbol_market", checked)
+    assert metadata_job.run(["FRESH", "STALE", "EMPTY"]) == 0
     assert fetch.call_count == 2
-    write.assert_called_once_with("OLD", market="US", company_name="Old")
+    write.assert_called_once_with("STALE", market="US", company_name="Old")
+    checked.assert_called_once_with("EMPTY", "US")
+
+
+def test_metadata_real_error_still_fails_job(monkeypatch):
+    monkeypatch.setattr(metadata_job, "get_refresh_rows", lambda *_: [])
+    monkeypatch.setattr(metadata_job, "fetch_symbol_metadata_yfinance",
+                        Mock(side_effect=RuntimeError("unexpected")))
+    assert metadata_job.run(["BROKEN"]) == 1
 
 def test_patterns_are_published_in_restartable_batches(refresh):
     _, mocks, _ = refresh
