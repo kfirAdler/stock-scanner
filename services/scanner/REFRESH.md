@@ -1,9 +1,11 @@
-# Daily stock refresh
+# Intraday stock refresh
 
-The GitHub workflow runs once per weekday at **22:37 UTC**, after the US close
-in both summer and winter. It updates the S&P 500 and TA-125 daily bars, derived
-weekly/monthly indicators, patterns, alerts, and the market-news headline.
-These are daily scans; alerts no longer run throughout the trading session.
+The GitHub workflow runs every weekday at **10:02, 11:02, 12:02, 13:02,
+14:02, 15:02, and 16:02 America/New_York**. This is the first top-of-hour slot
+after the 09:30 US market open through the closing bar, and the named timezone
+keeps it aligned across US daylight-saving changes. It updates the S&P 500 and
+TA-125 daily bars, derived weekly/monthly indicators, patterns, alerts, and the
+market-news headline.
 
 Price downloads use Yahoo first. Stooq is a fallback with short connection/read
 timeouts and is disabled for the rest of a run after three failed or empty

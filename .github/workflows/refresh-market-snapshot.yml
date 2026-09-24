@@ -2,9 +2,11 @@ name: Refresh all stocks and patterns
 
 on:
   schedule:
-    # Daily bars: once after both markets close, including US winter hours.
-    # Keep manual dispatch available for targeted retries and repairs.
-    - cron: "37 22 * * 1-5"
+    # Refresh hourly near the top of the hour during the regular US session.
+    # 10:02 is the first top-of-hour slot after the 09:30 open; 16:02 captures
+    # the closing bar. The timezone keeps the schedule aligned across US DST.
+    - cron: "2 10-16 * * 1-5"
+      timezone: America/New_York
   workflow_dispatch:
     inputs:
       force_recompute:
