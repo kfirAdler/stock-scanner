@@ -1,11 +1,12 @@
 # Intraday stock refresh
 
-The GitHub workflow runs every weekday at **10:02, 11:02, 12:02, 13:02,
-14:02, 15:02, and 16:02 America/New_York**. This is the first top-of-hour slot
-after the 09:30 US market open through the closing bar, and the named timezone
-keeps it aligned across US daylight-saving changes. It updates the S&P 500 and
-TA-125 daily bars, derived weekly/monthly indicators, patterns, alerts, and the
-market-news headline.
+The GitHub workflow runs every weekday at **10:12, 11:12, 12:12, 13:12,
+14:12, 15:12, and 16:12 America/New_York**. Minute 12 avoids the GitHub Actions
+scheduler congestion that is common near minute 00. This covers the hourly
+slots after the 09:30 US market open through the closing bar, and the named
+timezone keeps it aligned across US daylight-saving changes. It updates the
+S&P 500 and TA-125 daily bars, derived weekly/monthly indicators, patterns,
+alerts, and the market-news headline.
 
 Price downloads use Yahoo first. Stooq is a fallback with short connection/read
 timeouts and is disabled for the rest of a run after three failed or empty

@@ -2,10 +2,11 @@ name: Refresh all stocks and patterns
 
 on:
   schedule:
-    # Refresh hourly near the top of the hour during the regular US session.
-    # 10:02 is the first top-of-hour slot after the 09:30 open; 16:02 captures
-    # the closing bar. The timezone keeps the schedule aligned across US DST.
-    - cron: "2 10-16 * * 1-5"
+    # Refresh hourly during the regular US session. Minute 12 avoids the
+    # GitHub Actions scheduler congestion that is common near minute 00.
+    # 10:12 is the first slot after the 09:30 open; 16:12 captures the closing
+    # bar. The timezone keeps the schedule aligned across US DST.
+    - cron: "12 10-16 * * 1-5"
       timezone: America/New_York
   workflow_dispatch:
     inputs:
