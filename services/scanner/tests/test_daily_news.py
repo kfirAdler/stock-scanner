@@ -5,6 +5,7 @@ from unittest.mock import Mock
 import json
 import pytest
 import requests
+import run_daily_news
 from src.daily_news import sources, summary, delivery, job
 from src.daily_news.render import render
 
@@ -61,6 +62,18 @@ def test_schedule_israel_dst(month, utc_hour):
     now = datetime(2026, month, 28, utc_hour, tzinfo=timezone.utc)
     assert job.scheduled_cutoff(now) == now
     assert job.scheduled_cutoff(now-timedelta(seconds=1)) is None
+
+
+def test_scheduled_cli_enables_remote_deduplication(monkeypatch):
+    run = Mock(return_value=[])
+    monkeypatch.setattr(job, 'run', run)
+    monkeypatch.setattr(job, 'scheduled_cutoff', lambda _: NOW)
+    monkeypatch.setattr('sys.argv', ['run_daily_news.py', '--send', '--scheduled'])
+
+    run_daily_news.main()
+
+    assert run.call_args.kwargs['cutoff'] == NOW
+    assert run.call_args.kwargs['scheduled'] is True
 
 
 def test_html_escapes_untrusted_text():
@@ -129,7 +142,7 @@ def test_pending_skips_rebuild(tmp_path, monkeypatch):
     monkeypatch.setenv('DISCORD_NEWS_WEBHOOK_URL', 'https://discord.com/api/webhooks/123/token')
     monkeypatch.setattr(job, 'build', lambda _: pytest.fail('Should not rebuild'))
     (tmp_path/'2026-09-22.json').write_text('{"status":"pending"}')
-    assert job.run(tmp_path/'out', tmp_path, send=True, cutoff=NOW) == []
+    assert job.run(tmp_path/'out', tmp_path, send=True, cutoff=NOW, scheduled=True) == []
 
 
 def test_demo_cannot_send(tmp_path):
@@ -217,7 +230,8 @@ def test_remote_claim_conflict_prevents_send(tmp_path, monkeypatch, fake_render)
     monkeypatch.setenv('DISCORD_NEWS_WEBHOOK_URL', 'https://discord.com/api/webhooks/123/token')
     monkeypatch.setattr(job, 'build', lambda _: job.demo_report(NOW))
     monkeypatch.setattr(job, 'deliver', lambda *a, **k: pytest.fail('Duplicate send'))
-    assert job.run(tmp_path/'out', tmp_path/'state', send=True, images=True, cutoff=NOW)
+    assert job.run(tmp_path/'out', tmp_path/'state', send=True, images=True,
+                   cutoff=NOW, scheduled=True)
     remote.sent.assert_not_called()
 
 
@@ -229,7 +243,7 @@ def test_remote_pending_prevents_rebuild(tmp_path, monkeypatch, fake_render):
     monkeypatch.setenv('NEWS_STATE_BACKEND', 'supabase')
     monkeypatch.setattr(job, 'build', lambda _: pytest.fail('Should not rebuild'))
     with pytest.raises(RuntimeError, match='Pending remote'):
-        job.run(tmp_path, tmp_path, send=True, images=True, cutoff=NOW)
+        job.run(tmp_path, tmp_path, send=True, images=True, cutoff=NOW, scheduled=True)
 
 
 def test_remote_ambiguous_failure_retains_claim(tmp_path, monkeypatch, fake_render):
@@ -243,7 +257,8 @@ def test_remote_ambiguous_failure_retains_claim(tmp_path, monkeypatch, fake_rend
     monkeypatch.setattr(job, 'build', lambda _: job.demo_report(NOW))
     monkeypatch.setattr(delivery.requests, 'post', Mock(side_effect=requests.Timeout()))
     with pytest.raises(RuntimeError, match='unknown'):
-        job.run(tmp_path/'out', tmp_path/'state', send=True, images=True, cutoff=NOW)
+        job.run(tmp_path/'out', tmp_path/'state', send=True, images=True,
+                cutoff=NOW, scheduled=True)
     remote.release.assert_not_called()
     remote.sent.assert_not_called()
 
@@ -259,7 +274,8 @@ def test_remote_explicit_rejection_releases_claim(tmp_path, monkeypatch, fake_re
     monkeypatch.setattr(job, 'build', lambda _: job.demo_report(NOW))
     monkeypatch.setattr(delivery.requests, 'post', Mock(return_value=Mock(status_code=403)))
     with pytest.raises(RuntimeError, match='rejected'):
-        job.run(tmp_path/'out', tmp_path/'state', send=True, images=True, cutoff=NOW)
+        job.run(tmp_path/'out', tmp_path/'state', send=True, images=True,
+                cutoff=NOW, scheduled=True)
     remote.release.assert_called_once_with('2026-09-22')
 
 
@@ -273,7 +289,8 @@ def test_remote_success_records_discord_id(tmp_path, monkeypatch, fake_render):
     monkeypatch.setenv('DISCORD_NEWS_WEBHOOK_URL', 'https://discord.com/api/webhooks/123/token')
     monkeypatch.setattr(job, 'build', lambda _: job.demo_report(NOW))
     monkeypatch.setattr(delivery.requests, 'post', Mock(return_value=Mock(status_code=200, json=lambda: {'id':'message-123'})))
-    job.run(tmp_path/'out', tmp_path/'state', send=True, images=True, cutoff=NOW)
+    job.run(tmp_path/'out', tmp_path/'state', send=True, images=True,
+            cutoff=NOW, scheduled=True)
     remote.sent.assert_called_once_with('2026-09-22','message-123')
 
 

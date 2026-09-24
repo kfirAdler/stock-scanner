@@ -2,7 +2,16 @@ name: Daily market news to Discord
 
 on:
   schedule:
-    - cron: '57 14 * * *'
+    # GitHub schedules are best effort and can be dropped. These staggered
+    # attempts are safe because Supabase records one scheduled delivery/day.
+    # Avoid minute 00, when GitHub Actions scheduler load is highest.
+    - cron: '7 15 * * *'
+      timezone: Asia/Jerusalem
+    - cron: '22 15 * * *'
+      timezone: Asia/Jerusalem
+    - cron: '37 15 * * *'
+      timezone: Asia/Jerusalem
+    - cron: '52 15 * * *'
       timezone: Asia/Jerusalem
   workflow_dispatch:
     inputs:

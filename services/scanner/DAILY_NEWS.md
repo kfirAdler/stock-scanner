@@ -42,10 +42,12 @@ Set the channel ID (Developer Mode → right-click the channel → Copy Channel 
 Bots in more than 20 servers must supply a guild or channel ID.
 
 GitHub supports the workflow's IANA `timezone` field. Scheduled execution may be delayed or dropped
-under load; **15:00 is the target start, not a guaranteed delivery minute**. Collection, optional summary
+under load, so the workflow makes staggered attempts at 15:07, 15:22, 15:37, and 15:52. Supabase's
+daily delivery journal allows only one attempt to send. **15:07 is the target first attempt, not a
+guaranteed delivery minute**. Collection, optional summary
 and image rendering add processing time. An ordinary delayed scheduled run retains the 24-hour window
 ending at 15:00. Manually run reports use the trailing 24 hours ending at invocation. If GitHub drops a
-run, manually trigger it. Disable this workflow in GitHub Actions to pause daily delivery.
+all four attempts, manually trigger it. Disable this workflow in GitHub Actions to pause daily delivery.
 No GitHub workflow has been pushed, remote migration applied or Discord message sent by adding these files.
 
 ## Content and current limits

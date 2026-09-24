@@ -32,7 +32,15 @@ def main():
             cutoff = scheduled_cutoff(datetime.now(timezone.utc))
             if cutoff is None:
                 raise ValueError('Scheduled run cannot execute before 15:00 Israel time')
-        paths = run(args.output, args.state, send=args.send, demo=args.demo, images=not args.html_only, cutoff=cutoff)
+        paths = run(
+            args.output,
+            args.state,
+            send=args.send,
+            demo=args.demo,
+            images=not args.html_only,
+            cutoff=cutoff,
+            scheduled=args.scheduled,
+        )
         for path in paths:
             print(path)
 
