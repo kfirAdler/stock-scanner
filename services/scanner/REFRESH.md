@@ -1,12 +1,18 @@
 # Intraday stock refresh
 
-The GitHub workflow runs every weekday at **10:12, 11:12, 12:12, 13:12,
-14:12, 15:12, and 16:12 America/New_York**. Minute 12 avoids the GitHub Actions
-scheduler congestion that is common near minute 00. This covers the hourly
-slots after the 09:30 US market open through the closing bar, and the named
-timezone keeps it aligned across US daylight-saving changes. It updates the
-S&P 500 and TA-125 daily bars, derived weekly/monthly indicators, patterns,
-alerts, and the market-news headline.
+The GitHub workflow targets one successful refresh per weekday hour from
+**10:00 through 16:59 America/New_York**. Because GitHub cron is best effort,
+each hour has attempts at minutes **12, 27, 42, and 57**. Before doing any
+checkout or setup, each attempt checks completed workflow runs and becomes a
+no-op when that New York hour already has a success. A failed or dropped first
+attempt can therefore be recovered by a later attempt without refreshing four
+times. Delayed triggers that arrive outside the refresh window are ignored.
+The named timezone keeps the window aligned across US daylight-saving changes.
+
+The workflow updates the S&P 500 and TA-125 daily bars, derived weekly/monthly
+indicators, patterns, alerts, and the market-news headline. Manual dispatch
+remains available as the authenticated trigger for an external scheduler and
+always bypasses the hourly deduplication gate.
 
 Price downloads use Yahoo first. Stooq is a fallback with short connection/read
 timeouts and is disabled for the rest of a run after three failed or empty
@@ -19,6 +25,12 @@ downloads from Supabase and snapshot writes. Publication timestamps detect a
 previous run interrupted after updating a candle. Missing or stale snapshots
 are rebuilt; patterns publish in batches of 50 so progress survives cancellation.
 Full history remains available for indicator calculations when a rebuild is needed.
+
+If both price providers return no rows for a symbol that already has stored
+history, the job preserves that history, records the symbol as
+`skipped_unavailable`, and continues successfully. A symbol with no stored data,
+database failures, pattern-publication failures, and more than 10% of the
+universe being unavailable still fail the run.
 
 Company metadata runs in a separate scheduled step with a seven-day refresh
 cooldown. Empty Yahoo profiles are recorded as checked and logged as warnings,

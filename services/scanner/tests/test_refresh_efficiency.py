@@ -67,12 +67,30 @@ def test_recovers_missing_or_outdated_publication(refresh, damage):
     mocks["get_ticker_history_for_timeframe"].assert_called_once()
     assert len(mocks["publish_pattern_snapshots"].call_args.args[0]) == 1
 
-def test_empty_provider_response_is_not_success(refresh):
+def test_empty_provider_response_preserves_existing_data_as_unavailable(refresh):
+    _, mocks, latest = refresh
+    mocks["fetch_bars"].side_effect = [None] + [pd.DataFrame([latest])] * 10
+    result = job.run(["TEST"] + [f"OK{i}" for i in range(10)])
+    assert result["status"] == "completed"
+    assert result["failed"] == 0
+    assert result["processed"] == 11
+    assert result["skipped_unavailable"] == 1
+    mocks["upsert_bars"].assert_not_called()
+
+def test_provider_wide_empty_response_still_fails(refresh):
     _, mocks, _ = refresh
     mocks["fetch_bars"].return_value = None
-    assert job.run(["TEST"])["failed"] == 1
-    mocks["upsert_bars"].assert_not_called()
-    mocks["upsert_snapshots"].assert_not_called()
+    result = job.run(["TEST"])
+    assert result["status"] == "completed_with_errors"
+    assert "provider-wide outage" in result["provider_error"]
+
+def test_empty_provider_response_without_stored_data_still_fails(refresh):
+    _, mocks, _ = refresh
+    mocks["get_latest_bar"].return_value = None
+    mocks["fetch_bars"].return_value = None
+    result = job.run(["TEST"])
+    assert result["status"] == "completed_with_errors"
+    assert result["failed"] == 1
 
 def test_pattern_failure_is_reported(refresh):
     state, mocks, _ = refresh

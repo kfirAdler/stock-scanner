@@ -2,11 +2,10 @@ name: Refresh all stocks and patterns
 
 on:
   schedule:
-    # Refresh hourly during the regular US session. Minute 12 avoids the
-    # GitHub Actions scheduler congestion that is common near minute 00.
-    # 10:12 is the first slot after the 09:30 open; 16:12 captures the closing
-    # bar. The timezone keeps the schedule aligned across US DST.
-    - cron: "12 10-16 * * 1-5"
+    # GitHub cron is best effort, so provide four opportunities per hour.
+    # The schedule gate below allows only the first successful run in each
+    # New York hour to do work; later attempts become inexpensive no-ops.
+    - cron: "12,27,42,57 10-16 * * 1-5"
       timezone: America/New_York
   workflow_dispatch:
     inputs:
@@ -31,6 +30,10 @@ concurrency:
   group: refresh-market-snapshot
   cancel-in-progress: false
 
+permissions:
+  actions: read
+  contents: read
+
 jobs:
   refresh:
     runs-on: ubuntu-latest
@@ -40,16 +43,63 @@ jobs:
         working-directory: services/scanner
 
     steps:
+      - name: Decide whether this hourly refresh is still needed
+        id: schedule_gate
+        working-directory: ${{ github.workspace }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_EVENT_NAME}" != "schedule" ]; then
+            echo "run_refresh=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          ny_hour=$(TZ=America/New_York date +%H)
+          if [ "$ny_hour" -lt 10 ] || [ "$ny_hour" -gt 16 ]; then
+            echo "Ignoring a delayed trigger outside the US refresh window."
+            echo "run_refresh=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          hour_start=$(python - <<'PY'
+          from datetime import datetime, timezone
+          from zoneinfo import ZoneInfo
+
+          now = datetime.now(ZoneInfo("America/New_York"))
+          start = now.replace(minute=0, second=0, microsecond=0).astimezone(timezone.utc)
+          print(start.isoformat().replace("+00:00", "Z"))
+          PY
+          )
+          api_url="${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/workflows/refresh-market-snapshot.yml/runs?event=schedule&status=completed&per_page=100"
+          prior_successes=$(curl --fail --silent --show-error \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "$api_url" | jq --arg start "$hour_start" --argjson current "$GITHUB_RUN_ID" \
+            '[.workflow_runs[] | select(.id != $current and .conclusion == "success" and .created_at >= $start)] | length')
+
+          if [ "$prior_successes" -gt 0 ]; then
+            echo "This New York hour already has a successful refresh; skipping retry."
+            echo "run_refresh=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "No successful refresh exists for this New York hour."
+            echo "run_refresh=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Checkout
+        if: steps.schedule_gate.outputs.run_refresh == 'true'
         uses: actions/checkout@v7
 
       - name: Set up Node for pattern detectors
+        if: steps.schedule_gate.outputs.run_refresh == 'true'
         uses: actions/setup-node@v7
         with:
           node-version: "24"
           package-manager-cache: false
 
       - name: Set up Python
+        if: steps.schedule_gate.outputs.run_refresh == 'true'
         uses: actions/setup-python@v7
         with:
           python-version: "3.12"
@@ -57,11 +107,13 @@ jobs:
           cache-dependency-path: services/scanner/requirements.txt
 
       - name: Install dependencies
+        if: steps.schedule_gate.outputs.run_refresh == 'true'
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
       - name: Run refresh job
+        if: steps.schedule_gate.outputs.run_refresh == 'true'
         timeout-minutes: 45
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
@@ -84,21 +136,21 @@ jobs:
           fi
 
       - name: Check alert triggers
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.schedule_gate.outputs.run_refresh == 'true' }}
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: python run_alert_check.py
       
       - name: Store market news headline
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.schedule_gate.outputs.run_refresh == 'true' }}
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: python run_market_news_check.py
       
       - name: Refresh company metadata (daily)
-        if: ${{ !cancelled() && github.event_name == 'schedule' }}
+        if: ${{ !cancelled() && github.event_name == 'schedule' && steps.schedule_gate.outputs.run_refresh == 'true' }}
         timeout-minutes: 10
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}

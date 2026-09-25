@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 
 JOB_NAME = "refresh_market_snapshot"
 BATCH_DELAY_SECONDS = 0.5
+MAX_UNAVAILABLE_RATIO = 0.10
 
 
 def _listing_market(ticker: str) -> str:
@@ -90,6 +91,7 @@ def run(
         "symbol_pattern_snapshot", "ticker,as_of,updated_at,status", tickers)}
     total = len(tickers)
     skipped = 0
+    skipped_unavailable = 0
     processed = 0
     failed = 0
     errors: list[str] = []
@@ -107,6 +109,15 @@ def run(
                      else today - timedelta(days=INITIAL_BACKFILL_DAYS))
             fetched = fetch_bars(ticker, start, today) if start <= today else None
             if fetched is None or fetched.empty:
+                if latest is not None:
+                    skipped_unavailable += 1
+                    processed += 1
+                    logger.warning(
+                        "No price bars returned for %s; preserved existing data and marked unavailable",
+                        ticker,
+                    )
+                    time.sleep(BATCH_DELAY_SECONDS)
+                    continue
                 raise RuntimeError("No price bars returned; keeping existing data for retry")
             new_bars = changed_bars(fetched, latest)
             if not new_bars.empty:
@@ -170,8 +181,20 @@ def run(
         errors.append(f"Pattern snapshots: {exc}")
         logger.exception("Failed to publish pattern snapshots")
 
+    provider_error = None
+    unavailable_ratio = skipped_unavailable / total if total else 0
+    if unavailable_ratio > MAX_UNAVAILABLE_RATIO:
+        provider_error = (
+            f"Price providers returned no data for {skipped_unavailable}/{total} symbols "
+            f"({unavailable_ratio:.1%}); possible provider-wide outage"
+        )
+        errors.append(provider_error)
+        logger.error(provider_error)
+
     finished_at = datetime.utcnow()
-    status = "completed" if failed == 0 and pattern_error is None else "completed_with_errors"
+    status = "completed" if (
+        failed == 0 and pattern_error is None and provider_error is None
+    ) else "completed_with_errors"
 
     log_scan_run(
         job_name=JOB_NAME,
@@ -191,7 +214,9 @@ def run(
         "processed": processed,
         "failed": failed,
         "skipped_unchanged": skipped,
+        "skipped_unavailable": skipped_unavailable,
         "pattern_error": pattern_error,
+        "provider_error": provider_error,
         "duration_seconds": (finished_at - started_at).total_seconds(),
     }
     logger.info("Job finished: %s", result)
