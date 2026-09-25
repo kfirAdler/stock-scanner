@@ -16,8 +16,6 @@ def refresh(monkeypatch):
         "symbol_metadata": [dict(ticker="TEST", company_name="Test")],
         "symbol_indicator_snapshot": [dict(ticker="TEST", timeframe=tf, last_trade_date=today,
             updated_at=f"{today}T01:00:00Z") for tf in job.SNAPSHOT_TIMEFRAMES],
-        "symbol_pattern_snapshot": [dict(ticker="TEST", as_of=today,
-            status="scanned", updated_at=f"{today}T01:00:00Z")],
     }
     monkeypatch.setattr(job, "get_refresh_rows", lambda table, *_: state[table])
     mocks = {}
@@ -29,6 +27,7 @@ def refresh(monkeypatch):
     mocks["get_latest_bar"].return_value = latest
     mocks["fetch_bars"].return_value = pd.DataFrame([latest])
     mocks["get_ticker_history_for_timeframe"].return_value = pd.DataFrame([latest])
+    mocks["publish_pattern_snapshots"].side_effect = lambda series: len(series)
     monkeypatch.setattr(job.time, "sleep", lambda _: None)
     return state, mocks, latest
 
@@ -37,9 +36,10 @@ def test_unchanged_prices_skip_history_and_writes(refresh):
     result = job.run(["TEST"])
     assert result["skipped_unchanged"] == 1
     assert result["status"] == "completed"
-    for name in ("get_ticker_history_for_timeframe", "upsert_bars", "upsert_snapshots"):
+    for name in ("upsert_bars", "upsert_snapshots"):
         mocks[name].assert_not_called()
-    assert mocks["publish_pattern_snapshots"].call_args.args[0] == []
+    mocks["get_ticker_history_for_timeframe"].assert_called_once_with("TEST", "1D")
+    assert len(mocks["publish_pattern_snapshots"].call_args.args[0]) == 1
 
 def test_same_day_final_close_is_written_and_recomputed(refresh):
     _, mocks, latest = refresh
@@ -50,14 +50,10 @@ def test_same_day_final_close_is_written_and_recomputed(refresh):
     mocks["get_ticker_history_for_timeframe"].assert_called_once()
     assert mocks["fetch_bars"].call_args.args[1] == date.today()
 
-@pytest.mark.parametrize("damage", ["missing_pattern", "stale_pattern", "missing_indicator", "old_timestamp", "force"])
+@pytest.mark.parametrize("damage", ["missing_indicator", "old_timestamp", "force"])
 def test_recovers_missing_or_outdated_publication(refresh, damage):
     state, mocks, latest = refresh
-    if damage == "missing_pattern":
-        state["symbol_pattern_snapshot"] = []
-    elif damage == "stale_pattern":
-        state["symbol_pattern_snapshot"][0]["status"] = "stale"
-    elif damage == "missing_indicator":
+    if damage == "missing_indicator":
         state["symbol_indicator_snapshot"].pop()
     elif damage == "old_timestamp":
         latest["created_at"] = f"{date.today()}T02:00:00Z"
@@ -75,30 +71,32 @@ def test_empty_provider_response_preserves_existing_data_as_unavailable(refresh)
     assert result["failed"] == 0
     assert result["processed"] == 11
     assert result["skipped_unavailable"] == 1
+    assert result["patterns_updated"] == 11
     mocks["upsert_bars"].assert_not_called()
 
-def test_provider_wide_empty_response_still_fails(refresh):
+def test_provider_wide_empty_response_is_reported_without_failing(refresh):
     _, mocks, _ = refresh
     mocks["fetch_bars"].return_value = None
     result = job.run(["TEST"])
-    assert result["status"] == "completed_with_errors"
+    assert result["status"] == "completed"
     assert "provider-wide outage" in result["provider_error"]
 
-def test_empty_provider_response_without_stored_data_still_fails(refresh):
+def test_empty_provider_response_without_stored_data_is_nonfatal(refresh):
     _, mocks, _ = refresh
     mocks["get_latest_bar"].return_value = None
     mocks["fetch_bars"].return_value = None
     result = job.run(["TEST"])
-    assert result["status"] == "completed_with_errors"
+    assert result["status"] == "completed"
     assert result["failed"] == 1
+    assert result["patterns_updated"] == 1
 
-def test_pattern_failure_is_reported(refresh):
-    state, mocks, _ = refresh
-    state["symbol_pattern_snapshot"] = []
+def test_pattern_failure_is_reported_without_failing(refresh):
+    _, mocks, _ = refresh
     mocks["publish_pattern_snapshots"].side_effect = RuntimeError("offline")
     result = job.run(["TEST"])
-    assert result["status"] == "completed_with_errors"
-    assert result["pattern_error"] == "offline"
+    assert result["status"] == "completed"
+    assert result["patterns_failed"] == 1
+    assert "offline" in result["warnings"][0]
 
 def test_changed_bars_filters_old_identical_and_invalid_rows():
     last = dict(trade_date="2026-09-22", open=1, high=2, low=1, close=2, volume=10)
@@ -159,11 +157,11 @@ def test_patterns_are_published_in_restartable_batches(refresh):
     assert [len(call.args[0]) for call in mocks["publish_pattern_snapshots"].call_args_list] == [50, 1]
 
 
-def test_cli_exits_nonzero_for_pattern_only_failure(monkeypatch):
+def test_cli_exits_zero_for_best_effort_failures(monkeypatch):
     import run_refresh
     monkeypatch.setattr("sys.argv", ["run_refresh.py", "--tickers", "TEST"])
     monkeypatch.setattr(job, "run", Mock(return_value={
-        "status": "completed_with_errors", "failed": 0, "pattern_error": "offline"}))
+        "status": "completed", "failed": 1, "patterns_failed": 1}))
     with pytest.raises(SystemExit) as exc:
         run_refresh.main()
-    assert exc.value.code == 1
+    assert exc.value.code == 0

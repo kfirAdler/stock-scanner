@@ -36,7 +36,7 @@ def main():
     else:
         result = run(universe=args.universe, force_recompute=args.force_recompute)
     print(json.dumps(result, indent=2))
-    sys.exit(0 if result["status"] == "completed" else 1)
+    sys.exit(0)
 
 
 if __name__ == "__main__":

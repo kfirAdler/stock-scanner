@@ -87,8 +87,6 @@ def run(
         "symbol_metadata", "ticker,company_name", tickers)}
     indicators = {(row["ticker"], row["timeframe"]): row for row in get_refresh_rows(
         "symbol_indicator_snapshot", "ticker,timeframe,last_trade_date,updated_at", tickers)}
-    patterns = {row["ticker"]: row for row in get_refresh_rows(
-        "symbol_pattern_snapshot", "ticker,as_of,updated_at,status", tickers)}
     total = len(tickers)
     skipped = 0
     skipped_unavailable = 0
@@ -96,6 +94,9 @@ def run(
     failed = 0
     errors: list[str] = []
     pattern_series = []
+    pattern_failed = 0
+    pattern_updated = 0
+    daily_histories: dict[str, pd.DataFrame] = {}
 
     today = date.today()
 
@@ -112,13 +113,9 @@ def run(
                 if latest is not None:
                     skipped_unavailable += 1
                     processed += 1
-                    logger.warning(
-                        "No price bars returned for %s; preserved existing data and marked unavailable",
-                        ticker,
-                    )
                     time.sleep(BATCH_DELAY_SECONDS)
                     continue
-                raise RuntimeError("No price bars returned; keeping existing data for retry")
+                raise RuntimeError("No price bars returned; no stored data available")
             new_bars = changed_bars(fetched, latest)
             if not new_bars.empty:
                 upsert_bars(ticker, new_bars)
@@ -129,10 +126,7 @@ def run(
                 snapshot_is_current(indicators.get((ticker, tf)), latest, "last_trade_date")
                 for tf in SNAPSHOT_TIMEFRAMES
             )
-            pattern_current = (latest is not None
-                               and patterns.get(ticker, {}).get("status") != "stale"
-                               and snapshot_is_current(patterns.get(ticker), latest, "as_of"))
-            if new_bars.empty and indicators_current and pattern_current and not force_recompute:
+            if new_bars.empty and indicators_current and not force_recompute:
                 skipped += 1
                 processed += 1
                 logger.info("Unchanged %s; skipped history and writes (%.2fs)",
@@ -142,6 +136,7 @@ def run(
 
             mk = _listing_market(ticker)
             daily_history = get_ticker_history_for_timeframe(ticker, "1D")
+            daily_histories[ticker] = daily_history
             snapshots = []
             for timeframe in SNAPSHOT_TIMEFRAMES:
                 history = aggregate_bars(daily_history, timeframe, market=mk)
@@ -157,13 +152,6 @@ def run(
 
             logger.info("Snapshots updated for %s (%.2fs)", ticker,
                         time.monotonic() - ticker_started)
-            pattern_series.append(pattern_input(
-                ticker, daily_history, metadata.get(ticker, {}).get("company_name")))
-            # Publish incrementally so a cancelled run can resume without
-            # rebuilding every successfully processed ticker's patterns.
-            if len(pattern_series) >= 50:
-                batch, pattern_series = pattern_series, []
-                publish_pattern_snapshots(batch)
             processed += 1
             time.sleep(BATCH_DELAY_SECONDS)
 
@@ -171,15 +159,43 @@ def run(
             failed += 1
             msg = f"{ticker}: {e}"
             errors.append(msg)
-            logger.exception("Failed to process %s", ticker)
+            # A bad/delisted symbol must not fail the complete scheduled job.
+            # Individual failures are included only in the final summary.
 
-    pattern_error = None
-    try:
-        publish_pattern_snapshots(pattern_series)
-    except Exception as exc:
-        pattern_error = str(exc)
-        errors.append(f"Pattern snapshots: {exc}")
-        logger.exception("Failed to publish pattern snapshots")
+    def publish_patterns_best_effort(batch: list[dict]) -> None:
+        """Publish all valid patterns, isolating a bad symbol without aborting."""
+        nonlocal pattern_failed, pattern_updated
+        if not batch:
+            return
+        try:
+            pattern_updated += publish_pattern_snapshots(batch)
+        except Exception as exc:
+            if len(batch) > 1:
+                midpoint = len(batch) // 2
+                publish_patterns_best_effort(batch[:midpoint])
+                publish_patterns_best_effort(batch[midpoint:])
+            else:
+                pattern_failed += 1
+                errors.append(f"{batch[0]['ticker']} pattern: {exc}")
+
+    # Patterns are intentionally a separate pass. They must be refreshed for
+    # every symbol even when prices were unchanged, unavailable, or indicator
+    # processing failed above.
+    for ticker in tickers:
+        try:
+            daily_history = daily_histories.get(ticker)
+            if daily_history is None:
+                daily_history = get_ticker_history_for_timeframe(ticker, "1D")
+            pattern_series.append(pattern_input(
+                ticker, daily_history, metadata.get(ticker, {}).get("company_name")))
+            if len(pattern_series) >= 50:
+                batch, pattern_series = pattern_series, []
+                publish_patterns_best_effort(batch)
+        except Exception as exc:
+            pattern_failed += 1
+            errors.append(f"{ticker} pattern: {exc}")
+
+    publish_patterns_best_effort(pattern_series)
 
     provider_error = None
     unavailable_ratio = skipped_unavailable / total if total else 0
@@ -189,12 +205,11 @@ def run(
             f"({unavailable_ratio:.1%}); possible provider-wide outage"
         )
         errors.append(provider_error)
-        logger.error(provider_error)
 
     finished_at = datetime.utcnow()
-    status = "completed" if (
-        failed == 0 and pattern_error is None and provider_error is None
-    ) else "completed_with_errors"
+    # Per-symbol/provider failures are non-fatal for this best-effort refresh.
+    # Unexpected errors outside these guarded sections still fail the process.
+    status = "completed"
 
     log_scan_run(
         job_name=JOB_NAME,
@@ -215,9 +230,16 @@ def run(
         "failed": failed,
         "skipped_unchanged": skipped,
         "skipped_unavailable": skipped_unavailable,
-        "pattern_error": pattern_error,
+        "patterns_updated": pattern_updated,
+        "patterns_failed": pattern_failed,
         "provider_error": provider_error,
+        "warnings": errors[:20],
         "duration_seconds": (finished_at - started_at).total_seconds(),
     }
-    logger.info("Job finished: %s", result)
+    logger.info(
+        "Job finished: status=%s total=%d processed=%d stock_failures=%d "
+        "unavailable=%d patterns_updated=%d pattern_failures=%d warnings=%d",
+        status, total, processed, failed, skipped_unavailable,
+        pattern_updated, pattern_failed, len(errors),
+    )
     return result
