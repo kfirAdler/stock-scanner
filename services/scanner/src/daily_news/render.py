@@ -1,33 +1,38 @@
-"""Self-contained RTL HTML and section images rendered by Chromium."""
+"""Fixed-size mobile-first RTL briefing rendered as one 1080x1920 PNG."""
 from __future__ import annotations
-import re
+
 import base64
-from functools import lru_cache
+import re
 from datetime import datetime
+from functools import lru_cache
 from html import escape
 from pathlib import Path
 from zoneinfo import ZoneInfo
+
 from .sources import safe_url
 from .tickers import replace_company_names
 
-LABELS = {'market': 'מצב השוק', 'macro': 'מאקרו וגיאופוליטיקה',
-          'companies': 'חדשות החברות', 'week': 'על הפרק השבוע'}
-MAX_PAGE_HEIGHT = 1600
+VIEWPORT = {'width': 540, 'height': 960}
+DEVICE_SCALE_FACTOR = 2
+MAX_STORIES = 12
+MIN_STORIES = 8
+LABELS = {
+    'market': 'שוק', 'macro': 'מאקרו', 'company': 'חברה', 'companies': 'חברה',
+    'earnings': 'דוחות', 'regulatory': 'רגולציה', 'crypto': 'קריפטו', 'israel': 'ישראל',
+}
 CSS = '''
-*{box-sizing:border-box}body{margin:0;background:#edf3ef;color:#15251e;font-family:Heebo,Arial,sans-serif}
-main{max-width:1120px;margin:0 auto;background:white}header{background:linear-gradient(115deg,#092f26 0%,#075a3e 55%,#15925a 100%);color:white;padding:16px 28px}
-.brand{font-size:11px;letter-spacing:1.6px;opacity:.8}h1{font-size:26px;margin:6px 0}header p{margin:3px 0;font-size:13px}
-.quotes{display:flex;flex-wrap:wrap;background:#eef6f1;padding:10px 22px;gap:7px}.quote{flex:1;min-width:130px;padding:7px;background:white;border-radius:5px}
-.quote strong{display:block;font-size:18px;margin-top:3px}.quote small{font-size:11px;color:#65796c}.up{color:#128354}.down{color:#c33b4e}
-section{padding:12px 28px 5px;border-bottom:1px solid #dfebe4}h2{font-size:19px;margin:0 0 8px;color:#126344}
-article{margin:0 0 10px;padding-right:10px;border-right:2px solid #c5ddcd;break-inside:avoid}
-h3{font-weight:400;font-size:17px;line-height:1.4;margin:0 0 3px}article p{font-size:17px;line-height:1.4;margin:0 0 3px}
-a{color:#44715b;text-decoration:none}.sources{font-size:12px;line-height:1.3;color:#667c6e}.ticker{display:inline-block;direction:ltr;color:#075a3e;padding:0;margin:0;font-size:inherit;font-weight:700}
-.quote-notes{display:flex;flex-wrap:wrap;gap:4px 14px;padding:3px 28px 8px;background:#eef6f1;color:#65796c;font-size:11px;line-height:1.45}.quote span{font-size:13px}.notice{background:#fff7dd;color:#655125;padding:6px 28px;font-size:12px;line-height:1.3}.social{color:#996517;font-size:12px}footer{padding:9px 28px;color:#718076;font-size:11px;line-height:1.35}
-@media(max-width:650px){header,section{padding:14px}h1{font-size:26px}.quotes{padding:10px}h3{font-size:18px}article p{font-size:17px}}
-@media print{body{background:white}main{margin:0}article{break-inside:avoid}}
+@page{size:540px 960px;margin:0}*{box-sizing:border-box}
+html,body{margin:0;width:540px;height:960px;overflow:hidden;background:#f4f7f5;color:#10231c;font-family:Heebo,Arial,sans-serif}
+#daily-brief{width:540px;height:960px;overflow:hidden;background:#f4f7f5;padding:18px 22px 14px;display:flex;flex-direction:column}
+header{height:76px;flex:none;border-bottom:2px solid #075b45;display:grid;grid-template-columns:1fr auto;align-items:start;padding:0 0 12px}
+.brand{direction:ltr;text-align:left;color:#075b45;font-size:11px;line-height:1;font-weight:800;letter-spacing:1.45px}.date{font-size:20px;line-height:1;font-weight:800;text-align:right}
+h1{grid-column:1/-1;margin:9px 0 0;font-size:18px;line-height:1.2;font-weight:700}.stamp{color:#64746d;font-size:11px;font-weight:500}
+.quotes{height:112px;flex:none;display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(3,1fr);column-gap:18px;padding:10px 0 8px;border-bottom:1px solid #dde7e2}
+.quote{display:grid;grid-template-columns:70px 1fr 54px;align-items:center;font-size:11px;font-variant-numeric:tabular-nums}.quote-label{direction:ltr;unicode-bidi:isolate;color:#64746d;font-weight:750}.quote-value,.quote-change{direction:ltr;unicode-bidi:isolate;text-align:left;font-weight:750}.up{color:#087a55}.down{color:#c83c4a}.missing{color:#8b9892}
+.seconds{height:56px;flex:none;padding:8px 0;border-bottom:1px solid #dde7e2}.section-label{font-size:10px;line-height:1;color:#075b45;font-weight:850;letter-spacing:.3px}.pulse{margin-top:7px;font-size:12px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.stories{flex:1;min-height:0}.story{height:66px;padding:8px 0 7px;border-bottom:1px solid #dde7e2;display:grid;grid-template-columns:47px 1fr;column-gap:9px;break-inside:avoid}.story.top{height:78px;padding-top:9px}.badge{align-self:start;justify-self:start;direction:ltr;unicode-bidi:isolate;max-width:47px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#e5efe9;color:#075b45;border-radius:3px;padding:3px 5px;font-size:9px;line-height:1.2;font-weight:850;text-align:center}.story-body{min-width:0}.story-title{margin:0;font-size:15px;line-height:1.25;font-weight:680;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.top .story-title{font-size:16px;font-weight:760}.english-title{direction:ltr;unicode-bidi:isolate;text-align:left}.story-meta{margin-top:3px;color:#64746d;font-size:9.5px;line-height:1.15;display:flex;gap:5px;align-items:center}.en{direction:ltr;background:#10231c;color:white;border-radius:2px;padding:1px 3px;font-size:8px;font-weight:800}
+footer{height:22px;flex:none;display:flex;align-items:end;justify-content:space-between;color:#64746d;font-size:8.5px;line-height:1.1}.numeric,.ticker{direction:ltr;unicode-bidi:isolate}
 '''
-
 
 
 @lru_cache(maxsize=1)
@@ -36,10 +41,50 @@ def embedded_font():
     return '@font-face{font-family:Heebo;font-style:normal;font-weight:100 900;src:url(data:font/ttf;base64,' + data + ') format("truetype");}'
 
 
+def e(value):
+    return escape(str(value), quote=True)
+
+
+def clean_headline(text):
+    text = re.sub(r'\s+', ' ', text or '').strip()
+    text = re.sub(r'^Stock Market Today:\s*', '', text, flags=re.I)
+    text = re.sub(r'\bQ([1-4]) CY(20\d{2}) Earnings Results:\s*', r'Q\1 \2: ', text)
+    return re.split(r'\.\s+It[’\']s (?:a |the )?lifeline', text, flags=re.I)[0].strip()
+
+
+def news_text(text, item, prefix=False):
+    text = clean_headline(text)
+    text = replace_company_names(text, item)
+    allowed = set(item.get('tickers', []))
+    result, start = [], 0
+    for match in re.finditer(r'\$([A-Z]{1,6}(?:\.[A-Z])?)(?![\w])', text):
+        result.append(e(text[start:match.start()]))
+        result.append('<bdi class="ticker"><strong>' + e(match.group()) + '</strong></bdi>'
+                      if match.group(1) in allowed else e(match.group()))
+        start = match.end()
+    result.append(e(text[start:]))
+    return ''.join(result)
+
+
+def _quote_markup(quotes):
+    out = []
+    for quote in quotes[:6]:
+        value = quote.get('value')
+        change = quote.get('change')
+        if value is None:
+            continue
+        decimals = 2 if abs(value) < 1000 else 0
+        color = 'up' if (change or 0) >= 0 else 'down'
+        out.append(f'<div class="quote"><span class="quote-label">{e(quote["label"])}</span>'
+                   f'<span class="quote-value">{value:,.{decimals}f}</span>'
+                   f'<span class="quote-change {color}">{change:+.2f}%</span></div>')
+    return ''.join(out)
+
+
 def quote_notes(quotes):
     groups, missing = {}, []
     for quote in quotes:
-        if quote['value'] is None:
+        if quote.get('value') is None:
             missing.append(quote['label'])
         elif quote.get('session_date'):
             groups.setdefault(quote['session_date'], []).append(quote['label'])
@@ -55,127 +100,64 @@ def quote_notes(quotes):
     return ' · '.join(notes)
 
 
-def quote_notes_markup(quotes):
-    # Isolate each date/asset group to prevent mixed Hebrew/English bidi reordering.
-    parts = quote_notes(quotes).split(' · ')
-    result = []
-    for part in parts:
-        match = re.search(r'(\d{2}\.\d{2}) — (.*)', part)
-        if match:
-            value = e(part[:match.start()]) + '<bdi dir="ltr">' + e(match.group(1)) + '</bdi> — <bdi dir="auto">' + e(match.group(2)) + '</bdi>'
-        else:
-            value = e(part)
-        result.append('<span>' + value + '</span>')
-    return ''.join(result)
+def _pulse(report):
+    available = [q for q in report['quotes'] if q.get('value') is not None and q.get('change') is not None]
+    strongest = sorted(available, key=lambda q: abs(q['change']), reverse=True)[:3]
+    parts = [f"{q['label']} {q['change']:+.1f}%" for q in strongest]
+    titles = ' '.join(item['title'] for item in report['items'])
+    if re.search(r'Fed|פד|ריבית', titles, re.I):
+        parts.append('הפד במוקד')
+    earnings = sum(item['category'] == 'earnings' for item in report['items'])
+    if earnings:
+        parts.append(f'{earnings} דוחות בולטים')
+    return '  ●  '.join(parts[:4]) or 'נתוני השוק האחרונים זמינים בכותרות שלמטה'
 
 
-def clean_headline(text):
-    # Remove editorial wrappers without inventing or paraphrasing source facts.
-    text = re.sub(r'^Stock Market Today:\s*', '', text, flags=re.I)
-    text = re.sub(r'\bQ([1-4]) CY(20\d{2}) Earnings Results:\s*', r'Q\1 \2: ', text)
-    text = re.split(r'\.\s+It[’\']s (?:a |the )?lifeline', text, flags=re.I)[0]
-    return text.strip()
-
-
-def e(value):
-    return escape(str(value), quote=True)
-
-
-def news_text(text, item, prefix=False):
-    text = clean_headline(text)
-    if item['category'] == 'companies':
-        text = re.sub(r'^(?:Dow|Nasdaq|S&P)[^;]*;\s*', '', text, flags=re.I)
-    text = replace_company_names(text, item)
-    if prefix and item['category'] == 'companies' and item['tickers'] and not any('$' + t in text for t in item['tickers']):
-        text = ' / '.join('$' + t for t in item['tickers']) + ': ' + text
-    allowed = set(item['tickers'])
-    result, start = [], 0
-    for match in re.finditer(r'\$([A-Z]{1,6}(?:\.[A-Z])?)(?![\w])', text):
-        result.append(e(text[start:match.start()]))
-        result.append('<bdi class="ticker"><strong>' + e(match.group()) + '</strong></bdi>'
-                      if match.group(1) in allowed else e(match.group()))
-        start = match.end()
-    result.append(e(text[start:]))
-    return ''.join(result)
+def _badge(item):
+    tickers = item.get('tickers', [])
+    return tickers[0] if tickers else LABELS.get(item['category'], 'שוק')
 
 
 def render(report, items=None, page_label='', overview=True):
     cutoff = datetime.fromisoformat(report['cutoff']).astimezone(ZoneInfo('Asia/Jerusalem'))
-    start = datetime.fromisoformat(report['window_start']).astimezone(ZoneInfo('Asia/Jerusalem'))
-    title = 'חדשות הבוקר'
-    if report.get('demo'):
-        title = 'תצוגת דוגמה — לא חדשות אמיתיות'
-    out = ['<!doctype html><html lang="he" dir="rtl"><meta charset="utf-8">',
-           '<meta name="viewport" content="width=device-width, initial-scale=1">',
-           '<title>' + title + '</title><style>' + embedded_font() + CSS + '</style><main>',
-           '<header><div class="brand" dir="ltr">STOCK SCANNER / DAILY BRIEF</div>',
-           '<h1>' + title + ' · ' + cutoff.strftime('%d.%m.%Y') + '</h1>',
-           '<p>השוק האמריקאי · ' + start.strftime('%d.%m %H:%M') + ' עד ' + cutoff.strftime('%d.%m %H:%M') + ' · שעון ישראל</p>',
-           ('<p><bdi dir="ltr">' + e(page_label) + '</bdi></p>' if page_label and not page_label.endswith('/ 1') else '') + '</header><div class="quotes">']
-    for q in report['quotes'] if overview else []:
-        if q['value'] is None:
-            continue
-        value = 'לא זמין' if q['value'] is None else f"{q['value']:,.2f}"
-        delta = '' if q['change'] is None else f"{q['change']:+.2f}%"
-        color = 'up' if (q['change'] or 0) >= 0 else 'down'
-        out.append(f'<div class="quote"><span>{e(q["label"])}</span><strong dir="ltr">{e(value)}</strong><b dir="ltr" class="{color}">{e(delta)}</b></div>')
-    out.append('</div>')
-    if overview:
-        out.append('<div class="quote-notes">' + quote_notes_markup(report['quotes']) + '</div>')
-        warnings = [w for w in report['warnings'] if not w.startswith('חלק מנתוני השוק לא התקבלו')]
-        if warnings:
-            out.append('<div class="notice">' + ' · '.join(e(w) for w in warnings) + '</div>')
-    selected = report['items'] if items is None else items
-    for category, label in LABELS.items():
-        group = [i for i in selected if i['category'] == category]
-        if not group:
-            continue
-        out.append('<section><h2>' + label + '</h2>')
-        for item in group:
-            out.append('<article><h3 dir="auto">' + news_text(item['title'], item, prefix=True) + '</h3>')
-            if item['summary']:
-                out.append('<p dir="auto">' + news_text(item['summary'], item) + '</p>')
-            if item['social_only']:
-                out.append('<div class="social">דיווח ב־X · לא אומת מול מקור נוסף</div>')
-            links = []
-            for s in item['sources'][:2]:
-                published = datetime.fromisoformat(s['published_at']).astimezone(ZoneInfo('Asia/Jerusalem')).strftime('%d.%m %H:%M')
-                links.append('<a href="' + e(safe_url(s['url'])) + '" target="_blank" rel="noopener noreferrer">' + e(s['source']) + ' · ' + published + '</a>')
-            out.append('<div class="sources">' + ' / '.join(links) + '</div></article>')
-        out.append('</section>')
-    out.append('<footer>מחירים: Yahoo Finance · נתונים אחרונים זמינים, ייתכן עיכוב · השינוי מול יום המסחר הקודם.</footer></main></html>')
+    selected = list(report['items'] if items is None else items)[:MAX_STORIES]
+    title = 'Daily Market Brief' if not report.get('demo') else 'תצוגת Daily Brief'
+    out = ['<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8">',
+           '<meta name="viewport" content="width=540,initial-scale=1"><title>', e(title),
+           '</title><style>', embedded_font(), CSS, '</style></head><body>',
+           '<main id="daily-brief"><header><div class="brand">DAILY MARKET BRIEF</div>',
+           '<div class="date">', cutoff.strftime('%d.%m.%Y'), '</div><h1>וול סטריט',
+           ' <span class="stamp">· ', cutoff.strftime('%H:%M'), ' שעון ישראל</span></h1></header>',
+           '<div class="quotes">', _quote_markup(report['quotes']) if overview else '', '</div>',
+           '<div class="seconds"><div class="section-label">היום ב־20 שניות</div><div class="pulse">● ',
+           e(_pulse(report)) if overview else '', '</div></div><div class="stories">']
+    for index, item in enumerate(selected):
+        source = item['sources'][0]
+        published = datetime.fromisoformat(source['published_at']).astimezone(ZoneInfo('Asia/Jerusalem')).strftime('%H:%M')
+        language = item.get('language') or source.get('language', 'en')
+        direction = ' class="story-title english-title" dir="ltr"' if language == 'en' else ' class="story-title" dir="auto"'
+        out.extend(['<article class="story', ' top' if index == 0 else '', '"><div class="badge">',
+                    e(_badge(item)), '</div><div class="story-body"><h2', direction, '>',
+                    news_text(item['title'], item), '</h2><div class="story-meta"><span>',
+                    e(source['source']), '</span><span>·</span><span class="numeric">', published,
+                    '</span>', '<span class="en">EN</span>' if language == 'en' else '',
+                    '</div></div></article>'])
+    source_count = len({item['sources'][0]['source'] for item in selected})
+    out.extend(['</div><footer><span>מקורות: ', str(source_count), ' · ללא AI וללא תרגום אוטומטי</span>',
+                '<span>מחירים: Yahoo Finance</span></footer></main></body></html>'])
     return ''.join(out)
 
 
-def fit_pages(report, page):
-    """Measure actual browser layout; keep whole stories, readable type and at most two cards."""
-    while True:
-        chunks, current = [], []
-        for item in report['items']:
-            trial = current + [item]
-            page.set_content(render(report, trial, '2 / 2', overview=not chunks), wait_until='load')
-            page.evaluate('document.fonts.ready')
-            height = page.locator('main').bounding_box()['height']
-            if height > MAX_PAGE_HEIGHT and current:
-                chunks.append(current)
-                current = [item]
-            else:
-                current = trial
-        if current or not chunks:
-            chunks.append(current)
-        if len(chunks) <= 2:
-            # Validate each final card (including a possible long single-story card).
-            fits = True
-            for index, chunk in enumerate(chunks):
-                page.set_content(render(report, chunk, '2 / 2', overview=index == 0), wait_until='load')
-                if page.locator('main').bounding_box()['height'] > MAX_PAGE_HEIGHT:
-                    fits = False
-            if fits:
-                return chunks
-        if not report['items']:
-            raise ValueError('Report header exceeds image height budget')
-        # Drop the lowest-ranked tail story instead of clipping text or shrinking the font.
-        report['items'] = report['items'][:-1]
+def fit_items(report, page):
+    items = list(report['items'][:MAX_STORIES])
+    while items:
+        page.set_content(render(report, items), wait_until='load')
+        page.evaluate('document.fonts.ready')
+        overflow = page.locator('#daily-brief').evaluate('node => node.scrollHeight > node.clientHeight')
+        if not overflow:
+            return items
+        items.pop()
+    raise ValueError('Report header exceeds fixed portrait canvas')
 
 
 def write_report(report, directory, images=True):
@@ -184,28 +166,25 @@ def write_report(report, directory, images=True):
     directory.mkdir(parents=True, exist_ok=True)
     html = directory / 'report.html'
     paths = [html]
+    retained = list(report['items'][:MAX_STORIES])
     if images:
         from playwright.sync_api import sync_playwright
-        with sync_playwright() as p:
-            browser = p.chromium.launch()
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch()
             try:
-                page = browser.new_page(viewport={'width': 1120, 'height': 900}, device_scale_factor=1)
+                page = browser.new_page(viewport=VIEWPORT, device_scale_factor=DEVICE_SCALE_FACTOR)
                 page.route('**/*', lambda route: route.abort())
-                chunks = fit_pages(report, page)
-                if not report['items']:
-                    raise ValueError('No stories fit within the report page budget')
-                # Remove previous generated cards so reruns cannot retain a stale third page in artifacts.
+                retained = fit_items(report, page)
+                page.set_content(render(report, retained), wait_until='load')
+                page.evaluate('document.fonts.ready')
                 for old in directory.glob('news-*.png'):
                     old.unlink()
-                for index, chunk in enumerate(chunks, 1):
-                    page.set_content(render(report, chunk, f'{index} / {len(chunks)}', overview=index == 1), wait_until='load')
-                    page.evaluate('document.fonts.ready')
-                    path = directory / f'news-{index:02d}.png'
-                    page.locator('main').screenshot(path=str(path))
-                    paths.append(path)
+                image = directory / 'news-01.png'
+                page.locator('#daily-brief').screenshot(path=str(image), type='png')
+                paths.append(image)
             finally:
                 browser.close()
-    # Persist exactly the retained stories, matching Discord and the delivery journal.
-    html.write_text(render(report), encoding='utf-8')
+    report['items'] = retained
+    html.write_text(render(report, retained), encoding='utf-8')
     (directory / 'report.json').write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding='utf-8')
     return paths

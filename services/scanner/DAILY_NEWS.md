@@ -1,105 +1,51 @@
-# Daily market briefing — GitHub Actions
+# Daily Market Brief
 
-The `Daily market news to Discord` workflow generates a broad US-market digest every day at **15:00
-Asia/Jerusalem**, including weekends and automatic DST handling. It sends only one or two compact PNG cards through the existing bot to `stock-news`, with the exact
-caption `@everyone חדשות הבוקר - DD.MM.YYYY`. HTML/JSON remain local and in GitHub run artifacts for 14 days,
-including clickable source links in HTML; they are never attached to Discord. Major-company stories
-are ordered first internally. The existing scanner jobs and website remain unchanged.
+The `Daily market news to Discord` workflow creates one Hebrew-first, mobile portrait market brief every day at **15:00 Asia/Jerusalem**. Staggered GitHub attempts and the Supabase delivery journal ensure that only one report is delivered per Israel calendar date.
 
-## Activate in GitHub
+Discord receives one **1080×1920 PNG** with the caption `@everyone 📈 Daily Market Brief | DD.MM.YYYY`. The HTML and normalized JSON report remain available in the workflow artifact for 14 days.
 
-1. Apply `supabase/migrations/026_daily_news_deliveries.sql` using your existing Supabase migration flow
-   or SQL editor. This adds a service-role-only delivery journal so ephemeral runners cannot resend
-   the same day's report. It does not alter existing tables.
-2. In the repository → **Settings → Secrets and variables → Actions**, add/check these **Secrets**:
+## Content pipeline
 
-   | Secret | Purpose |
-   | --- | --- |
-   | `DISCORD_BOT_TOKEN` | Existing bot token, required for bot delivery |
-   | `NEXT_PUBLIC_SUPABASE_URL` | Same project as the scanner; already used by its workflow |
-   | `SUPABASE_SERVICE_ROLE_KEY` | Same service-role key as the scanner |
-   | `DISCORD_NEWS_CHANNEL_ID` | Optional if `stock-news` resolves uniquely; recommended |
-   | `DISCORD_GUILD_ID` | Optional: restrict channel-name lookup to one server |
-   | `OPENAI_API_KEY` | Optional: enables full Hebrew editorial summaries |
-   | `X_BEARER_TOKEN` | Optional: official X recent-search access |
+The report is deterministic and uses no LLM, translation API, or paid news API:
 
-   Optional repository **Variables**: `DISCORD_NEWS_CHANNEL_NAME` (default `stock-news`),
-   `NEWS_MODEL` (default `gpt-4.1-mini`), `NEWS_X_ACCOUNTS` (comma-separated handles, up to 15).
-   Variables stored only in Vercel are not available to GitHub Actions.
-3. Ensure the bot is in the server with View Channel, Send Messages, Attach Files and Mention @everyone permissions.
-   The caption explicitly pings everyone; delivery of individual notifications still follows Discord
-   user notification settings. User and role mentions remain disabled.
-   The provided application ID `1491821240317382776` identifies the bot app, not the destination.
-   `DISCORD_APPLICATION_ID` and `DISCORD_PUBLIC_KEY` are not needed for this outbound job.
-4. Commit/push the changes to the repository's default branch. Scheduled workflows use that branch.
-5. Under **Actions → Daily market news to Discord → Run workflow**, first leave **Send to Discord**
-   unchecked. Download the generated report under **Artifacts** to review it. Run again with the
-   checkbox enabled to send (only once per Israel calendar date).
+1. Fetch public metadata concurrently from Hebrew Google News RSS searches, Sponser RSS, Bizportal structured article metadata, SEC EDGAR, and Nasdaq Trader.
+2. Isolate provider failures; one timeout, 403, or malformed feed does not stop the report.
+3. Normalize title, canonical URL, source, source URL, publication time, language, market, category, provider, and recognized tickers.
+4. Remove tracking parameters, sponsored/personal-finance/lifestyle material, stale stories, exact URL duplicates, and title clusters with at least 0.72 Jaccard similarity within 12 hours.
+5. Score freshness, source quality, language, category, ticker relevance, and independent multi-source coverage.
+6. Select at most 12 items with no more than three per publisher, two per ticker, two Israeli stories, or two English stories when Hebrew coverage is available.
+7. Render the highest-ranked stories that fit one fixed 540×960 CSS-pixel canvas at device scale factor 2. Low-ranked stories are removed before spacing or readable type is reduced.
 
-Alternatively, use `DISCORD_NEWS_WEBHOOK_URL` as a repository secret; it takes precedence over bot settings.
-If the bot sees several text channels named `stock-news`, the job stops instead of selecting one arbitrarily.
-Set the channel ID (Developer Mode → right-click the channel → Copy Channel ID) in that case.
-Bots in more than 20 servers must supply a guild or channel ID.
+SEC and Nasdaq Trader are signal sources. Technical filings without a recognized company are not displayed as standalone headlines. Bizportal scraping is isolated and reads only structured metadata; it never bypasses access controls or copies article bodies.
 
-GitHub supports the workflow's IANA `timezone` field. Scheduled execution may be delayed or dropped
-under load, so the workflow makes staggered attempts at 15:07, 15:22, 15:37, and 15:52. Supabase's
-daily delivery journal allows only one attempt to send. **15:07 is the target first attempt, not a
-guaranteed delivery minute**. Collection, optional summary
-and image rendering add processing time. An ordinary delayed scheduled run retains the 24-hour window
-ending at 15:00. Manually run reports use the trailing 24 hours ending at invocation. If GitHub drops a
-all four attempts, manually trigger it. Disable this workflow in GitHub Actions to pause daily delivery.
-No GitHub workflow has been pushed, remote migration applied or Discord message sent by adding these files.
+The market strip contains S&P 500, Nasdaq, Dow, WTI, Bitcoin, and the U.S. 10-year yield from Yahoo Finance. The “20 seconds” line uses only deterministic quote movements and keyword flags.
 
-## Content and current limits
+## Required configuration
 
-* Public Google News RSS and Yahoo Finance work without extra news-provider credentials, following
-  the providers the scanner already uses. Search is sampled, not exhaustive for every US listing.
-* **Without `OPENAI_API_KEY`, original-language headlines are shown with Hebrew section headings**,
-  and a visible note states that Hebrew summarization is not enabled. Configure a key for full Hebrew
-  summaries. The Responses API uses `NEWS_MODEL`; API usage is separately billed. On a model failure,
-  the report visibly falls back to original titles.
-* The model only receives headlines/snippets, not full articles. It must cite provided source IDs;
-  code rejects fabricated IDs, invalid shapes and oversized text. This constrains but cannot guarantee
-  semantic accuracy. Sources and publication times remain visible for verification.
-* Coverage includes market context, macro/geopolitics, companies across sectors, and upcoming events
-  only when explicitly present in the supplied news. There is no dedicated economic-calendar feed yet.
-* Items must have a timezone-aware publication date within the exact 24-hour window. Missing, stale
-  and future dates are excluded. Exact duplicate titles/URLs are removed; when configured, the model
-  also consolidates coverage of the same event. A deterministic editorial pass limits the report to 12 substantive events: at most one market
-  overview, three macro stories, seven company stories and one upcoming event. It filters obvious
-  stock-picking lists, foreign-index headlines and near-duplicate events, including without a model.
-  These are conservative headline heuristics, not full-article fact checking.
-* X needs both its API token and account list. Collection is bounded to 300 posts/run. Social-only
-  claims are visibly labeled unverified. Source failures and missing market quotes are disclosed.
-* Quotes use Yahoo's last available daily bar, possibly developing or from the prior close. They are
-  not guaranteed real-time. Displayed percentages compare daily bars, not necessarily trailing 24 hours;
-  session dates are printed in each card. Prices are fetched when the job executes.
-* PNG pagination measures browser layout at a readable fixed font size, allows at most two cards
-  (1120px wide, up to 1600px high), and drops trailing stories rather than clipping text or shrinking
-  type. Market cards and source-availability notes appear on the first image only.
-* Company names are replaced with bold `$TICKER` mentions, with ordinary-weight sentence text.
-  Identification uses the scanner's existing `symbol_metadata` plus known aliases; company stories
-  without a resolved ticker are omitted. No new market-data subscription is required.
-* HTML, JSON and images remain available as local/Actions artifacts. Discord receives only PNGs, with
-  only the explicitly requested everyone mention enabled (no user/role mentions). Sending with `--html-only` is rejected before collecting or claiming a report.
+Apply `supabase/migrations/026_daily_news_deliveries.sql`, then configure these GitHub Actions secrets:
 
-## Duplicate protection and recovery
+| Secret | Purpose |
+| --- | --- |
+| `DISCORD_BOT_TOKEN` | Existing Discord bot token |
+| `DISCORD_NEWS_CHANNEL_ID` | Recommended destination channel ID |
+| `DISCORD_GUILD_ID` | Optional channel lookup restriction |
+| `DISCORD_NEWS_WEBHOOK_URL` | Optional alternative to bot delivery |
+| `NEXT_PUBLIC_SUPABASE_URL` | Delivery journal project |
+| `SUPABASE_SERVICE_ROLE_KEY` | Delivery journal service-role access |
 
-`NEWS_STATE_BACKEND=supabase` is set by the workflow. The journal uses a unique Israel calendar date.
-A `pending` row is atomically inserted **before** Discord is called; success records `sent`, message ID
-and timestamp. The generated report is retained in the row. Concurrent runners cannot claim the same day.
-Timeouts, crashes and ambiguous Discord server errors leave the pending row intact: check the channel
-before retrying. Only if you confirm no report was delivered should you remove that date's pending row
-and run again. Explicit 4xx rejections release the reservation; 429 requests have bounded retries.
-A pending report fails the job visibly instead of being resent. Journal outages stop sending.
-The design favors preventing duplicate messages over blindly retrying uncertain deliveries.
+Optional variable: `DISCORD_NEWS_CHANNEL_NAME` defaults to `stock-news`. For SEC identification, `SEC_USER_AGENT` may be set to a product/contact string.
 
-GitHub artifacts/cache are not relied on as the delivery lock. GitHub concurrency also serializes runs.
-Do not enable a separate local scheduler with independent local state for the same Discord channel.
+No `OPENAI_API_KEY`, model variable, X API credential, or news-provider key is used.
 
-## Local preview (optional)
+## Delivery safety
 
-From `services/scanner`, using Python 3.10+ on macOS/Linux:
+`NEWS_STATE_BACKEND=supabase` is set by the workflow. A `pending` journal row is claimed before Discord is called. Confirmed success records the Discord message ID. Ambiguous timeouts retain the claim so the job cannot blindly send a duplicate; inspect Discord before manually releasing such a row. Explicit 4xx rejection releases the claim, and 429 responses receive bounded retries.
+
+The scheduled workflow attempts delivery at 15:07, 15:22, 15:37, and 15:52. GitHub scheduling is best effort, while the journal permits only one successful delivery. Manual previews never send unless `--send` is explicitly supplied.
+
+## Local preview
+
+From `services/scanner`:
 
 ```sh
 python3 -m venv .venv
@@ -109,17 +55,7 @@ python3 -m venv .venv
 .venv/bin/python run_daily_news.py
 ```
 
-On Linux, use `python -m playwright install --with-deps chromium` for browser system dependencies.
-The offline demo is marked as fictional and cannot send. A normal run only creates local files by default.
-Outputs: `daily-news-output/YYYY-MM-DD/`. `--html-only` skips Chromium; `--send` explicitly sends.
-`--scheduled` fixes the cutoff to today's 15:00 Israel time and refuses to run before that time.
-Merge `daily-news.env.example` into the repository root `.env.local` without overwriting existing secrets.
-Environment variables override that file. Output/state directories are ignored by Git.
-
-Local `--daemon` and deployment service templates are available for an always-on host as an alternative
-to Actions, not alongside it. It runs daily at 15:00 Israel time and catches up today's report after a
-restart. Local state defaults to a file lock + durable JSON marker; set `NEWS_STATE_BACKEND=supabase`
-to share the same journal with Actions. A local pending marker requires the same manual delivery check.
+Outputs are written to `daily-news-output/YYYY-MM-DD/`. `report.json` retains source URLs and metadata, `report.html` is a local clickable preview, and `news-01.png` is the Discord artifact. `--html-only` skips Chromium and cannot be combined with sending.
 
 ## Verification
 
@@ -128,21 +64,4 @@ to share the same journal with Actions. A local pending marker requires the same
 .venv/bin/python -m pytest tests/test_daily_news.py -q
 ```
 
-Tests cover dates/DST, source validation, priority and sector coverage, escaping, bot delivery, channel
-ambiguity, safe previews, duplicate protection and failure handling. Tests never send live messages.
-
-References: [GitHub schedules and timezone](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule),
-[Discord bot messages](https://docs.discord.com/developers/resources/message#create-message),
-[OpenAI structured outputs](https://developers.openai.com/api/docs/guides/structured-outputs),
-[X recent search](https://docs.x.com/x-api/posts/search-recent-posts).
-
-
-### Reading layout
-
-Heebo is bundled in `src/daily_news/assets` under the SIL Open Font License (included with the font),
-so Hebrew and English have the same typeface on local machines and GitHub runners without external
-font requests. Story text is 17px instead of 20px; ticker bold uses the same inherited font size.
-Quote dates are grouped once below the market strip. Different session dates remain disclosed;
-missing quotes are named in that shared note instead of occupying empty market cards. Single-page
-reports omit the redundant 1/1 label. Routine toolkit remarks and obvious buy-point/promotional
-headlines are filtered; factual partnership text is retained without promotional tail sentences.
+Tests cover source isolation, date windows, normalization, deterministic selection, duplicate filtering, portrait dimensions, escaping, Discord delivery, scheduling, and duplicate protection. Tests never send Discord messages.

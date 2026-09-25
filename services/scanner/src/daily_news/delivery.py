@@ -92,7 +92,7 @@ def deliver(paths, webhook, marker, day, bot_token='', channel_id=''):
         raise ValueError('Discord delivery requires report images')
     if len(paths) > 2 or sum(p.stat().st_size for p in paths) > 9_000_000:
         raise ValueError('Report exceeds conservative Discord attachment budget')
-    payload = {'content': '@everyone חדשות הבוקר - ' + date.fromisoformat(day).strftime('%d.%m.%Y'),
+    payload = {'content': '@everyone 📈 Daily Market Brief | ' + date.fromisoformat(day).strftime('%d.%m.%Y'),
                'allowed_mentions': {'parse': ['everyone'], 'users': [], 'roles': []},
                'attachments': [{'id': i, 'filename': p.name} for i, p in enumerate(paths)]}
     # Record BEFORE POST: on timeout/crash Discord may already have accepted it.

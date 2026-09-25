@@ -55,10 +55,6 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           NEWS_STATE_BACKEND: supabase
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          NEWS_MODEL: ${{ vars.NEWS_MODEL || 'gpt-4.1-mini' }}
-          X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
-          NEWS_X_ACCOUNTS: ${{ vars.NEWS_X_ACCOUNTS }}
           SEND_TO_DISCORD: ${{ github.event_name == 'schedule' || inputs.send_to_discord }}
         run: |
           args=()

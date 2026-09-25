@@ -42,7 +42,7 @@ def demo_report(cutoff):
 def build(cutoff):
     articles, warnings = collect_rss(cutoff)
     posts, x_warnings = collect_x(cutoff)
-    sources = prepare(articles + posts, company_catalog())
+    sources = prepare(articles + posts, company_catalog(), cutoff=cutoff)
     if not sources:
         raise RuntimeError('No timestamped news found in the last 24 hours; nothing will be sent')
     items, summary_warning = summarize(sources)

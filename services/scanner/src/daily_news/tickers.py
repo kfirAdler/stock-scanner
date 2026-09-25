@@ -11,6 +11,14 @@ NAMES = {
     'META': ['Meta Platforms, Inc.', 'Meta Platforms', 'Meta', 'מטא'],
     'GOOGL': ['Alphabet Inc.', 'Alphabet', 'Google', 'אלפבית', 'גוגל'],
     'TSLA': ['Tesla, Inc.', 'Tesla', 'טסלה'],
+    'AMD': ['Advanced Micro Devices, Inc.', 'Advanced Micro Devices', 'AMD'],
+    'INTC': ['Intel Corporation', 'Intel', 'אינטל'],
+    'MU': ['Micron Technology, Inc.', 'Micron Technology', 'Micron', 'מיקרון'],
+    'AVGO': ['Broadcom Inc.', 'Broadcom', 'ברודקום'],
+    'COST': ['Costco Wholesale Corporation', 'Costco', 'קוסטקו'],
+    'QCOM': ['QUALCOMM Incorporated', 'Qualcomm', 'קוואלקום'],
+    'TSEM': ['Tower Semiconductor Ltd.', 'Tower Semiconductor', 'טאואר'],
+    'NBIS': ['Nebius Group N.V.', 'Nebius Group', 'Nebius', 'נביוס'],
     'AZO': ['AutoZone, Inc.', 'AutoZone'],
     'PYPL': ['PayPal Holdings, Inc.', 'PayPal Holdings', 'PayPal'],
     'KBH': ['KB Home', 'KBHome'],
@@ -66,7 +74,7 @@ def identify(title, catalog):
 
 
 def replace_company_names(text, item):
-    if item['category'] != 'companies':
+    if item['category'] not in {'company', 'companies', 'earnings', 'regulatory'}:
         return text
     text = re.sub(r'\((?:NASDAQ|NYSE):\s*\$?([A-Z]{1,6}(?:\.[A-Z])?)\)', r'($\1)', text)
     names = {t: list(NAMES.get(t, [])) for t in item['tickers']}

@@ -18,7 +18,7 @@ def source(**overrides):
                      kind='headline', tickers=['AAPL']), **overrides)
 
 
-@pytest.mark.parametrize('offset,include', [(-24, True), (-24.01, False), (0, True), (0.01, False)])
+@pytest.mark.parametrize('offset,include', [(-30, True), (-30.01, False), (0, True), (0.01, False)])
 def test_rss_window(offset, include):
     date = format_datetime(NOW + timedelta(hours=offset))
     xml = f'<rss><channel><item><title>News</title><link>https://example.com</link><pubDate>{date}</pubDate></item></channel></rss>'
@@ -31,30 +31,27 @@ def test_unknown_dates_are_not_today(date):
     assert sources.parse_rss(xml, 'market', NOW) == []
 
 
-def test_dedup_and_mega_cap_order():
+def test_dedup_and_unresolved_company_filter():
     normal = source(title='Retail earnings', tickers=[], url='https://example.com/2')
     items = sources.prepare([normal, source(), source()])
-    assert len(items) == 2
+    assert len(items) == 1
     assert items[0]['tickers'] == ['AAPL']
 
 
-def test_fallback_no_credentials(monkeypatch):
-    monkeypatch.delenv('OPENAI_API_KEY', raising=False)
-    monkeypatch.setattr(summary.requests, 'post', lambda *a, **k: pytest.fail('No API calls expected'))
+def test_summary_is_deterministic_with_or_without_credentials(monkeypatch):
+    monkeypatch.setenv('OPENAI_API_KEY', 'must-not-be-used')
     items, warning = summary.summarize([source()])
     assert items[0]['title'] == source()['title']
-    assert warning
+    assert not warning
 
 
-def test_fabricated_source_rejected():
-    with pytest.raises(ValueError, match='source'):
-        summary.validate({'items': [dict(category='companies', title='כותרת', summary='תקציר',
-                                         tickers=['AAPL'], source_ids=['fake'])]}, [source()])
-
-
-def test_social_label_is_enforced_outside_model():
-    item = dict(category='companies', title='כותרת', summary='תקציר', tickers=['AAPL'], source_ids=['1'])
-    assert summary.validate({'items': [item]}, [source(kind='social')])[0]['social_only']
+def test_normalized_story_keeps_source_metadata():
+    normalized = sources.prepare([source(language='he', provider='fixture', source_url='https://example.com')], cutoff=NOW)
+    item = normalized[0]
+    assert item['source'] == 'Example'
+    assert item['published_at'] == NOW.isoformat()
+    assert item['url'] == 'https://example.com/1'
+    assert item['provider'] == 'fixture'
 
 
 @pytest.mark.parametrize('month,utc_hour', [(1, 13), (7, 12), (3, 12), (10, 13)])
@@ -180,23 +177,13 @@ def test_fallback_preserves_broad_coverage_and_orders_mega_caps_first():
     assert {r['tickers'][0] for r in result[2:]} == {'PFE', 'JPM'}
 
 
-def test_model_response_is_validated(monkeypatch):
-    monkeypatch.setenv('OPENAI_API_KEY', 'test-key')
-    payload = {'items': [dict(category='companies', title='עדכון חברה', summary='תקציר בעברית', tickers=['AAPL'], source_ids=['1'])]}
-    response = Mock(status_code=200, json=lambda: {'status':'completed', 'output':[{'content':[{'type':'output_text','text':json.dumps(payload)}]}]})
-    monkeypatch.setattr(summary.requests, 'post', Mock(return_value=response))
-    result, warning = summary.summarize([source()])
-    assert not warning
-    assert result[0]['summary'] == 'תקציר בעברית'
-    assert result[0]['sources'][0]['url'] == source()['url']
-
-
-def test_model_incomplete_falls_back(monkeypatch):
-    monkeypatch.setenv('OPENAI_API_KEY', 'test-key')
-    monkeypatch.setattr(summary.requests, 'post', Mock(return_value=Mock(status_code=200, json=lambda: {'status': 'incomplete'})))
-    result, warning = summary.summarize([source()])
-    assert warning
-    assert result[0]['title'] == source()['title']
+def test_provider_failure_does_not_drop_other_sources(monkeypatch):
+    good = Mock(id='good', fetch=Mock(return_value=[source(provider='good')]))
+    bad = Mock(id='bad', fetch=Mock(side_effect=requests.Timeout()))
+    monkeypatch.setattr(sources, 'PROVIDERS', [good, bad])
+    result, warnings = sources.collect_rss(NOW)
+    assert len(result) == 1
+    assert warnings == ['מקור חדשות לא זמין: bad']
 
 
 def test_channel_lookup_requires_unique_name(monkeypatch):
@@ -312,7 +299,7 @@ def test_discord_only_sends_png_with_requested_caption(tmp_path, monkeypatch):
     monkeypatch.setattr(delivery.requests, 'post', post)
     delivery.deliver([html, png], 'https://discord.com/api/webhooks/123/token', tmp_path/'state.json', '2026-09-22')
     payload = json.loads(post.call_args.kwargs['data']['payload_json'])
-    assert payload['content'] == '@everyone חדשות הבוקר - 22.09.2026'
+    assert payload['content'] == '@everyone 📈 Daily Market Brief | 22.09.2026'
     assert payload['attachments'] == [{'id': 0, 'filename': 'news-01.png'}]
     assert len(post.call_args.kwargs['files']) == 1
 
@@ -439,7 +426,54 @@ def test_font_is_bundled_for_offline_rendering():
     from src.daily_news.render import embedded_font, CSS
     assert 'data:font/ttf;base64,' in embedded_font()
     assert 'font-family:Heebo' in CSS
-    assert 'font-size:inherit;font-weight:700' in CSS
+    assert 'width:540px;height:960px' in CSS
+
+
+def test_renderer_targets_one_1080_by_1920_portrait_image():
+    from src.daily_news.render import VIEWPORT, DEVICE_SCALE_FACTOR
+    assert VIEWPORT == {'width': 540, 'height': 960}
+    assert DEVICE_SCALE_FACTOR == 2
+
+
+@pytest.mark.parametrize('scenario', ['regular', 'fed', 'earnings'])
+def test_historical_style_fixtures_select_mobile_brief(scenario):
+    titles = [
+        'וול סטריט ננעלה בעליות לאחר יום מסחר תנודתי',
+        'הפד הותיר את הריבית ללא שינוי והדגיש את האינפלציה',
+        'תשואת אג״ח ארה״ב ירדה לאחר נתוני התעסוקה',
+        'אנבידיה חתמה על חוזה חדש לאספקת שבבים',
+        'מיקרוסופט העלתה את תחזית ההכנסות השנתית',
+        'אפל דיווחה על רווח רבעוני מעל התחזיות',
+        'אמזון הכריזה על השקעה חדשה בתשתיות ענן',
+        'מטא השיקה מוצר חדש למפרסמים',
+        'טסלה הורידה את תחזית המסירות השנתית',
+        'AMD חתמה על עסקה חדשה למרכזי נתונים',
+        'ברודקום דיווחה על הכנסות מעל התחזיות',
+        'קוואלקום מאריכה את הסכם הרישיון עם אפל',
+    ]
+    rows = []
+    for index, title in enumerate(titles):
+        rows.append(source(id=str(index), title=f'{title} {scenario}',
+                           url=f'https://publisher{index}.example/story?utm_source=test',
+                           source=f'Publisher {index}', provider='fixture', language='he',
+                           published_at=(NOW - timedelta(minutes=index * 20)).isoformat()))
+    selected = sources.prepare(rows, cutoff=NOW)
+    assert 8 <= len(selected) <= 12
+    assert sum(item['language'] == 'he' for item in selected) / len(selected) >= .8
+    assert len({item['url'] for item in selected}) == len(selected)
+    assert sum(item['category'] == 'israel' for item in selected) <= 2
+
+
+def test_tracking_urls_and_similar_titles_are_clustered():
+    rows = [
+        source(title='אנבידיה חתמה על חוזה חדש לאספקת שבבים', url='https://example.com/story?utm_source=a',
+               source='גלובס', provider='google-news-he', language='he'),
+        source(title='אנבידיה חתמה על חוזה חדש לאספקת שבבים', url='https://example.com/story?utm_source=b',
+               source='ביזפורטל', provider='google-news-he', language='he'),
+    ]
+    selected = sources.prepare(rows, cutoff=NOW)
+    assert len(selected) == 1
+    assert selected[0]['url'] == 'https://example.com/story'
 
 
 def test_question_headlines_do_not_substitute_for_market_facts():
