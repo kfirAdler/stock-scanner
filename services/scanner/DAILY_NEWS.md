@@ -41,7 +41,12 @@ No `OPENAI_API_KEY`, model variable, X API credential, or news-provider key is u
 
 `NEWS_STATE_BACKEND=supabase` is set by the workflow. A `pending` journal row is claimed before Discord is called. Confirmed success records the Discord message ID. Ambiguous timeouts retain the claim so the job cannot blindly send a duplicate; inspect Discord before manually releasing such a row. Explicit 4xx rejection releases the claim, and 429 responses receive bounded retries.
 
-The scheduled workflow attempts delivery at 15:07, 15:22, 15:37, and 15:52. GitHub scheduling is best effort, while the journal permits only one successful delivery. Manual previews never send unless `--send` is explicitly supplied.
+GitHub scheduling is best effort, so the workflow requests wake-ups every five
+minutes in both possible UTC hours for 15:00 Israel time. A pre-check accepts
+only 15:00–15:59 `Asia/Jerusalem` and stops after the first successful scheduled
+run that day. This avoids timezone-dependent cron registration and provides up
+to 12 valid attempts while the Supabase journal still permits only one Discord
+delivery. Manual previews never send unless `--send` is explicitly supplied.
 
 ## Local preview
 

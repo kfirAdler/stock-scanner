@@ -2,12 +2,12 @@
 
 The GitHub workflow targets one successful refresh per weekday hour from
 **10:00 through 16:59 America/New_York**. Because GitHub cron is best effort,
-each hour has attempts at minutes **12, 27, 42, and 57**. Before doing any
-checkout or setup, each attempt checks completed workflow runs and becomes a
-no-op when that New York hour already has a success. A failed or dropped first
-attempt can therefore be recovered by a later attempt without refreshing four
-times. Delayed triggers that arrive outside the refresh window are ignored.
-The named timezone keeps the window aligned across US daylight-saving changes.
+it requests a wake-up every five minutes across the union of U.S. summer and
+winter UTC hours. Before doing any checkout or setup, each attempt checks the
+actual New York hour and completed workflow runs. Attempts outside the market
+window or after that hour already succeeded become inexpensive no-ops. This
+avoids relying on timezone-aware cron registration and supplies repeated
+recovery opportunities when GitHub drops or delays a trigger.
 
 The workflow updates the S&P 500 and TA-125 daily bars, derived weekly/monthly
 indicators, patterns, alerts, and the market-news headline. Manual dispatch

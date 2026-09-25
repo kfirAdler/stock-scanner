@@ -2,11 +2,10 @@ name: Refresh all stocks and patterns
 
 on:
   schedule:
-    # GitHub cron is best effort, so provide four opportunities per hour.
-    # The schedule gate below allows only the first successful run in each
-    # New York hour to do work; later attempts become inexpensive no-ops.
-    - cron: "12,27,42,57 10-16 * * 1-5"
-      timezone: America/New_York
+    # GitHub cron is best effort. Wake every five minutes across the union of
+    # US summer/winter UTC hours; the New York gate below enforces 10:00-16:59
+    # and allows only the first successful run in each hour to do real work.
+    - cron: "*/5 14-21 * * 1-5"
   workflow_dispatch:
     inputs:
       force_recompute:
