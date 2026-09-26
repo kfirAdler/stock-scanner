@@ -41,7 +41,16 @@ test('stale and short histories have no diagnostics or developing candidates',()
     assert.deepEqual(row.developing,[]);assert.equal(row.rejectionReason,undefined);assert.deepEqual(row.candles,[]);
   }
 });
-test('scheduled snapshots preserve their existing database schema and strict-only results',()=>{
+test('scheduled snapshots preserve their database columns',()=>{
   const row=scanSeries([{ticker:'TEST',candles:candles()}],now)[0];
   for(const key of ['preview','developing','rejectionReason'])assert.equal(Object.hasOwn(row,key),false);
+});
+test('scheduled snapshots persist developing candidates inside the matches JSON column',()=>{
+  const bars=candles();bars.at(-1).high=detectChannel(bars).breakoutLevel*1.02;
+  const row=scanSeries([{ticker:'TEST',candles:bars}],now)[0];
+  assert.equal(row.matches.filter(match=>match.stage!=='developing').length,0);
+  const candidate=row.matches.find(match=>match.stage==='developing');
+  assert.equal(candidate.pattern,'channel');
+  assert.equal(candidate.development.breachCount,1);
+  assert.equal(row.candles.length,160);
 });

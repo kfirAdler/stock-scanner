@@ -4,6 +4,7 @@ from unittest.mock import Mock
 import pandas as pd
 import pytest
 from src.jobs import refresh_market_snapshot as job
+from src.jobs.pattern_snapshots import annotate_match_changes
 from src.utils import market_data_fetcher as providers
 import run_refresh_metadata as metadata_job
 
@@ -155,6 +156,20 @@ def test_patterns_are_published_in_restartable_batches(refresh):
     result = job.run([f"T{i:02}" for i in range(51)], force_recompute=True)
     assert result["processed"] == 51
     assert [len(call.args[0]) for call in mocks["publish_pattern_snapshots"].call_args_list] == [50, 1]
+
+
+def test_pattern_changes_compare_like_for_like_matches():
+    rows = [{"ticker": "TEST", "matches": [
+        {"pattern": "channel", "channelDirection": "rising", "confidence": .84},
+        {"pattern": "cup_and_handle", "confidence": .71},
+    ]}]
+    previous = [{"ticker": "TEST", "matches": [
+        {"pattern": "channel", "channelDirection": "rising", "confidence": .78},
+    ]}]
+    annotate_match_changes(rows, previous)
+    assert rows[0]["matches"][0]["change"] == "strengthened"
+    assert rows[0]["matches"][0]["previousConfidence"] == .78
+    assert rows[0]["matches"][1]["change"] == "new"
 
 
 def test_cli_exits_zero_for_best_effort_failures(monkeypatch):

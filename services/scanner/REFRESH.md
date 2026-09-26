@@ -27,6 +27,13 @@ including symbols whose prices were unchanged or temporarily unavailable. They
 publish in batches of 50; a failed batch is split until a bad symbol is isolated,
 so the remaining pattern snapshots still update.
 
+Detector version 3 keeps strict matches separate from developing candidates.
+Scheduled scans persist near-matches for channels, ascending triangles, and
+cup-and-handle setups inside the existing JSON snapshot, without weakening the
+confirmed result set. Each published match is compared with its prior snapshot
+and marked `new`, `strengthened`, `weakened`, or `stable`; the patterns page
+offers separate Confirmed and Developing views.
+
 If both price providers return no rows for a symbol that already has stored
 history, the job preserves that history, records the symbol as
 `skipped_unavailable`, and continues. Per-symbol price and pattern failures are

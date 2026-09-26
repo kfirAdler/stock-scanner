@@ -43,3 +43,12 @@ test('all markets merges cached market results and coverage, retaining each char
  const invalid=await route.GET(new NextRequest('http://localhost/api/patterns?market=INVALID'));
  assert.equal(invalid.status,400);
 });
+test('api separates stored developing candidates from confirmed matches',async()=>{
+ const candidate={...row.matches[0],stage:'developing',development:{reason:'relaxed_thresholds',tolerance:.05}};
+ const stored={...row,matches:[candidate]};
+ const route=load('app/api/patterns/route.ts',{'next/server':{NextResponse},'@/lib/market-access':{getCurrentEntitlement:async()=>({loggedIn:true,canUseScreener:true})},'@/lib/patterns/data':{loadPatterns:async()=>[stored],loadLastPatternAttempt:async()=>null}});
+ const result=await(await route.GET(new NextRequest('http://localhost/api/patterns'))).json();
+ assert.equal(result.rows[0].matches.length,0);
+ assert.equal(result.rows[0].developing.length,1);
+ assert.equal(result.rows[0].developing[0].reason,'relaxed_thresholds');
+});

@@ -15,12 +15,23 @@ export async function GET(request: NextRequest) {
     const snapshots = market === 'ALL'
       ? (await Promise.all([loadPatterns('US', ticker), loadPatterns('TA', ticker)])).flat()
       : await loadPatterns(market as 'US' | 'TA', ticker);
-    const rows = snapshots.map(row => ({ ...row, status: row.status === 'scanned' && (!row.as_of || Date.now() - Date.parse(row.as_of) > 7 * 86400000) ? 'stale' as const : row.status }));
+    const rows = snapshots.map(row => {
+      const developing = [
+        ...(row.developing ?? []),
+        ...row.matches.filter(match => match.stage === 'developing')
+          .map(match => ({ match, ...(match.development ?? { reason: 'relaxed_thresholds' as const, tolerance: 0 }) })),
+      ];
+      return { ...row,
+        matches: row.matches.filter(match => match.stage !== 'developing'),
+        developing,
+        status: row.status === 'scanned' && (!row.as_of || Date.now() - Date.parse(row.as_of) > 7 * 86400000) ? 'stale' as const : row.status,
+      };
+    });
     if (ticker) return NextResponse.json({ row: rows[0] ?? null }, { headers: { 'Cache-Control': 'private, no-store' } });
     const lastAttempt = await loadLastPatternAttempt().catch(() => null);
     return NextResponse.json({
       lastAttempt,
-      rows: rows.filter(row => row.status === 'scanned' && row.matches.length > 0).map(({ candles, ...row }) => ({ ...row, preview: candles?.length ? { offset: 0, candles: candles.map(c => [c.open, c.high, c.low, c.close]) } : null })),
+      rows: rows.filter(row => row.status === 'scanned' && (row.matches.length > 0 || row.developing.length > 0)).map(({ candles, ...row }) => ({ ...row, preview: candles?.length ? { offset: 0, candles: candles.map(c => [c.open, c.high, c.low, c.close]) } : null })),
       coverage: { total: rows.length, scanned: rows.filter(r => r.status === 'scanned').length, stale: rows.filter(r => r.status === 'stale').length, insufficient: rows.filter(r => r.status === 'insufficient_history').length },
       updatedAt: rows.reduce<string | null>((latest, row) => !latest || row.updated_at > latest ? row.updated_at : latest, null),
     }, { headers: { 'Cache-Control': 'private, no-store' } });

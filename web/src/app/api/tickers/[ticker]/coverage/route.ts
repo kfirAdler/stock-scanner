@@ -154,7 +154,7 @@ export async function GET(
     close: Number(bar.close),
   }));
   const analysis = scanSeries([{ ticker: upper, candles }])[0];
-  const matches = (analysis?.matches ?? []).filter((match) => match.confidence >= 0.7)
+  const matches = (analysis?.matches ?? []).filter((match) => match.stage !== 'developing' && match.confidence >= 0.7)
     .sort((a, b) => b.confidence - a.confidence);
   let patternPeers: { ticker: string; companyName: string | null; confidence: number; asOf: string | null }[] = [];
   if (matches.length > 0) {
@@ -163,7 +163,7 @@ export async function GET(
       const rows = await loadPatternPeers(market);
       patternPeers = rows.flatMap((peer) => {
         if (peer.ticker === upper || !peer.as_of || Date.now() - Date.parse(peer.as_of) > 7 * 86400000) return [];
-        const comparable = peer.matches.find((candidate: PatternMatch) =>
+        const comparable = peer.matches.find((candidate: PatternMatch) => candidate.stage !== 'developing' &&
           candidate.pattern === primary.pattern &&
           (primary.pattern !== 'channel' || channelDirectionOf(candidate) === channelDirectionOf(primary)) &&
           Math.abs(candidate.confidence - primary.confidence) <= 0.050001);
