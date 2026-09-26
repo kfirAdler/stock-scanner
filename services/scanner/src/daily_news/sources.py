@@ -321,7 +321,30 @@ def _title_tokens(title):
 
 def _similar(left, right):
     a, b = _title_tokens(left), _title_tokens(right)
-    return bool(a and b) and len(a & b) / len(a | b) >= .72
+    if not a or not b:
+        return False
+    overlap = len(a & b)
+    return (overlap / len(a | b) >= .55
+            or overlap / min(len(a), len(b)) >= .68)
+
+
+def _same_event(left, right):
+    if _similar(left['title'], right['title']):
+        return True
+    a, b = _title_tokens(left['title']), _title_tokens(right['title'])
+    shared_tickers = set(left.get('tickers', [])) & set(right.get('tickers', []))
+    # Paraphrased headlines about the same company still need two meaningful
+    # shared event terms; ticker overlap alone would merge unrelated stories.
+    return bool(shared_tickers and len(a & b) >= 2
+                and len(a & b) / min(len(a), len(b)) >= .5
+                and left.get('category') == right.get('category'))
+
+
+def _representative_quality(item):
+    tokens = _title_tokens(item['title'])
+    return (24 if item['language'] == 'he' else 0) + SOURCE_TIER.get(item['source'], 0) + min(18, len(tokens) * 2) \
+        + min(8, len(item['title']) // 18) + (4 if item.get('text') else 0) \
+        + (4 if item.get('tickers') else 0) - (8 if '?' in item['title'] else 0)
 
 
 def _ticker_tags(item, catalog):
@@ -374,7 +397,7 @@ def prepare(items, catalog=None, cutoff=None):
         date = datetime.fromisoformat(item['published_at'])
         cluster = next((c for c in clusters if item['url'] == c[0]['url'] or (
             abs((date - datetime.fromisoformat(c[0]['published_at'])).total_seconds()) <= 12 * 3600
-            and _similar(item['title'], c[0]['title']))), None)
+            and _same_event(item, c[0]))), None)
         if cluster is None:
             clusters.append([item])
         else:
@@ -382,8 +405,7 @@ def prepare(items, catalog=None, cutoff=None):
 
     representatives = []
     for cluster in clusters:
-        cluster.sort(key=lambda row: (row['language'] != 'he', row['provider'] == 'google-news-he',
-                                      -SOURCE_TIER.get(row['source'], 0),
+        cluster.sort(key=lambda row: (-_representative_quality(row),
                                       -datetime.fromisoformat(row['published_at']).timestamp()))
         chosen = dict(cluster[0])
         chosen['cluster_size'] = len({row['source'] for row in cluster})

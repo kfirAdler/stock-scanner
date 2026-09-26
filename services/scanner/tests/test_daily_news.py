@@ -393,7 +393,7 @@ def test_market_dates_are_grouped_instead_of_repeated_in_cards():
     assert 'S&P 500, Nasdaq' in notes and 'נתון חסר: Dow Jones' in notes
     report = job.demo_report(NOW)
     report['quotes'] = quotes
-    cards = render(report).split('<div class="quotes">')[1].split('quote-notes')[0]
+    cards = render(report).split('<div class="market-groups">')[1].split('<div class="summary">')[0]
     assert '<small>' not in cards
     assert 'Dow Jones' not in cards
 
@@ -438,8 +438,13 @@ def test_renderer_targets_one_1080_by_1920_portrait_image():
 def test_header_uses_two_balanced_identity_blocks():
     html = render(job.demo_report(NOW))
     assert '<div class="identity"><div class="brand">DAILY MARKET BRIEF</div>' in html
-    assert '<div class="market-heading"><h1>וול סטריט</h1>' in html
-    assert '<h1>וול סטריט <span' not in html
+    assert '<div class="market-heading"><h1>חדשות היום</h1>' in html
+    assert 'שעון ישראל' not in html and 'story-meta' not in html and '<footer>' not in html
+    assert all(f'<div class="group-title">{group}</div>' in html
+               for group in ['מניות', 'קריפטו', 'סחורות', 'אג״ח'])
+    assert '<div class="section-label">סיכום היום</div>' in html
+    assert 2 <= html.count('<li>') <= 3
+    assert 'מקור לדוגמה' not in html and '<div class="badge">NVDA</div>' not in html
 
 
 @pytest.mark.parametrize('scenario', ['regular', 'fed', 'earnings'])
@@ -481,6 +486,17 @@ def test_tracking_urls_and_similar_titles_are_clustered():
     selected = sources.prepare(rows, cutoff=NOW)
     assert len(selected) == 1
     assert selected[0]['url'] == 'https://example.com/story'
+
+
+def test_paraphrased_event_keeps_the_more_informative_headline():
+    rows = [
+        source(title='אנבידיה חתמה על חוזה שבבים חדש', source='Publisher', language='he'),
+        source(title='אנבידיה חתמה על חוזה שבבים חדש בהיקף מיליארד דולר עם ספקית ענן',
+               source='Publisher', language='he', url='https://example.com/details'),
+    ]
+    selected = sources.prepare(rows, cutoff=NOW)
+    assert len(selected) == 1
+    assert 'מיליארד דולר' in selected[0]['title']
 
 
 def test_question_headlines_do_not_substitute_for_market_facts():

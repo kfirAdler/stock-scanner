@@ -23,15 +23,12 @@ LABELS = {
 CSS = '''
 @page{size:540px 960px;margin:0}*{box-sizing:border-box}
 html,body{margin:0;width:540px;height:960px;overflow:hidden;background:#f4f7f5;color:#10231c;font-family:Heebo,Arial,sans-serif}
-#daily-brief{width:540px;height:960px;overflow:hidden;background:#f4f7f5;padding:18px 22px 14px;display:flex;flex-direction:column}
-header{height:76px;flex:none;border-bottom:2px solid #075b45;display:flex;direction:ltr;align-items:center;justify-content:space-between;padding:0 0 11px}
-.identity{align-self:stretch;display:flex;flex-direction:column;justify-content:center;gap:7px;text-align:left}.brand{direction:ltr;color:#075b45;font-size:9px;line-height:1;font-weight:850;letter-spacing:1.55px}.brand:before{content:"";display:inline-block;width:13px;height:3px;margin:0 7px 2px 0;background:#075b45;border-radius:2px}.date{direction:ltr;font-size:18px;line-height:1;font-weight:820;letter-spacing:.25px;font-variant-numeric:tabular-nums}
-.market-heading{direction:rtl;text-align:right;display:flex;flex-direction:column;align-items:flex-start;gap:5px}.market-heading h1{margin:0;font-size:21px;line-height:1;font-weight:780}.stamp{color:#64746d;font-size:10.5px;line-height:1;font-weight:550;font-variant-numeric:tabular-nums}
-.quotes{height:112px;flex:none;display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(3,1fr);column-gap:18px;padding:10px 0 8px;border-bottom:1px solid #dde7e2}
-.quote{display:grid;grid-template-columns:70px 1fr 54px;align-items:center;font-size:11px;font-variant-numeric:tabular-nums}.quote-label{direction:ltr;unicode-bidi:isolate;color:#64746d;font-weight:750}.quote-value,.quote-change{direction:ltr;unicode-bidi:isolate;text-align:left;font-weight:750}.up{color:#087a55}.down{color:#c83c4a}.missing{color:#8b9892}
-.seconds{height:56px;flex:none;padding:8px 0;border-bottom:1px solid #dde7e2}.section-label{font-size:10px;line-height:1;color:#075b45;font-weight:850;letter-spacing:.3px}.pulse{margin-top:7px;font-size:12px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
-.stories{flex:1;min-height:0}.story{height:66px;padding:8px 0 7px;border-bottom:1px solid #dde7e2;display:grid;grid-template-columns:47px 1fr;column-gap:9px;break-inside:avoid}.story.top{height:78px;padding-top:9px}.badge{align-self:start;justify-self:start;direction:ltr;unicode-bidi:isolate;max-width:47px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#e5efe9;color:#075b45;border-radius:3px;padding:3px 5px;font-size:9px;line-height:1.2;font-weight:850;text-align:center}.story-body{min-width:0}.story-title{margin:0;font-size:15px;line-height:1.25;font-weight:680;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.top .story-title{font-size:16px;font-weight:760}.english-title{direction:ltr;unicode-bidi:isolate;text-align:left}.story-meta{margin-top:3px;color:#64746d;font-size:9.5px;line-height:1.15;display:flex;gap:5px;align-items:center}.en{direction:ltr;background:#10231c;color:white;border-radius:2px;padding:1px 3px;font-size:8px;font-weight:800}
-footer{height:22px;flex:none;display:flex;align-items:end;justify-content:space-between;color:#64746d;font-size:8.5px;line-height:1.1}.numeric,.ticker{direction:ltr;unicode-bidi:isolate}
+#daily-brief{width:540px;height:960px;overflow:hidden;background:#f4f7f5;padding:18px 22px;display:flex;flex-direction:column}
+header{height:62px;flex:none;border-bottom:2px solid #075b45;display:flex;direction:ltr;align-items:center;justify-content:space-between;padding:0 0 10px}
+.identity{display:flex;flex-direction:column;gap:6px;text-align:left}.brand{direction:ltr;color:#075b45;font-size:8px;line-height:1;font-weight:850;letter-spacing:1.5px}.brand:before{content:"";display:inline-block;width:12px;height:3px;margin:0 6px 2px 0;background:#075b45;border-radius:2px}.date{direction:ltr;color:#64746d;font-size:12px;line-height:1;font-weight:700;font-variant-numeric:tabular-nums}.market-heading{direction:rtl;text-align:right}.market-heading h1{margin:0;font-size:24px;line-height:1;font-weight:820}
+.market-groups{height:138px;flex:none;display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);gap:7px;padding:10px 0;border-bottom:1px solid #d7e2dc}.market-group{min-width:0;border:1px solid #dce7e1;border-radius:7px;background:#f9fbfa;padding:6px 9px}.group-title{color:#64746d;font-size:8.5px;line-height:1;font-weight:800}.group-quotes{margin-top:5px;display:flex;flex-direction:column;gap:3px}.quote{display:grid;grid-template-columns:minmax(48px,1fr) 48px 43px;align-items:center;gap:4px;font-size:10px;line-height:1.15;font-variant-numeric:tabular-nums}.quote-label{direction:ltr;unicode-bidi:isolate;font-weight:750}.quote-value,.quote-change{direction:ltr;unicode-bidi:isolate;text-align:left;font-weight:780}.up{color:#087a55}.down{color:#c83c4a}.missing{color:#8b9892}
+.summary{height:92px;flex:none;padding:10px 0;border-bottom:1px solid #d7e2dc}.section-label{font-size:10px;line-height:1;color:#075b45;font-weight:850;letter-spacing:.2px}.summary-list{margin:7px 0 0;padding:0 15px 0 0;display:grid;gap:3px;font-size:11px;line-height:1.25;font-variant-numeric:tabular-nums}.summary-list li::marker{color:#087a55}
+.stories{flex:1;min-height:0}.story{height:58px;padding:9px 0;border-bottom:1px solid #dde7e2;display:grid;grid-template-columns:55px 1fr;column-gap:10px;align-items:start;break-inside:avoid}.story.top{height:64px;padding-top:10px}.badge{justify-self:start;max-width:55px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#e5efe9;color:#075b45;border-radius:4px;padding:4px 7px;font-size:9px;line-height:1.1;font-weight:850;text-align:center}.story-body{min-width:0}.story-title{margin:0;font-size:14px;line-height:1.3;font-weight:680;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.top .story-title{font-size:15px;font-weight:760}.english-title{direction:ltr;unicode-bidi:isolate;text-align:left}.numeric,.ticker{direction:ltr;unicode-bidi:isolate}
 '''
 
 
@@ -66,18 +63,35 @@ def news_text(text, item, prefix=False):
     return ''.join(result)
 
 
+def _quote_key(label):
+    normalized = str(label).upper().strip()
+    return {'NASDAQ': 'NASDAQ', 'BITCOIN': 'BTC', 'WTI נפט': 'WTI'}.get(normalized, normalized)
+
+
 def _quote_markup(quotes):
+    wanted = {
+        'מניות': ('S&P 500', 'NASDAQ'), 'קריפטו': ('BTC',),
+        'סחורות': ('WTI',), 'אג״ח': ('US10Y',),
+    }
+    by_label = {_quote_key(quote['label']): quote for quote in quotes}
     out = []
-    for quote in quotes[:6]:
-        value = quote.get('value')
-        change = quote.get('change')
-        if value is None:
-            continue
-        decimals = 2 if abs(value) < 1000 else 0
-        color = 'up' if (change or 0) >= 0 else 'down'
-        out.append(f'<div class="quote"><span class="quote-label">{e(quote["label"])}</span>'
-                   f'<span class="quote-value">{value:,.{decimals}f}</span>'
-                   f'<span class="quote-change {color}">{change:+.2f}%</span></div>')
+    for group, labels in wanted.items():
+        rows = []
+        for label in labels:
+            quote = by_label.get(_quote_key(label))
+            if not quote or quote.get('value') is None:
+                rows.append(f'<div class="quote missing"><span class="quote-label">{e(label)}</span>'
+                            '<span class="quote-value">—</span><span class="quote-change">—</span></div>')
+                continue
+            value = quote.get('value')
+            change = quote.get('change')
+            decimals = 2 if abs(value) < 1000 else 0
+            color = 'up' if (change or 0) >= 0 else 'down'
+            rows.append(f'<div class="quote"><span class="quote-label">{e(label)}</span>'
+                        f'<span class="quote-value">{value:,.{decimals}f}</span>'
+                        f'<span class="quote-change {color}">{change:+.2f}%</span></div>')
+        out.append(f'<section class="market-group"><div class="group-title">{e(group)}</div>'
+                   f'<div class="group-quotes">{"".join(rows)}</div></section>')
     return ''.join(out)
 
 
@@ -100,22 +114,28 @@ def quote_notes(quotes):
     return ' · '.join(notes)
 
 
-def _pulse(report):
-    available = [q for q in report['quotes'] if q.get('value') is not None and q.get('change') is not None]
+def _summary_points(report):
+    shown = {'S&P 500', 'NASDAQ', 'BTC', 'WTI', 'US10Y'}
+    available = [q for q in report['quotes'] if _quote_key(q['label']) in shown
+                 and q.get('value') is not None and q.get('change') is not None]
     strongest = sorted(available, key=lambda q: abs(q['change']), reverse=True)[:3]
-    parts = [f"{q['label']} {q['change']:+.1f}%" for q in strongest]
+    parts = [f"{q['label']}: {'עלייה' if q['change'] >= 0 else 'ירידה'} של {abs(q['change']):.1f}%"
+             for q in strongest]
     titles = ' '.join(item['title'] for item in report['items'])
     if re.search(r'Fed|פד|ריבית', titles, re.I):
         parts.append('הפד במוקד')
     earnings = sum(item['category'] == 'earnings' for item in report['items'])
     if earnings:
         parts.append(f'{earnings} דוחות בולטים')
-    return '  ●  '.join(parts[:4]) or 'נתוני השוק האחרונים זמינים בכותרות שלמטה'
+    if not parts:
+        parts = ['המגמות המרכזיות מופיעות בכותרות שלמטה']
+    if len(parts) == 1:
+        parts.append('האירועים הבולטים מסודרים לפי חשיבות ועדכניות')
+    return parts[:3]
 
 
 def _badge(item):
-    tickers = item.get('tickers', [])
-    return tickers[0] if tickers else LABELS.get(item['category'], 'שוק')
+    return LABELS.get(item['category'], 'שוק')
 
 
 def render(report, items=None, page_label='', overview=True):
@@ -127,25 +147,19 @@ def render(report, items=None, page_label='', overview=True):
            '</title><style>', embedded_font(), CSS, '</style></head><body>',
            '<main id="daily-brief"><header><div class="identity"><div class="brand">DAILY MARKET BRIEF</div>',
            '<div class="date">', cutoff.strftime('%d.%m.%Y'), '</div></div>',
-           '<div class="market-heading"><h1>וול סטריט</h1><div class="stamp">',
-           cutoff.strftime('%H:%M'), ' · שעון ישראל</div></div></header>',
-           '<div class="quotes">', _quote_markup(report['quotes']) if overview else '', '</div>',
-           '<div class="seconds"><div class="section-label">היום ב־20 שניות</div><div class="pulse">● ',
-           e(_pulse(report)) if overview else '', '</div></div><div class="stories">']
+           '<div class="market-heading"><h1>חדשות היום</h1></div></header>',
+           '<div class="market-groups">', _quote_markup(report['quotes']) if overview else '', '</div>',
+           '<div class="summary"><div class="section-label">סיכום היום</div><ul class="summary-list">',
+           ''.join('<li>' + e(point) + '</li>' for point in _summary_points(report)) if overview else '',
+           '</ul></div><div class="stories">']
     for index, item in enumerate(selected):
         source = item['sources'][0]
-        published = datetime.fromisoformat(source['published_at']).astimezone(ZoneInfo('Asia/Jerusalem')).strftime('%H:%M')
         language = item.get('language') or source.get('language', 'en')
         direction = ' class="story-title english-title" dir="ltr"' if language == 'en' else ' class="story-title" dir="auto"'
         out.extend(['<article class="story', ' top' if index == 0 else '', '"><div class="badge">',
                     e(_badge(item)), '</div><div class="story-body"><h2', direction, '>',
-                    news_text(item['title'], item), '</h2><div class="story-meta"><span>',
-                    e(source['source']), '</span><span>·</span><span class="numeric">', published,
-                    '</span>', '<span class="en">EN</span>' if language == 'en' else '',
-                    '</div></div></article>'])
-    source_count = len({item['sources'][0]['source'] for item in selected})
-    out.extend(['</div><footer><span>מקורות: ', str(source_count), ' · ללא AI וללא תרגום אוטומטי</span>',
-                '<span>מחירים: Yahoo Finance</span></footer></main></body></html>'])
+                    news_text(item['title'], item), '</h2></div></article>'])
+    out.extend(['</div></main></body></html>'])
     return ''.join(out)
 
 

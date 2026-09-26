@@ -35,7 +35,8 @@ def demo_report(cutoff):
     return dict(cutoff=cutoff.isoformat(), window_start=(cutoff-timedelta(hours=24)).isoformat(),
                 generated_at=datetime.now(timezone.utc).isoformat(), demo=True,
                 warnings=['דוגמת עיצוב בלבד. אין כאן חדשות או מחירי שוק אמיתיים.'],
-                quotes=[dict(label=x, value=None, change=None, session_date='', url='') for x in ['S&P 500', 'Nasdaq', 'WTI נפט', 'Bitcoin']],
+                quotes=[dict(label=x, value=None, change=None, session_date='', url='')
+                        for x in ['S&P 500', 'NASDAQ', 'BTC', 'WTI', 'US10Y']],
                 items=[dict(category=c, tickers=t, title=h, summary=s, sources=[source], social_only=False) for c,t,h,s in entries])
 
 
