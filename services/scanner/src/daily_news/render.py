@@ -24,9 +24,9 @@ CSS = '''
 @page{size:540px 960px;margin:0}*{box-sizing:border-box}
 html,body{margin:0;width:540px;height:960px;overflow:hidden;background:#f4f7f5;color:#10231c;font-family:Heebo,Arial,sans-serif}
 #daily-brief{width:540px;height:960px;overflow:hidden;background:#f4f7f5;padding:18px 22px 14px;display:flex;flex-direction:column}
-header{height:76px;flex:none;border-bottom:2px solid #075b45;display:grid;grid-template-columns:1fr auto;align-items:start;padding:0 0 12px}
-.brand{direction:ltr;text-align:left;color:#075b45;font-size:11px;line-height:1;font-weight:800;letter-spacing:1.45px}.date{font-size:20px;line-height:1;font-weight:800;text-align:right}
-h1{grid-column:1/-1;margin:9px 0 0;font-size:18px;line-height:1.2;font-weight:700}.stamp{color:#64746d;font-size:11px;font-weight:500}
+header{height:76px;flex:none;border-bottom:2px solid #075b45;display:flex;direction:ltr;align-items:center;justify-content:space-between;padding:0 0 11px}
+.identity{align-self:stretch;display:flex;flex-direction:column;justify-content:center;gap:7px;text-align:left}.brand{direction:ltr;color:#075b45;font-size:9px;line-height:1;font-weight:850;letter-spacing:1.55px}.brand:before{content:"";display:inline-block;width:13px;height:3px;margin:0 7px 2px 0;background:#075b45;border-radius:2px}.date{direction:ltr;font-size:18px;line-height:1;font-weight:820;letter-spacing:.25px;font-variant-numeric:tabular-nums}
+.market-heading{direction:rtl;text-align:right;display:flex;flex-direction:column;align-items:flex-start;gap:5px}.market-heading h1{margin:0;font-size:21px;line-height:1;font-weight:780}.stamp{color:#64746d;font-size:10.5px;line-height:1;font-weight:550;font-variant-numeric:tabular-nums}
 .quotes{height:112px;flex:none;display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(3,1fr);column-gap:18px;padding:10px 0 8px;border-bottom:1px solid #dde7e2}
 .quote{display:grid;grid-template-columns:70px 1fr 54px;align-items:center;font-size:11px;font-variant-numeric:tabular-nums}.quote-label{direction:ltr;unicode-bidi:isolate;color:#64746d;font-weight:750}.quote-value,.quote-change{direction:ltr;unicode-bidi:isolate;text-align:left;font-weight:750}.up{color:#087a55}.down{color:#c83c4a}.missing{color:#8b9892}
 .seconds{height:56px;flex:none;padding:8px 0;border-bottom:1px solid #dde7e2}.section-label{font-size:10px;line-height:1;color:#075b45;font-weight:850;letter-spacing:.3px}.pulse{margin-top:7px;font-size:12px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
@@ -125,9 +125,10 @@ def render(report, items=None, page_label='', overview=True):
     out = ['<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8">',
            '<meta name="viewport" content="width=540,initial-scale=1"><title>', e(title),
            '</title><style>', embedded_font(), CSS, '</style></head><body>',
-           '<main id="daily-brief"><header><div class="brand">DAILY MARKET BRIEF</div>',
-           '<div class="date">', cutoff.strftime('%d.%m.%Y'), '</div><h1>וול סטריט',
-           ' <span class="stamp">· ', cutoff.strftime('%H:%M'), ' שעון ישראל</span></h1></header>',
+           '<main id="daily-brief"><header><div class="identity"><div class="brand">DAILY MARKET BRIEF</div>',
+           '<div class="date">', cutoff.strftime('%d.%m.%Y'), '</div></div>',
+           '<div class="market-heading"><h1>וול סטריט</h1><div class="stamp">',
+           cutoff.strftime('%H:%M'), ' · שעון ישראל</div></div></header>',
            '<div class="quotes">', _quote_markup(report['quotes']) if overview else '', '</div>',
            '<div class="seconds"><div class="section-label">היום ב־20 שניות</div><div class="pulse">● ',
            e(_pulse(report)) if overview else '', '</div></div><div class="stories">']

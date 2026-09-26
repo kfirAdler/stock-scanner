@@ -435,6 +435,13 @@ def test_renderer_targets_one_1080_by_1920_portrait_image():
     assert DEVICE_SCALE_FACTOR == 2
 
 
+def test_header_uses_two_balanced_identity_blocks():
+    html = render(job.demo_report(NOW))
+    assert '<div class="identity"><div class="brand">DAILY MARKET BRIEF</div>' in html
+    assert '<div class="market-heading"><h1>וול סטריט</h1>' in html
+    assert '<h1>וול סטריט <span' not in html
+
+
 @pytest.mark.parametrize('scenario', ['regular', 'fed', 'earnings'])
 def test_historical_style_fixtures_select_mobile_brief(scenario):
     titles = [
