@@ -4,6 +4,7 @@ import subprocess
 from pathlib import Path
 
 from ..repositories.market_data_repository import _get_client, chunk_rows
+from .pattern_notifications import enqueue_new_pattern_alerts
 
 
 def _match_key(match):
@@ -63,6 +64,7 @@ def publish_pattern_snapshots(series):
                     .select("ticker,matches").in_("ticker", ticker_batch).execute())
         previous_rows.extend(response.data or [])
     annotate_match_changes(rows, previous_rows)
+    enqueue_new_pattern_alerts(client, rows)
     for batch in chunk_rows(rows, batch_size=50):
         client.table("symbol_pattern_snapshot").upsert(batch, on_conflict="ticker").execute()
     return len(rows)

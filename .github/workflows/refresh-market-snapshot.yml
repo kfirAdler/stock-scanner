@@ -140,6 +140,17 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: python run_alert_check.py
+
+      - name: Send new pattern alerts to Discord
+        if: ${{ !cancelled() && steps.schedule_gate.outputs.run_refresh == 'true' }}
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          DISCORD_PATTERN_ASCENDING_TRIANGLE_CHANNEL_ID: "1553398320842547261"
+          DISCORD_PATTERN_CHANNEL_CHANNEL_ID: "1553398419991699456"
+          DISCORD_PATTERN_CUP_AND_HANDLE_CHANNEL_ID: "1553398464958959656"
+        run: python run_pattern_notifications.py
       
       - name: Store market news headline
         if: ${{ !cancelled() && steps.schedule_gate.outputs.run_refresh == 'true' }}

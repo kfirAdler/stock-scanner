@@ -34,6 +34,14 @@ confirmed result set. Each published match is compared with its prior snapshot
 and marked `new`, `strengthened`, `weakened`, or `stable`; the patterns page
 offers separate Confirmed and Developing views.
 
+New confirmed matches are also queued for Discord delivery. Migration
+`027_pattern_alert_outbox.sql` must be applied before enabling delivery. The
+existing `DISCORD_BOT_TOKEN` is reused, while the refresh workflow maps each
+detector to its dedicated channel. Alerts contain the ticker, breakout price,
+and a generated 1200x675 candlestick PNG with the detected geometry. Developing
+setups never alert. Delivery retries from the durable outbox and deliberately
+does not fail the market refresh when Discord is unavailable.
+
 If both price providers return no rows for a symbol that already has stored
 history, the job preserves that history, records the symbol as
 `skipped_unavailable`, and continues. Per-symbol price and pattern failures are
